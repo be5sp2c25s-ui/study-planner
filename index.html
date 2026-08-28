@@ -1,0 +1,1378 @@
+<!-- 블록제 통합 스터디 워크스페이스 · 멀티블록 v2 -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root{
+    --bg:#F5F7FA; --surface:#FFFFFF; --surface2:#EEF1F5; --ink:#1C2430; --muted:#7C8798; --faint:#A7AFBD;
+    --line:#E2E6ED;
+    --accent:#2F6FED; --accent-soft:#EAF0FE;
+    --idle:#1C2430;
+    --progress:#2F6FED; --progress-soft:#EAF0FE;
+    --done:#E07B1E; --done-soft:#FBEBD9;
+    --inactive:#565F6E; --inactive-soft:#D8DCE4;
+    --warn:#C22067; --warn-soft:#FBDDEA;
+    --disp:'Pretendard',-apple-system,'Segoe UI','Noto Sans KR',sans-serif;
+    --sans:'Pretendard',-apple-system,'Segoe UI','Noto Sans KR',sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased;padding:20px 16px 70px}
+  .wrap{max-width:1080px;margin:0 auto}
+
+  .blocktabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .blocktab{padding:8px 15px;border-radius:9px;border:1px solid var(--line);background:var(--surface);font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted)}
+  .blocktab.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .blocktab.add{background:var(--surface);border:1px dashed var(--faint);color:var(--muted)}
+  .blocktab.add:hover{color:var(--accent);border-color:var(--accent)}
+  .blocktabgrp{display:inline-flex;align-items:center;gap:2px}
+  .tabdel{width:18px;height:18px;border:none;border-radius:50%;background:transparent;color:var(--faint);font-size:12px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+  .tabdel:hover{background:var(--warn-soft);color:var(--warn)}
+
+  header{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;padding:6px 2px 18px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .dot{width:32px;height:32px;border-radius:9px;background:var(--ink);flex-shrink:0}
+  .brand h1{font-family:var(--disp);font-weight:800;font-size:18px;letter-spacing:-0.3px;margin:0;color:var(--ink)}
+  .brand p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+  .ctrls{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end}
+  .stepper{display:flex;align-items:center;gap:6px}
+  .stepper button{width:26px;height:26px;border-radius:7px;border:1px solid var(--line);cursor:pointer;font-size:15px;color:var(--muted);background:var(--surface)}
+  .stepper button:hover{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+  .readout{text-align:center;min-width:70px}
+  .readout .n{font-size:10px;font-weight:700;color:var(--faint)}
+  .readout .d{font-size:14px;font-weight:800;color:var(--ink)}
+  .capl{font-size:10px;font-weight:700;color:var(--faint);margin-bottom:3px}
+
+  .gaugebar{
+    position:relative;overflow:hidden;
+    display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:6px 0 16px;padding:16px 20px;border-radius:12px;
+    background:var(--surface); border:1px solid var(--line);
+  }
+  .gaugebar svg{flex-shrink:0}
+  .gaugebar .msg{font-family:var(--disp);font-weight:800;font-size:14px;color:var(--ink);flex:1;min-width:180px;line-height:1.5}
+  .gaugebar .dnum{font-family:var(--disp);font-weight:800;font-size:24px;color:var(--ink)}
+  .gaugebar .msg small{display:block;font-family:var(--sans);font-weight:600;font-size:12px;color:var(--muted);margin-top:3px}
+  .clover{position:absolute;font-size:15px;top:-18px;animation:fall 3.2s linear infinite}
+  @keyframes fall{ to{ transform:translateY(80px) rotate(200deg); opacity:0; } }
+
+  .tabs{display:flex;gap:6px;margin:4px 0 14px;flex-wrap:wrap}
+  .tab{padding:9px 15px;border-radius:9px;border:1px solid transparent;background:var(--surface2);font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted)}
+  .tab.on{background:var(--ink);color:#fff}
+  .panelset{display:none}
+  .panelset.on{display:block}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin:14px 0}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .stat .k{font-size:10.5px;color:var(--muted)}
+  .stat .v{font-family:var(--disp);font-size:19px;font-weight:800;margin-top:4px;color:var(--ink)}
+
+  .stagegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+  @media(max-width:720px){.stagegrid{grid-template-columns:1fr}}
+  .stagecol{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;border-left:4px solid var(--line)}
+  .stagecol:nth-child(1){border-left-color:var(--progress)}
+  .stagecol:nth-child(2){border-left-color:var(--done)}
+  .stagecol:nth-child(3){border-left-color:var(--inactive)}
+  .stagecol h2{font-family:var(--disp);font-weight:800;font-size:13px;margin:0 0 2px;display:flex;align-items:center;gap:6px;color:var(--ink)}
+  .stagecol .n{font-size:10.5px;background:var(--bg);color:var(--muted);border-radius:20px;padding:1px 8px;font-weight:700}
+  .stagecol .desc{font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .panel h2{font-family:var(--disp);font-weight:800;font-size:13px;margin:0 0 3px;color:var(--ink)}
+  .panel .hint{font-size:11px;color:var(--muted);margin:0 0 9px}
+  .card{border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:var(--surface);margin-bottom:8px}
+  .card .top{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:3px}
+  .code{font-size:10.5px;font-weight:700;color:var(--muted)}
+  .badge{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px}
+  .badge.lab{background:var(--bg);color:var(--muted)}
+  .badge.carry{background:var(--warn-soft);color:var(--warn)}
+  .badge.due{background:var(--progress-soft);color:var(--progress)}
+  .badge.late{background:var(--warn-soft);color:var(--warn)}
+  .card .t{font-size:13px;font-weight:800}
+  .card .m{font-size:10.5px;color:var(--muted);margin-top:2px}
+  .go{margin-top:8px;border:none;border-radius:9px;padding:9px 13px;font-size:12.5px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff}
+  .go.amber{background:var(--done)}
+  .empty{font-size:12px;color:var(--faint);text-align:center;padding:18px 4px}
+
+  details.pre{margin-top:6px}
+  details.pre summary{cursor:pointer;font-size:12px;font-weight:700;color:var(--muted)}
+
+  .listbox{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-top:18px;overflow:hidden}
+  .lh{padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+  .lh h2{margin:0;font-size:13px;font-family:var(--disp);font-weight:800}
+  .reset{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:9px;padding:7px 13px;font-size:11.5px;font-weight:700;cursor:pointer}
+  .reset:hover{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-soft)}
+  .daygrp{border-top:1px solid var(--line)}
+  .dayhd{padding:9px 16px;font-size:11.5px;color:var(--muted);font-weight:700;display:flex;gap:8px;align-items:baseline}
+  .dayhd .ex{color:var(--ink)}
+  .row{padding:10px 16px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .row .rt{flex:1;min-width:160px}
+  .row .rt .rn{font-size:13px;font-weight:700}
+  .row .rt .rp{font-size:11px;color:var(--muted)}
+  .chips{display:flex;gap:4px}
+  .chip{display:flex;flex-direction:column;align-items:center;gap:1px;width:28px}
+  .chip button, .chip span.sq{width:19px;height:19px;border-radius:6px;border:none;cursor:pointer;background:var(--inactive-soft);font-size:8.5px;display:flex;align-items:center;justify-content:center;padding:0;color:var(--inactive)}
+  .chip button.done{background:var(--done);color:#fff}
+  .chip button.due{background:var(--progress);color:#fff}
+  .chip button.overdue{background:var(--warn);color:#fff}
+  .chip span.sq.na{background:repeating-linear-gradient(45deg,var(--line) 0 2px,var(--surface) 2px 4px);cursor:default}
+  .chip span.sq.inactive{cursor:default;opacity:.6}
+  .chip .lbl{font-size:8.5px;color:var(--faint)}
+  .encpill{font-size:10.5px;font-weight:700;color:var(--muted);background:var(--bg);padding:2px 9px;border-radius:20px}
+  .encpill.no{color:var(--faint);background:var(--bg)}
+  .undo{border:none;background:transparent;color:var(--faint);font-size:11px;font-weight:700;cursor:pointer;text-decoration:underline}
+  .undo:hover{color:var(--warn)}
+
+  .addlec{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:12px 16px;border-top:1px solid var(--line);background:var(--surface2)}
+  .addlec input, .addlec select{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:11.5px;font-family:var(--sans);background:var(--surface)}
+  .addlec input[type=text]{width:110px}
+  .addlec button{border:none;border-radius:9px;padding:8px 14px;font-size:11.5px;font-weight:700;background:var(--accent);color:#fff;cursor:pointer}
+
+  .plib{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:720px){.plib{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}}
+  .pcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 15px;position:relative}
+  .pcard .ptitle{font-family:var(--disp);font-weight:800;font-size:13px;margin-bottom:2px;color:var(--ink)}
+  .pcard .pwhen{font-size:10.5px;color:var(--muted);margin-bottom:8px}
+  .pcard .ptext{font-size:11px;color:var(--muted);white-space:pre-wrap;max-height:70px;overflow:hidden;line-height:1.55}
+  .copybtn{margin-top:9px;border:none;color:var(--accent);background:var(--accent-soft);border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer}
+  .copybtn.copied{background:var(--accent);color:#fff}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 18px;border-radius:9px;font-size:12px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
+  .toast.show{opacity:1}
+
+  .mask{position:fixed;inset:0;background:rgba(28,36,48,.35);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .mask.on{display:flex}
+  .modal{background:var(--surface);border-radius:14px;max-width:360px;width:100%;padding:20px;max-height:88vh;overflow:auto;border:1px solid var(--line)}
+  .modal.wide{max-width:420px}
+  .modal h3{margin:0 0 6px;font-size:15px;font-family:var(--disp);font-weight:800;letter-spacing:-0.3px}
+  .modal p{margin:0;font-size:12px;color:var(--muted);white-space:pre-line;line-height:1.55}
+  .modal .acts{margin-top:16px;display:flex;justify-content:flex-end;gap:8px}
+  .modal button{border-radius:9px;padding:9px 15px;font-size:12.5px;font-weight:700;cursor:pointer;border:none}
+  .modal .no{background:var(--surface2);color:var(--muted)}
+  .modal .yes{background:var(--warn);color:#fff}
+
+  .form-row{display:flex;flex-direction:column;gap:4px;margin-bottom:11px}
+  .form-row label{font-size:11.5px;font-weight:700;color:var(--muted)}
+  .form-row input[type=text],.form-row input[type=date]{border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:12.5px;font-family:var(--sans)}
+  .form-row input[type=file]{font-size:11.5px}
+  .nbstatus{font-size:11.5px;color:var(--muted);white-space:pre-wrap;margin-top:6px;min-height:14px}
+  .primary{background:var(--accent)!important;color:#fff!important}
+
+  .planlist{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+  .planrow{display:grid;grid-template-columns:64px 1fr 150px;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
+  .planrow.cur{border-color:var(--accent);background:var(--accent-soft)}
+  .planrow.past{opacity:.5}
+  .pd{font-size:11px;font-weight:800;color:var(--ink);line-height:1.3}
+  .pdate{font-size:10px;font-weight:600;color:var(--muted)}
+  .pbarwrap{position:relative;height:14px;background:var(--surface2);border-radius:7px}
+  .pbar{height:100%;border-radius:7px;transition:width .2s}
+  .pcapline{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.35}
+  .pcount{font-size:10.5px;color:var(--muted);white-space:nowrap;text-align:right}
+  .pnote{font-size:9.5px;color:var(--muted);font-weight:700;grid-column:1/-1;margin-top:-2px}
+  .capinput{width:56px;font-size:10.5px;border:1px solid var(--line);border-radius:6px;padding:3px 5px;margin-left:6px;font-family:var(--sans)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:10.5px;color:var(--muted);margin-top:8px}
+  .typecosts{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px;padding:8px 10px;background:var(--surface2);border-radius:9px}
+  .typecosts .tclbl{font-size:10.5px;font-weight:700;color:var(--muted)}
+  .typecosts label{display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:var(--ink)}
+  .tcinput{width:54px;font-size:10.5px;border:1px solid var(--line);border-radius:6px;padding:3px 5px;font-family:var(--sans)}
+  .pbar2{position:relative;height:100%;display:flex;border-radius:7px;overflow:hidden}
+  .pbarseg{height:100%}
+  .plantags{display:flex;flex-direction:column;gap:3px;margin-top:6px}
+  .plantaggrp{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+  .plantaggrp .glbl{font-size:9px;font-weight:700;color:var(--faint);min-width:24px}
+  .plantag{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px}
+  .plantag.new{background:var(--progress-soft);color:var(--progress)}
+  .plantag.r1{background:var(--done-soft);color:var(--done)}
+  .plantag.r2{background:var(--inactive-soft);color:var(--inactive)}
+  .plantag.done{opacity:.5;text-decoration:line-through}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+  .battery-wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .battery{position:relative;width:72px;height:32px;border:2px solid var(--line);border-radius:7px;padding:3px;flex-shrink:0;background:var(--surface2)}
+  .battery::after{content:'';position:absolute;right:-7px;top:10px;width:5px;height:12px;background:var(--line);border-radius:0 3px 3px 0}
+  .battery-fill{height:100%;border-radius:3px;transition:width .3s ease}
+  .battery-pct{font-family:var(--disp);font-weight:800;font-size:21px;letter-spacing:-0.3px}
+
+  .onboard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+  .onboard summary{cursor:pointer;font-weight:800;font-size:13px;font-family:var(--disp);list-style:none;color:var(--ink)}
+  .onboard summary::-webkit-details-marker{display:none}
+  .oitem{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-top:1px solid var(--line)}
+  .oitem:first-of-type{border-top:none;padding-top:12px}
+  .ochk{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+  .ochk.done{background:var(--done);border-color:var(--done)}
+  .olabel{flex:1;font-size:12px;font-weight:600}
+  .olabel.done{text-decoration:line-through;color:var(--muted)}
+  .olabel.later{color:var(--muted);font-style:italic}
+  .olater-badge{font-size:9.5px;font-weight:700;color:var(--inactive);background:var(--inactive-soft);padding:1px 7px;border-radius:20px;margin-left:6px}
+  .olaterbtn{border:none;background:transparent;color:var(--faint);font-size:10.5px;font-weight:700;cursor:pointer;text-decoration:underline;flex-shrink:0}
+  .opromptbtn{border:none;background:var(--accent-soft);color:var(--accent);font-size:10px;font-weight:700;cursor:pointer;border-radius:7px;padding:3px 8px;flex-shrink:0}
+  .opromptbox{margin:6px 0 0 26px;padding:9px 11px;background:var(--surface2);border-radius:9px;font-size:10.5px;color:var(--muted);white-space:pre-wrap}
+
+  .dayflow{display:flex;flex-direction:column;gap:10px;margin:16px 0}
+  .flowitem{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .flowhead{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer}
+  .flowbadge{font-size:10px;font-weight:800;padding:3px 9px;border-radius:8px;flex-shrink:0}
+  .flowbadge.new{background:var(--progress-soft);color:var(--progress)}
+  .flowbadge.r1{background:var(--done-soft);color:var(--done)}
+  .flowbadge.r2{background:var(--inactive-soft);color:var(--inactive)}
+  .flowtitle{flex:1;font-size:13px;font-weight:700;min-width:0}
+  .flowmeta{font-size:10.5px;color:var(--muted);display:block;font-weight:400}
+  .flowdone{border:none;border-radius:9px;padding:7px 13px;font-size:11.5px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;flex-shrink:0}
+  .flowbody{padding:2px 14px 12px 14px;border-top:1px solid var(--line)}
+  .substep{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:11.5px}
+  .substep .schk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--line);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;background:var(--surface)}
+  .substep .schk.done{background:var(--done);border-color:var(--done)}
+  .substep .slabel{flex:1}
+  .substep .slabel.done{text-decoration:line-through;color:var(--faint)}
+
+  .eeve{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .eeve h2{font-family:var(--disp);font-weight:800;font-size:14px;margin:0 0 8px}
+  .compareCard{border-left:4px solid var(--warn);background:var(--warn-soft);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:11.5px}
+
+  .emptystate{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:36px 20px;text-align:center}
+  .emptystate button{margin-top:12px;border:none;border-radius:9px;padding:10px 18px;font-size:12.5px;font-weight:700;background:var(--accent);color:#fff;cursor:pointer}
+</style>
+
+<div class="wrap">
+  <div class="blocktabs" id="blockTabs"></div>
+
+  <div id="emptyState" class="emptystate" style="display:none">
+    <div style="font-family:var(--disp);font-weight:700;font-size:15px">아직 블록이 없어</div>
+    <p style="margin-top:6px">과목명 · 시작일 · 시험일만 정하면 블록이 만들어져 — 강의는 만든 뒤 하나씩 직접 추가하면 돼.</p>
+    <button id="emptyAddBtn">+ 새 블록 추가</button>
+  </div>
+
+  <div id="mainArea" style="display:none">
+    <header>
+      <div class="brand">
+        <span class="dot"></span>
+        <div>
+          <h1 id="blockTitle">블록 워크스페이스</h1>
+          <p>부하균형 인출 알고리즘 · 정리본 연동 · Prompt Library</p>
+        </div>
+      </div>
+      <div class="ctrls">
+        <div><div class="capl">Current Day</div><div class="stepper">
+          <button data-a="day-">−</button>
+          <div class="readout"><div class="n" id="dn">1/1</div><div class="d" id="dd">-</div></div>
+          <button data-a="day+">+</button>
+        </div></div>
+        <div><div class="capl">Exam Day</div><div class="stepper">
+          <button data-a="exam-">−</button>
+          <div class="readout"><div class="n" id="en">Day1</div><div class="d" id="ed">-</div></div>
+          <button data-a="exam+">+</button>
+        </div></div>
+      </div>
+    </header>
+
+    <div id="banner"></div>
+
+    <div id="onboardBox"></div>
+
+    <div class="tabs">
+      <button class="tab on" data-tab="today">오늘</button>
+      <button class="tab" data-tab="plan">학습 계획</button>
+      <button class="tab" data-tab="list">전체 강의</button>
+      <button class="tab" data-tab="prompts">프롬프트 라이브러리</button>
+    </div>
+
+    <div class="panelset on" id="tab-today">
+      <div class="panel" id="loadPanel" style="margin-bottom:12px"></div>
+      <div class="stats" id="stats"></div>
+      <div id="compareBox"></div>
+      <div id="eeveBox"></div>
+      <div class="dayflow" id="dayFlow"></div>
+      <details class="pre">
+        <summary id="preSummary">📚 다가오는 강의 (원하면 미리 인코딩 가능)</summary>
+        <div class="panel" style="margin-top:8px" id="preQ"></div>
+      </details>
+      <details class="pre" style="margin-top:8px">
+        <summary id="preRSummary">🔁 다가오는 복습 (원하면 미리 완료 가능)</summary>
+        <div class="panel" style="margin-top:8px" id="preRQ"></div>
+      </details>
+    </div>
+
+    <div class="panelset" id="tab-plan">
+      <div class="panel">
+        <h2>이번 블록 일일 학습 계획</h2>
+        <p class="hint">이 블록 전체 반복학습량을 시험일까지 고르게 나눈 하루 목표(굵은 세로선) 대비, 그날 예정된 학습량(막대)을 보여줘. 아직 인코딩 안 한 미래 강의는 원래 수업일에 배우는 것으로 가정해 추정한 값이야 — 실제 진행에 따라 계속 바뀔 수 있어. 시험기간 초반 20%는 목표를 70%로 낮춰서 적응 기간을 둬.</p>
+        <div class="typecosts">
+          <span class="tclbl">단계별 크레딧</span>
+          <label>신규 <input type="number" step="0.05" min="0" class="tcinput" id="tcNew"></label>
+          <label>1차 <input type="number" step="0.05" min="0" class="tcinput" id="tcR1"></label>
+          <label>2차 <input type="number" step="0.05" min="0" class="tcinput" id="tcR2"></label>
+          <button class="reset" id="resetOverrides" title="개별 날짜에 손댄 크레딧 조정을 전부 지우고 다시 고르게 나눔">전체 재분배</button>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--done)"></i>완료</span>
+          <span><i style="background:var(--progress)"></i>남음 (목표의 70% 미만)</span>
+          <span><i style="background:var(--done)"></i>남음 (목표치 근처)</span>
+          <span><i style="background:var(--warn)"></i>남음 (목표 초과)</span>
+        </div>
+        <div id="planWarn" style="display:none;margin-top:8px"></div>
+        <div class="planlist" id="planList"></div>
+      </div>
+    </div>
+
+    <div class="panelset" id="tab-list">
+      <div class="listbox">
+        <div class="lh"><h2>전체 강의 · 체크리스트 & 정리본</h2><button class="reset" data-a="reset">이 블록 초기화</button></div>
+        <div id="fullList"></div>
+        <div class="addlec">
+          <input type="text" id="alCode" placeholder="코드(예:면역5)">
+          <input type="text" id="alTitle" placeholder="강의명">
+          <input type="text" id="alProf" placeholder="교수명">
+          <select id="alType"><option value="강의">강의</option><option value="실습">실습</option></select>
+          <select id="alDay"></select>
+          <button id="alAdd">+ 강의 추가</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panelset" id="tab-prompts">
+      <div class="plib" id="plib"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="mask" id="mask"><div class="modal">
+  <h3 id="mkT"></h3><p id="mkB"></p>
+  <div class="acts"><button class="no" id="mkNo">취소</button><button class="yes" id="mkYes">되돌리기</button></div>
+</div></div>
+
+<div class="mask" id="nbMask"><div class="modal wide">
+  <h3>새 블록 추가</h3>
+  <p style="margin-bottom:12px">과목명·시작일·시험일을 정하면 블록이 만들어져. 강의는 만든 뒤 "전체 강의" 탭에서 하나씩 추가하면 돼.</p>
+  <div class="form-row"><label>과목명</label><input type="text" id="nbSubject" placeholder="예: 병리학"></div>
+  <div class="form-row"><label>블록 시작일</label><input type="date" id="nbStart"></div>
+  <div class="form-row"><label>시험일</label><input type="date" id="nbExam"></div>
+  <div class="nbstatus" id="nbStatus"></div>
+  <div class="acts">
+    <button class="no" id="nbCancel">취소</button>
+    <button class="yes primary" id="nbSubmit">블록 만들기</button>
+  </div>
+</div></div>
+
+<div class="mask" id="elMask"><div class="modal wide">
+  <h3>강의 수정</h3>
+  <div class="form-row"><label>코드</label><input type="text" id="elCode"></div>
+  <div class="form-row"><label>강의명</label><input type="text" id="elTitle"></div>
+  <div class="form-row"><label>교수명</label><input type="text" id="elProf"></div>
+  <div class="form-row"><label>구분</label><select id="elType"><option value="강의">강의</option><option value="실습">실습</option></select></div>
+  <div class="form-row"><label>Day</label><select id="elDay"></select></div>
+  <div class="acts">
+    <button class="no" id="elCancel">취소</button>
+    <button class="yes primary" id="elSave">저장</button>
+  </div>
+</div></div>
+
+<script type="module">
+/* ===== Firebase (Realtime Database) 백업 저장소 =====
+   Claude.ai 아티팩트 안에서는 기존처럼 window.storage를 그대로 쓰고,
+   그게 없는 환경(독립 배포 등)에서는 Firebase로 저장/불러오기를 대신한다.
+   동적 import로 불러와서, 네트워크가 막혀 있거나 실패해도(예: 아티팩트 샌드박스)
+   앱 전체가 죽지 않고 조용히 메모리 저장소로 대체된다.
+   ⚠ Firebase 콘솔 → Realtime Database → 규칙(Rules)에서 읽기/쓰기를 허용해야
+   실제로 동작한다. 예: {"rules": {".read": true, ".write": true}} (본인만 쓰는
+   개인용 앱이라도 규칙을 열어두지 않으면 기본값(전체 차단)이라 아무것도 저장되지
+   않는다 — 더 안전하게 하려면 Firebase Auth로 사용자를 제한하는 규칙을 쓰는 걸 권장). */
+const firebaseConfig = {
+  apiKey: "AIzaSyAtz2N0wRg_e1k4FOLbPdgWo7MJ5tUrXVY",
+  authDomain: "study-planner-d1183.firebaseapp.com",
+  databaseURL: "https://study-planner-d1183-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "study-planner-d1183",
+  storageBucket: "study-planner-d1183.firebasestorage.app",
+  messagingSenderId: "771523807633",
+  appId: "1:771523807633:web:b428da6ae24b52f3daf230"
+};
+let fbDb=null, dbGet=null, dbSet=null, dbRef=null;
+if(!window.storage){
+  try{
+    const [{initializeApp}, {getDatabase, ref, get, set}] = await Promise.all([
+      import("https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js"),
+    ]);
+    dbGet=get; dbSet=set; dbRef=ref;
+    fbDb = getDatabase(initializeApp(firebaseConfig));
+  }catch(e){ console.warn('Firebase 로드 실패 — 메모리 저장소로 대체', e); }
+}
+
+/* ===== 앱 전역 상태 (멀티블록) ===== */
+const GKEY='study-multiblock-v1';
+const mem={};
+const store = window.storage ? window.storage : (fbDb ? {
+  async get(k){
+    const snap = await dbGet(dbRef(fbDb, k));
+    if(!snap.exists()) throw new Error('not found');
+    return {value: snap.val()};
+  },
+  async set(k,v){
+    await dbSet(dbRef(fbDb, k), v);
+    return {value:v};
+  },
+} : {
+  async get(k){ if(!(k in mem)) throw new Error('nf'); return {value:mem[k]}; },
+  async set(k,v){ mem[k]=v; return {value:v}; },
+});
+let App = {blocks:[], active:null};
+let S=null, LEC=[], SCHOOL_DAYS=[], MAXDAY=0;
+
+function freshState(schoolDays, lec){
+  const m={}; lec.forEach(l=> m[l.id]=freshLecState());
+  return {cur:1, examDay: schoolDays.length, capOverride:{}, todayLock:null, typeCost:{new:1,r1:0.5,r2:0.25}, onboarding:{}, examEve:{}, ankiCheck:{}, lec:m};
+}
+function freshLecState(){
+  return {enc:null, r:{1:false,2:false}, rDay:{1:null,2:null}, subCheck:{new:{},r1:{},r2:{}}, excluded:false};
+}
+function activateBlock(id){
+  const b=App.blocks.find(x=>x.id===id); if(!b) return;
+  App.active=id; SCHOOL_DAYS=b.schoolDays; LEC=b.lec; MAXDAY=SCHOOL_DAYS.length; S=b.state;
+}
+async function loadApp(){
+  try{ const r=await store.get(GKEY); const p=JSON.parse(r.value); if(p&&Array.isArray(p.blocks)) App=p; }catch(e){ App={blocks:[],active:null}; }
+  if(App.blocks.length){
+    const found = App.blocks.find(b=>b.id===App.active);
+    activateBlock(found? App.active : App.blocks[0].id);
+  }
+}
+async function saveApp(){ try{ await store.set(GKEY, JSON.stringify(App)); }catch(e){ console.warn(e); } }
+
+const dInfo = d => SCHOOL_DAYS.find(x=>x.day===d);
+const byId = id => LEC.find(l=>l.id===id);
+
+/* ===== 3단계 체크리스트 정의 =====
+   신규(당일): 필기본 업로드→Claude 인출→정리본(PDF) 생성. 이미지 삽입·레이아웃은 직접.
+   1차(D+1 오전, 오프라인): 족보 풀이+해설, 정리본에 굵게 표시. Claude 개입 없음.
+   2차(D+3, 마지막): 정리본 형광펜 표시→업로드→선별 Anki 생성. 그날 밤부터 Anki. */
+const STAGE_DESC = [
+  {name:'신규', desc:'필기본 업로드 → Claude 인출 → 정리본(PDF) 생성 (이미지·레이아웃은 직접)'},
+  {name:'1차 복습', desc:'족보+해설 풀이 → 정리본에 굵게 표시 (직접 진행, Claude 개입 없음)'},
+  {name:'2차 복습', desc:'정리본 형광펜 표시 → 업로드 → 선별 Anki 생성, 그날 밤부터 Anki 진행'},
+];
+/* 각 단계 실제 작업 순서 — 메인 리스트에서 항목별로 펼쳐 보여주는 체크리스트.
+   여기 체크는 순전히 개인 트래킹용이라 알고리즘(enc/r)에는 영향 없음. */
+const SUB_STEPS = {
+  new: ['강의록 flatten(주석 포함, Claude가 읽을 수 있게)','Claude에 강의록 넣고 시작','인출·문제 풀이 (강의록 옆에 켜두고 같이)','정리본 받기','정리본에 사진 붙이기 + 레이아웃 정리','니모닉 정리본에 옮기기'],
+  r1: ['족보해설에 최신 연도 기출 추가','Claude로 최신 연도 해설 만들어서 옮기기','족보 정답 안 보고 직접 풀이','해설 보고 채점','족보해설 보완 + 정리본에 굵게 표시'],
+  r2: ['정리본 1회독하며 형광펜 표시','Claude에 정리본 넣고 Anki 요청'],
+};
+/* ===== 새 블록 온보딩 체크리스트 ===== */
+const ONBOARD_ITEMS = [
+  {key:'profReview', label:'교수후기로 지침의 "교수별 학습 전략" 표 채우기',
+   prompt:`[선배 교수후기 첨부]\n이 교수후기들을 분석해서 Custom Instructions의 "교수별 학습 전략" 표(교수/유형/설명 방식)를 채워줘.`},
+  {key:'newProject', label:'Claude에 새 Project 생성'},
+  {key:'pasteInstructions', label:'Custom Instructions 붙여넣기'},
+  {key:'uploadKnowledge', label:'선배 정리본·족보·족보해설·교수후기 Project Knowledge에 업로드'},
+];
+/* ===== 시험 전날 전용 루틴 (크레딧 분배 대상 아님) ===== */
+const EXAM_EVE_ITEMS = ['Anki 타임 (전체 복습)','족보 전체 풀이','족보에서 많이 틀린 부분 복습','가능하면 정리본 전체 1회독'];
+const FINAL_SUMMARY_PROMPT = `[이 블록의 모든 정리본 첨부]\n이 블록 전체 정리본을 하나로 압축한 시험 전날용 요약본을 만들어줘.\n- 전체 범주·위계가 한눈에 보이게 큰 그림부터 잡아줘\n- 강의별로 겹치는 내용은 합쳐서 최소 분량으로\n- 족보에 출제된 개념 위주로, 족보 스타일을 반영해서 이 정도까지 외워야 하는지 아닌지 면밀히 판별해줘\n[족보 + 족보 해설 + 선배 정리본 첨부]도 같이 참고해서 교차검증해줘.`;
+/* ===== 예습(전년도 필기) vs 실제(올해 필기) 비교 ===== */
+const COMPARE_PROMPT = `작년 필기로 미리 인코딩해둔 강의인데, 오늘 이번 연도 필기를 받았어. [이번 연도 필기 첨부] 작년 필기와 비교해서 달라진 점이나 새로 강조된 부분이 있으면 짚어주고, 있으면 정리본에 반영해줘.`;
+
+/* ===== 부하균형 인출 알고리즘 (실시간 재계산) =====
+   각 강의는 시험기간 동안 총 3회독: 신규 → 1차 → 2차. 각 단계의 크레딧(기본 1 / 0.5 /
+   0.25)은 "학습 계획" 탭 상단에서 직접 바꿀 수 있다.
+   남은 크레딧(= 아직 안 끝난 항목들의 가중치 합) ÷ 남은 분배 일수(오늘부터, 시험 전날·
+   당일 제외)가 하루 목표 크레딧의 기준이다. 다만 시험기간 전체의 초반 20%는 목표를
+   70%로 낮춰 적응 기간을 두고, 그만큼을 나머지 날짜에 나눠 보정한다(총량은 항상
+   보존됨) — 오늘이 이미 그 구간을 지났으면 자동으로 평소(100%) 기준이 적용된다.
+   이미 완료한 항목(인코딩·체크 완료)은 계산에서 완전히 빠지고, 오늘부터 남은 것만
+   매번 새로 계산한다.
+
+   하루하루를 앞에서부터 시뮬레이션한다. 각 강의의 기본값(목표)은 항상 실제 수업일
+   기준으로 고정된다 — 신규=수업일, 1차=수업일+1, 2차=수업일+3. 이 기본값들이 그날그날
+   들쭉날쭉 몰리므로, 그날 목표 크레딧에 순서대로 채우다가 넘치면 다음 날로 미루고
+   (이월), 오늘 다 채우고도 여유가 남으면 아직 도래하지 않은 항목을 앞당겨 채운다(예습).
+   단, 복습은 그 강의의 신규(1차는 신규, 2차는 1차)가 실제로 배정되기 전까지는 배정될 수
+   없다 — 신규가 밀리면 그 복습의 목표일도 "기본값과 (실제 신규일+1) 중 더 늦은 날"로
+   자동 조정되고, 반대로 신규가 일찍 끝나도 복습은 원래 기본값(수업일+1/+3)보다 앞당겨
+   지지 않는다. 이렇게 신규→1차→2차 세 단계가 항상 순서를 지키면서 시험기간 안에 전부
+   확정 배정된다.
+
+   하루 목표 크레딧은 각 날짜별로 직접 상향·하향 조정할 수 있다(약속 있는 날은 낮추고,
+   몰아서 할 수 있는 날은 올리는 식) — 그러면 다음 계산부터 바로 반영된다. */
+function activeLectures(){ return LEC.filter(l=>!S.lec[l.id].excluded); }
+function usableDays(){ return Math.max(1, S.examDay-2); } // 시험 당일·전날은 분배 제외
+const DEFAULT_TYPE_COST = {new:1, r1:0.5, r2:0.25};
+function typeCost(type){ return (S.typeCost && S.typeCost[type]!=null) ? S.typeCost[type] : DEFAULT_TYPE_COST[type]; }
+function totalLecCost(){ return typeCost('new')+typeCost('r1')+typeCost('r2'); }
+function remainingCredits(){
+  let sum=0;
+  activeLectures().forEach(l=>{
+    const st=S.lec[l.id];
+    if(st.enc==null) sum+=totalLecCost();
+    else sum += (st.r[1]?0:typeCost('r1')) + (st.r[2]?0:typeCost('r2'));
+  });
+  return sum;
+}
+function rampDays(){ return Math.max(1, Math.ceil(0.2*usableDays())); }
+function dayWeight(d){ return d<=rampDays() ? 0.7 : 1.0; }
+/* remainingCred를 fromDay~시험 전날 사이에, 초반 램프 가중치를 반영해서 나눈 값 중
+   day d의 몫. 총합은 항상 remainingCred로 보존된다. */
+function defaultCapacityFor(d, remainingCred, fromDay){
+  const uEnd=usableDays();
+  let wsum=0;
+  for(let x=fromDay; x<=uEnd; x++) wsum+=dayWeight(x);
+  if(wsum<=0) wsum=1;
+  return (remainingCred/wsum)*dayWeight(d);
+}
+/* 오늘 크레딧은 "코인"이다 — 하루가 시작될 때 한 번 정해지면 그날 안에서는 바뀌지
+   않는다. 체크(완료)를 해서 코인을 쓰는 것과, 새로 코인이 배정되는 것(=오늘 할 일
+   목록이 다시 계산되는 것)은 완전히 별개다. S.todayLock에 "오늘 하기로 확정된 목록"을
+   저장해두고, 날짜가 바뀌거나(다음 날로 이동) 시험일·크레딧 상향/하향 조정·시험범위
+   제외 같은 "계획 자체를 바꾸는" 조작이 있을 때만 다시 정한다. 단순히 항목을
+   완료 체크하는 것으로는 절대 다시 계산되지 않는다.
+   재계산이 일어날 때는(예: 크레딧 조정) 오늘 이미 완료한 항목을 "이미 쓴 크레딧"으로
+   그대로 포함시키고 남은 예산만 새로 채운다 — 그래서 오늘 1을 이미 했으면 그만큼은
+   다른 날과 동일하게가 아니라 정확히 1만큼 덜 배정된다. */
+function lockedTodayTotalCost(){
+  if(!S.todayLock || S.todayLock.day!==S.cur) return 0;
+  return S.todayLock.items.reduce((a,it)=>a+typeCost(it.type),0);
+}
+function lockedTodayDoneCost(){
+  if(!S.todayLock || S.todayLock.day!==S.cur) return 0;
+  let sum=0;
+  S.todayLock.items.forEach(it=>{
+    const st=S.lec[it.lecId]; if(!st) return;
+    let done;
+    if(it.type==='new') done = st.enc!=null;
+    else if(it.type==='r1') done = !!st.r[1];
+    else done = !!st.r[2];
+    if(done) sum+=typeCost(it.type);
+  });
+  return sum;
+}
+function lockedTodayRemainingCost(){ return Math.max(0, lockedTodayTotalCost()-lockedTodayDoneCost()); }
+function futureRemainingCredits(){ return Math.max(0, remainingCredits()-lockedTodayRemainingCost()); }
+function dayCapacity(d){
+  const uEnd = usableDays();
+  if(d<1 || d>uEnd) return 0; // 시험 전날·당일: 분배 대상 아님
+  if(S.capOverride && S.capOverride[d]!=null) return S.capOverride[d];
+  if(d===S.cur) return (S.todayLock && S.todayLock.day===S.cur) ? lockedTodayTotalCost() : defaultCapacityFor(d, remainingCredits(), S.cur);
+  return defaultCapacityFor(d, futureRemainingCredits(), S.cur+1);
+}
+function buildPendingPool(excludeKeys){
+  const pool=[];
+  activeLectures().forEach(l=>{
+    const st=S.lec[l.id];
+    const push=(type,original)=>{ if(excludeKeys && excludeKeys.has(l.id+':'+type)) return; pool.push({type, lecId:l.id, cost:typeCost(type), original, nominal:original}); };
+    if(st.enc==null){ push('new',l.day); push('r1',l.day+1); push('r2',l.day+3); }
+    else {
+      if(!st.r[1]){ push('r1',st.enc+1); if(!st.r[2]) push('r2',st.enc+3); }
+      else if(!st.r[2]){ push('r2',st.enc+3); }
+    }
+  });
+  return pool;
+}
+const TYPE_ORDER={new:0,r1:1,r2:2};
+const scheduleSortFn=(a,b)=> a.nominal-b.nominal || TYPE_ORDER[a.type]-TYPE_ORDER[b.type] || a.lecId-b.lecId;
+/* 그날 목표 크레딧(cap)이 남아 있는 한(used<cap) 다음 항목을 마저 진행한다 — 정확히
+   맞아떨어지지 않아 살짝 넘어가도 OK. 여유가 완전히 없어지면(used>=cap) 그 시점에서
+   멈추고 나머지는 전부 다음 날로 이월한다. */
+function fillDay(pool, cap){
+  pool.sort(scheduleSortFn);
+  const placed=[]; let used=0; let i=0;
+  for(; i<pool.length; i++){
+    if(used >= cap-1e-9) break;
+    placed.push(pool[i]); used+=pool[i].cost;
+  }
+  return {placed, rest:pool.slice(i)};
+}
+function ensureTodayLock(){
+  if(S.todayLock && S.todayLock.day===S.cur) return;
+  const uEnd = usableDays();
+  if(S.cur<1 || S.cur>uEnd){ S.todayLock = {day:S.cur, items:[]}; return; } // 시험 전날·당일 등 분배 대상 밖
+  const pinned=[];
+  activeLectures().forEach(l=>{
+    const st=S.lec[l.id];
+    if(st.enc===S.cur) pinned.push({type:'new', lecId:l.id, original:l.day});
+    if(st.r[1] && st.rDay && st.rDay[1]===S.cur) pinned.push({type:'r1', lecId:l.id, original:(st.enc!=null?st.enc+1:l.day+1)});
+    if(st.r[2] && st.rDay && st.rDay[2]===S.cur) pinned.push({type:'r2', lecId:l.id, original:(st.enc!=null?st.enc+3:l.day+3)});
+  });
+  const pinnedCost = pinned.reduce((a,it)=>a+typeCost(it.type),0);
+  const cap = (S.capOverride && S.capOverride[S.cur]!=null) ? S.capOverride[S.cur] : defaultCapacityFor(S.cur, remainingCredits()+pinnedCost, S.cur);
+  const pool = buildPendingPool(null);
+  const {placed} = fillDay(pool, Math.max(0, cap-pinnedCost));
+  S.todayLock = {day:S.cur, items: [...pinned, ...placed].map(it=>({type:it.type, lecId:it.lecId, original:it.original}))};
+}
+/* 오늘 몫은 S.todayLock을 그대로 쓰고(체크할수록 줄기만 함), 내일부터 시험 전날까지는
+   오늘 lock에 들어간 것들을 제외한 나머지로 매번 새로 시뮬레이션한다(이월·예습 반영,
+   실제 상태는 건드리지 않는 순수 계산). */
+function computeSchedule(){
+  ensureTodayLock();
+  const uEnd = usableDays(), startDay = S.cur;
+  const byDay={}; for(let d=startDay; d<=uEnd; d++) byDay[d]=[];
+  if(!byDay[startDay]) byDay[startDay]=[]; // 오늘이 분배 구간 밖이어도(시험 전날 등) 항상 키는 존재하게
+
+  const lockedKeys = new Set();
+  S.todayLock.items.forEach(it=>{
+    lockedKeys.add(it.lecId+':'+it.type);
+    const st=S.lec[it.lecId]; if(!st) return;
+    let done;
+    if(it.type==='new') done = st.enc!=null;
+    else if(it.type==='r1') done = !!st.r[1];
+    else done = !!st.r[2];
+    if(!done) byDay[startDay].push({type:it.type, lecId:it.lecId, cost:typeCost(it.type), original:it.original, day:startDay});
+  });
+
+  let pool = buildPendingPool(lockedKeys);
+  for(let d=startDay+1; d<=uEnd; d++){
+    const {placed, rest} = fillDay(pool, dayCapacity(d));
+    placed.forEach(it=>{ it.day=d; byDay[d].push(it); });
+    pool = rest;
+  }
+  const unscheduled = pool; // 크레딧이 부족하게 조정된 경우에만 남음
+  const byLecture={};
+  activeLectures().forEach(l=>{ byLecture[l.id]={new:null,r1:null,r2:null}; });
+  Object.values(byDay).flat().forEach(it=>{ byLecture[it.lecId][it.type]=it.day; });
+  return {byDay, byLecture, unscheduled, startDay, uEnd};
+}
+let SCHEDULE=null; // computeSchedule() 결과 캐시 — render()에서 한 번만 계산해 재사용
+
+/* ===== 프롬프트 라이브러리 (블록 무관 범용) ===== */
+function PROMPTS(){ return [
+  {t:'PROMPT 1 · 신규 인코딩', w:'수업 당일, 강의 채팅에서', x:`[필기 강의록 첨부]\n오늘 이 강의록으로 시작할게. 목차와 우선순위(스탬프·족보 기준) 표부터 보여주고 확인받은 뒤 첫 챕터부터 진행해줘. 인출 문제는 단답식·객관식 위주로, 정말 인과관계를 이해했는지 확인해야 하는 경우에만 서술형으로 내줘 — 강의록에 번호로 나열된 걸 그대로 "3번은?" 식으로 묻지 말고 족보 출제 방식을 반영해줘. 필기에 "외우지 마" 표시가 있으면 (암기 불필요)로, "시험에 낸다/외워라"는 강조해서 다뤄줘. 전체 챕터와 인출세트 끝나면, 지금까지 설명한 내용을 PDF 정리본으로 만들어줘. 이미지가 필요한 부분은 실제 이미지 대신 빈 상자 자리만 표시해줘 — 이미지는 내가 강의록 보면서 PDF-XChange로 직접 넣을게.`},
+  {t:'PROMPT 2 · 2차 복습 (형광펜 확인+Anki 생성)', w:'2차 복습일, 같은 강의 채팅', x:`정리본 한 번 읽으면서 모르는 부분 형광펜 표시했어. [형광펜 표시한 정리본 업로드] 신규 인코딩 때 틀렸던 개념, 족보에 자주 나온 개념, 강의 중 교수님이 강조한 내용, 이 정리본에서 형광펜·볼드로 표시된 것들 중에서 서로 겹치거나 출제 가능성이 높은 것만 선별해서 Anki 카드로 만들어줘. (암기 불필요)로 표시된 건 제외하고. Basic/Cloze 적절히 섞고 태그(강의 코드+오답/족보빈출/교수강조)도 달아줘. 원자 단위로, 덱 이름은 "[과목명]:: nn강. 강의제목" 형식으로, .apkg 파일로 줘.`},
+  {t:'PROMPT 3 · 족보해설 보완', w:'1차 복습, 최신 연도 기출 해설이 없을 때', x:`[선배 족보해설 + 이번 연도 족보 첨부]\n이번 연도 족보에 해설이 없어. 문제 하나하나 정확한 정답과 해설을 만들어줘 — 내가 그대로 족보해설 파일에 옮겨 적을 거야.`},
+  {t:'PROMPT 4 · 예습 vs 실제 필기 비교', w:'예습해둔 강의의 실제 수업일에 필기 받으면', x:COMPARE_PROMPT},
+  {t:'PROMPT 5 · 시험 전날 축약 정리본', w:'모든 정리본 완성 후, 시험 며칠 전', x:FINAL_SUMMARY_PROMPT},
+];}
+
+/* ===== 파생 쿼리 (SCHEDULE 기반) ===== */
+function slots(l){
+  const st=S.lec[l.id]; if(st.enc==null) return [];
+  const bl = SCHEDULE.byLecture[l.id] || {r1:null,r2:null};
+  return [1,2].map(k=>{
+    const type = k===1?'r1':'r2';
+    return {key:k, label:STAGE_DESC[k].desc, due:bl[type], done:st.r[k]};
+  });
+}
+function encQueue(){ return (SCHEDULE.byDay[S.cur]||[]).filter(it=>it.type==='new').map(it=>byId(it.lecId)); }
+function preQueue(){
+  return activeLectures().filter(l=> S.lec[l.id].enc==null && SCHEDULE.byLecture[l.id].new!==S.cur)
+    .sort((a,b)=>{
+      const da=SCHEDULE.byLecture[a.id].new, db=SCHEDULE.byLecture[b.id].new;
+      if(da==null && db==null) return a.id-b.id;
+      if(da==null) return 1; if(db==null) return -1;
+      return da-db || a.id-b.id;
+    });
+}
+/* 오늘 락에 이미 들어간 것 말고, "지금 당장 미리 끝내고 싶은" 복습들을 수동으로 고를
+   수 있게 보여준다 — 알고리즘이 여유될 때 자동으로 당겨주는 것과는 별개의 수동 경로. */
+function previewReviewQueue(){
+  const lockedKeys = new Set((S.todayLock&&S.todayLock.day===S.cur? S.todayLock.items:[]).map(it=>it.lecId+':'+it.type));
+  const out=[];
+  activeLectures().forEach(l=>{
+    const st=S.lec[l.id];
+    if(st.enc==null) return;
+    if(!st.r[1] && !lockedKeys.has(l.id+':r1')) out.push({type:'r1', l});
+    else if(st.r[1] && !st.r[2] && !lockedKeys.has(l.id+':r2')) out.push({type:'r2', l});
+  });
+  return out.sort((a,b)=>{
+    const da=SCHEDULE.byLecture[a.l.id][a.type], db=SCHEDULE.byLecture[b.l.id][b.type];
+    if(da==null && db==null) return a.l.id-b.l.id;
+    if(da==null) return 1; if(db==null) return -1;
+    return da-db || a.l.id-b.l.id;
+  });
+}
+/* 오늘(l.day===S.cur)이 실제 수업일인데, 이미 그 전에(예습으로) 인코딩이 끝난 강의 —
+   작년 필기로 미리 했으니 올해 필기와 비교해볼 대상. */
+function comparisonCandidates(){
+  return activeLectures().filter(l=> l.day===S.cur && S.lec[l.id].enc!=null && S.lec[l.id].enc<l.day);
+}
+function overdueEnc(){ return LEC.filter(l=>l.day<S.cur && S.lec[l.id].enc==null && !S.lec[l.id].excluded).length; }
+function stats(){
+  const active=activeLectures();
+  const total=active.length, enc=active.filter(l=>S.lec[l.id].enc!=null).length;
+  let done=enc, poss=enc;
+  active.forEach(l=> slots(l).forEach(s=>{ if(s.done || s.due!=null){ poss++; if(s.done) done++; } }));
+  const cap=dayCapacity(S.cur);
+  const used=(SCHEDULE.byDay[S.cur]||[]).reduce((a,it)=>a+it.cost,0);
+  return {total, enc, done, poss, overdue:overdueEnc(), excluded:LEC.length-active.length, cap, used};
+}
+
+/* ===== 렌더 유틸 ===== */
+function el(h){ const t=document.createElement('template'); t.innerHTML=h.trim(); return t.content.firstChild; }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function renderBlockTabs(){
+  const box=document.getElementById('blockTabs'); box.innerHTML='';
+  App.blocks.forEach(b=>{
+    const grp=el(`<span class="blocktabgrp"></span>`);
+    const t=el(`<button class="blocktab ${b.id===App.active?'on':''}">${esc(b.name)}</button>`);
+    t.onclick=()=>{ activateBlock(b.id); saveApp(); render(); };
+    const del=el(`<button class="tabdel" title="블록 삭제">×</button>`);
+    del.onclick=(e)=>{
+      e.stopPropagation();
+      askConfirm(`"${b.name}" 블록을 삭제할까?`, '이 블록의 강의·진도·정리본 링크가 전부 사라져. 되돌릴 수 없어.', ()=> deleteBlock(b.id), '삭제');
+    };
+    grp.appendChild(t); grp.appendChild(del);
+    box.appendChild(grp);
+  });
+  const add=el(`<button class="blocktab add">+ 새 블록</button>`);
+  add.onclick=()=> openAddModal();
+  box.appendChild(add);
+}
+function deleteBlock(id){
+  const idx = App.blocks.findIndex(b=>b.id===id); if(idx<0) return;
+  App.blocks.splice(idx,1);
+  if(App.active===id){
+    if(App.blocks.length){ activateBlock(App.blocks[0].id); }
+    else { App.active=null; S=null; LEC=[]; SCHOOL_DAYS=[]; MAXDAY=0; }
+  }
+  saveApp(); render();
+}
+function renderHeader(){
+  const d=dInfo(S.cur), e=dInfo(S.examDay);
+  document.getElementById('blockTitle').textContent = App.blocks.find(b=>b.id===App.active).name + ' 블록 워크스페이스';
+  document.getElementById('dn').textContent=`${d.day}/${MAXDAY}`;
+  document.getElementById('dd').textContent=`${d.date}(${d.dow})`;
+  document.getElementById('en').textContent=`Day${e.day}`;
+  document.getElementById('ed').textContent=`${e.date}(${e.dow})`;
+}
+function renderBanner(){
+  const rem = S.examDay - S.cur;
+  const refMax = Math.max(S.examDay,1);
+  const frac = Math.max(0, Math.min(1, rem/refMax));
+  const cx=42, cy=42, R=34, C=2*Math.PI*R;
+  const dash = C*frac, gap = C-dash;
+
+  let ringColor, statusColor, statusLabel;
+  if(rem<=0){ ringColor='var(--warn)'; statusColor='var(--warn)'; statusLabel='시험 당일'; }
+  else if(rem<=1){ ringColor='var(--warn)'; statusColor='var(--warn)'; statusLabel='내일'; }
+  else if(frac<0.34){ ringColor='var(--warn)'; statusColor='var(--warn)'; statusLabel='임박'; }
+  else if(frac<0.67){ ringColor='var(--progress)'; statusColor='var(--progress)'; statusLabel='진행 중'; }
+  else{ ringColor='var(--inactive)'; statusColor='var(--inactive)'; statusLabel='여유'; }
+
+  const svg = `<svg viewBox="0 0 84 84" width="72" height="72">
+    <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--surface2)" stroke-width="9"/>
+    <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${ringColor}" stroke-width="9" stroke-linecap="round"
+      stroke-dasharray="${dash.toFixed(1)} ${gap.toFixed(1)}" transform="rotate(-90 ${cx} ${cy})"/>
+  </svg>`;
+
+  let dnum, sub;
+  if(rem>1){ dnum=`D-${rem}`; sub='시험까지 남은 날'; }
+  else if(rem===1){ dnum='D-1'; sub='내일이 시험이야! 오늘은 가볍게 확인만 🍀'; }
+  else if(rem===0){ dnum='D-DAY'; sub='오늘 시험이야! 지금까지 한 만큼 충분해, 잘 보고 와 🍀🍀🍀'; }
+  else{ dnum='FIN'; sub='시험이 지났어. 다음 블록도 이 흐름대로!'; }
+
+  const b=document.getElementById('banner');
+  b.className='gaugebar';
+  b.innerHTML = `${svg}<div class="msg"><span class="dnum">${dnum}</span><small style="color:${statusColor}">${esc(statusLabel)} · ${esc(sub)}</small></div>`;
+  if(rem<=1 && rem>=0){
+    for(let i=0;i<5;i++){
+      const c = el(`<span class="clover" style="right:${6+i*7}%;animation-delay:${i*0.5}s">🍀</span>`);
+      b.appendChild(c);
+    }
+  }
+}
+function renderStats(){
+  const s=stats();
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="k">인코딩 진도</div><div class="v">${s.enc}<span style="font-size:13px;color:var(--faint)">/${s.total}</span></div></div>
+    <div class="stat"><div class="k">체크리스트 완료</div><div class="v">${s.done}<span style="font-size:13px;color:var(--faint)">/${s.poss}</span></div></div>
+    <div class="stat"><div class="k">밀린 인코딩</div><div class="v">${s.overdue}</div></div>
+    <div class="stat"><div class="k">제외된 강의</div><div class="v">${s.excluded}</div></div>`;
+}
+function renderLoadPanel(){
+  const blocked = S.cur>usableDays();
+  const total = lockedTodayTotalCost();
+  const remaining = lockedTodayRemainingCost();
+  const used = Math.max(0, total-remaining);
+  const pct = total>0 ? (used/total*100) : 100;
+  let color, bg, statusText;
+  if(pct>=100){ color='var(--done)'; bg='var(--done-soft)'; statusText='완료'; }
+  else if(pct>=50){ color='var(--progress)'; bg='var(--progress-soft)'; statusText='진행 중'; }
+  else { color='var(--inactive)'; bg='var(--inactive-soft)'; statusText='시작 전'; }
+  let hint;
+  if(blocked) hint = `오늘은 시험 전날/당일이라 새 학습량을 배분하지 않아 — 최종 정리에 집중해도 좋아.`;
+  else if(total<1e-9) hint = `오늘 배정된 게 없어 — 밀린 것도 예정된 것도 없는 날이야.`;
+  else if(remaining<1e-9) hint = `오늘 정해진 ${total.toFixed(2)}크레딧을 다 끝냈어. 더 하지 않아도 돼 — 남은 건 다음 여유 있는 날에 자동으로 배정돼.`;
+  else hint = `오늘 정해진 크레딧은 ${total.toFixed(2)}(코인처럼 고정) — 이 안에서만 신규·복습을 진행하면 돼. 완료 체크를 해도 새 항목이 끼어들지 않아, 오늘 몫이 다 끝날 때까지만 줄어들어.`;
+  document.getElementById('loadPanel').innerHTML = `
+    <h2>오늘의 학습부하</h2>
+    <p class="hint">오늘 크레딧은 하루가 시작될 때 한 번 정해지는 코인이야(신규 1·1차 0.5·2차 0.25 소모). 완료할수록 이 게이지가 채워지고, 다 써도 새 항목이 추가되지 않아.</p>
+    <div class="battery-wrap" style="margin-top:10px">
+      <div class="battery"><div class="battery-fill" style="width:${Math.min(100,pct)}%;background:${color}"></div></div>
+      <div>
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span class="battery-pct">${Math.round(pct)}%</span>
+          <span class="badge" style="background:${bg};color:${color}">${statusText}</span>
+        </div>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:2px">${used.toFixed(2)} / ${total.toFixed(2)} (오늘 확정 크레딧)</div>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:10px">${esc(hint)}</p>`;
+}
+/* ===== 학습 계획 (전체 블록 일일 예측) =====
+   이미 인코딩된 강의는 실제 확정된 회독일을 그대로 쓰고, 아직 안 배운 강의는
+   원래 수업일(이미 지난 경우 오늘)에 인코딩된다고 가정해 나머지 일정을 채워본다.
+   실제 상태는 건드리지 않는 시뮬레이션이라 매번 새로 계산해도 안전하다. */
+function encCard(l){
+  const bl = SCHEDULE.byLecture[l.id];
+  const plannedDay = bl ? bl.new : null;
+  const d = dInfo(l.day);
+  const isToday = plannedDay===S.cur;
+  let badge='', leftColor='var(--line)';
+  if(isToday){
+    if(plannedDay>l.day){ badge=`<span class="badge carry">이월·원래 Day${l.day}</span>`; leftColor='var(--warn)'; }
+    else if(plannedDay<l.day){ badge=`<span class="badge due">예습·원래 Day${l.day}</span>`; leftColor='var(--progress)'; }
+  } else {
+    badge = plannedDay!=null ? `<span class="badge due">Day${plannedDay} 예정</span>` : `<span class="badge carry">배정 못함</span>`;
+  }
+  const c = el(`<div class="card" style="border-left:4px solid ${leftColor}">
+    <div class="top"><span class="code">${esc(l.code)}</span>
+      ${l.type==='실습'?'<span class="badge lab">실습</span>':''}
+      ${badge}
+    </div>
+    <div class="t">${esc(l.title)}</div>
+    <div class="m">${esc(l.prof)} · ${d.date}(${d.dow})</div>
+    <button class="go">인코딩 완료</button>
+  </div>`);
+  c.querySelector('.go').onclick=()=>{ S.lec[l.id].enc=S.cur; saveApp(); render(); };
+  return c;
+}
+function stageCard(item){
+  const l=byId(item.lecId);
+  const key = item.type==='r1'?1:2;
+  const delayed = item.day>item.original;
+  const leftColor = delayed? 'var(--warn)' : 'var(--progress)';
+  const c = el(`<div class="card" style="border-left:4px solid ${leftColor}">
+    <div class="top"><span class="code">${esc(l.code)}</span>
+      <span class="badge ${delayed?'late':'due'}">${delayed?'밀림':'오늘 도래'}</span></div>
+    <div class="t">${esc(l.title)}</div>
+    <div class="m">인코딩 Day${S.lec[l.id].enc}</div>
+    <button class="go amber">완료</button>
+  </div>`);
+  c.querySelector('.go').onclick=()=>{ S.lec[l.id].r[key]=true; if(!S.lec[l.id].rDay) S.lec[l.id].rDay={1:null,2:null}; S.lec[l.id].rDay[key]=S.cur; saveApp(); render(); };
+  return c;
+}
+function reviewPreviewCard(o){
+  const {type,l}=o; const key=type==='r1'?1:2;
+  const day = SCHEDULE.byLecture[l.id] ? SCHEDULE.byLecture[l.id][type] : null;
+  const c = el(`<div class="card" style="border-left:4px solid var(--progress)">
+    <div class="top"><span class="code">${esc(l.code)}</span><span class="badge due">${day!=null?`예정 Day${day}`:'배정 전'}</span></div>
+    <div class="t">${esc(l.title)}</div>
+    <div class="m">${type==='r1'?'1차':'2차'} 복습 · 인코딩 Day${S.lec[l.id].enc}</div>
+    <button class="go amber">미리 완료</button>
+  </div>`);
+  c.querySelector('.go').onclick=()=>{
+    const st=S.lec[l.id];
+    st.r[key]=true;
+    if(!st.rDay) st.rDay={1:null,2:null};
+    st.rDay[key]=S.cur;
+    saveApp(); render();
+  };
+  return c;
+}
+/* ===== 오늘 할 일: 단계별 서브체크리스트가 딸린 세로 리스트 카드 =====
+   서브체크는 순전히 개인 트래킹용(알고리즘엔 영향 없음). "완료" 버튼만 실제 진도(enc/r)를 바꾼다. */
+function flowCard(type, l){
+  const st = S.lec[l.id];
+  if(!st.subCheck) st.subCheck={new:{},r1:{},r2:{}};
+  const steps = SUB_STEPS[type];
+  const sc = st.subCheck[type] || (st.subCheck[type]={});
+  const label = type==='new'?'신규':(type==='r1'?'1차':'2차');
+  const doneCount = steps.filter((_,i)=>sc[i]).length;
+  const item = el(`<div class="flowitem">
+    <div class="flowhead">
+      <span class="flowbadge ${type}">${label}</span>
+      <span class="flowtitle">${esc(l.code)}. ${esc(l.title)}<span class="flowmeta">${doneCount}/${steps.length} 체크됨</span></span>
+      <button class="flowdone">완료</button>
+    </div>
+    <div class="flowbody"></div>
+  </div>`);
+  const body = item.querySelector('.flowbody');
+  steps.forEach((label2, i)=>{
+    const row = el(`<div class="substep"><span class="schk ${sc[i]?'done':''}">${sc[i]?'✓':''}</span><span class="slabel ${sc[i]?'done':''}">${esc(label2)}</span></div>`);
+    row.querySelector('.schk').onclick=(e)=>{
+      e.stopPropagation();
+      sc[i] = !sc[i];
+      saveApp(); render();
+    };
+    body.appendChild(row);
+  });
+  item.querySelector('.flowhead').addEventListener('click', (e)=>{
+    if(e.target.closest('.flowdone')) return;
+    body.style.display = body.style.display==='none' ? '' : 'none';
+  });
+  item.querySelector('.flowdone').onclick=(e)=>{
+    e.stopPropagation();
+    if(type==='new'){ st.enc=S.cur; }
+    else { const key=type==='r1'?1:2; st.r[key]=true; if(!st.rDay) st.rDay={1:null,2:null}; st.rDay[key]=S.cur; }
+    saveApp(); render();
+  };
+  return item;
+}
+function ankiFlowCard(){
+  const done = !!(S.ankiCheck && S.ankiCheck[S.cur]);
+  const item = el(`<div class="flowitem">
+    <div class="flowhead">
+      <span class="flowbadge" style="background:var(--accent-soft);color:var(--accent)">Anki</span>
+      <span class="flowtitle">오늘 Anki 복습</span>
+      <button class="flowdone" style="${done?'background:var(--done)':''}">${done?'완료됨':'완료'}</button>
+    </div>
+  </div>`);
+  item.querySelector('.flowdone').onclick=()=>{
+    if(!S.ankiCheck) S.ankiCheck={};
+    S.ankiCheck[S.cur] = !S.ankiCheck[S.cur];
+    saveApp(); render();
+  };
+  return item;
+}
+function renderDayFlow(box, isExamDay){
+  box.innerHTML='';
+  if(isExamDay){
+    box.appendChild(el('<div class="empty" style="padding:24px 4px">오늘은 시험 보는 날이야. 화이팅! 🍀</div>'));
+    return;
+  }
+  const items = (SCHEDULE.byDay[S.cur]||[]).slice().sort((a,b)=> TYPE_ORDER[a.type]-TYPE_ORDER[b.type] || a.lecId-b.lecId);
+  if(!items.length){ box.appendChild(el('<div class="empty">오늘 배정된 신규·복습 없음</div>')); }
+  items.forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId))));
+  box.appendChild(ankiFlowCard());
+}
+function renderExamEve(box){
+  if(!S.examEve) S.examEve={};
+  box.innerHTML = `<div class="eeve">
+    <h2>시험 전날 — 전범위 복습 루틴</h2>
+    <p class="hint">오늘은 크레딧을 배정하지 않아 — 새 걸 배우는 날이 아니라 전체를 한 번 훑는 날이야.</p>
+    <details style="margin:10px 0"><summary style="cursor:pointer;font-size:11.5px;font-weight:700;color:var(--muted)">시험 전날 축약 정리본 프롬프트</summary><div class="opromptbox" style="margin-left:0">${esc(FINAL_SUMMARY_PROMPT)}</div></details>
+    <div id="eeveList"></div>
+  </div>`;
+  const list = box.querySelector('#eeveList');
+  EXAM_EVE_ITEMS.forEach((label,i)=>{
+    const done = !!S.examEve[i];
+    const row = el(`<div class="oitem"><span class="ochk ${done?'done':''}">${done?'✓':''}</span><span class="olabel ${done?'done':''}">${esc(label)}</span></div>`);
+    row.querySelector('.ochk').onclick=()=>{ S.examEve[i]=!S.examEve[i]; saveApp(); render(); };
+    list.appendChild(row);
+  });
+}
+function renderOnboarding(){
+  const box=document.getElementById('onboardBox'); if(!box) return;
+  if(!S.onboarding) S.onboarding={};
+  const doneCount = ONBOARD_ITEMS.filter(it=> S.onboarding[it.key]===true).length;
+  const allDone = doneCount===ONBOARD_ITEMS.length;
+  box.innerHTML = `<details class="onboard" ${allDone?'':'open'}>
+    <summary>📋 블록 준비 체크리스트 (${doneCount}/${ONBOARD_ITEMS.length})</summary>
+    <div id="onboardList" style="margin-top:8px"></div>
+  </details>`;
+  const list = box.querySelector('#onboardList');
+  ONBOARD_ITEMS.forEach(it=>{
+    const state = S.onboarding[it.key];
+    const done = state===true, later = state==='later';
+    const wrap = el(`<div></div>`);
+    const row = el(`<div class="oitem">
+      <span class="ochk ${done?'done':''}">${done?'✓':''}</span>
+      <span class="olabel ${done?'done':''} ${later?'later':''}">${esc(it.label)}${later?'<span class="olater-badge">나중에</span>':''}</span>
+      ${it.prompt?'<button class="opromptbtn">프롬프트</button>':''}
+      ${!done?`<button class="olaterbtn">${later?'취소':'나중에'}</button>`:''}
+    </div>`);
+    row.querySelector('.ochk').onclick=()=>{ S.onboarding[it.key] = done? false : true; saveApp(); render(); };
+    const laterBtn = row.querySelector('.olaterbtn');
+    if(laterBtn) laterBtn.onclick=()=>{ S.onboarding[it.key] = later? false : 'later'; saveApp(); render(); };
+    const pBtn = row.querySelector('.opromptbtn');
+    if(pBtn) pBtn.onclick=()=>{
+      const existing = wrap.querySelector('.opromptbox');
+      if(existing){ existing.remove(); return; }
+      wrap.appendChild(el(`<div class="opromptbox">${esc(it.prompt)}</div>`));
+    };
+    wrap.appendChild(row);
+    list.appendChild(wrap);
+  });
+}
+function renderToday(){
+  renderOnboarding();
+  const isExamEve = (S.examDay-1)>=1 && S.cur===S.examDay-1;
+  const isExamDay = S.cur===S.examDay;
+  const eeveBox=document.getElementById('eeveBox');
+  const flowBox=document.getElementById('dayFlow');
+  if(isExamEve){
+    flowBox.style.display='none';
+    eeveBox.style.display='';
+    renderExamEve(eeveBox);
+  } else {
+    eeveBox.style.display='none'; eeveBox.innerHTML='';
+    flowBox.style.display='';
+    renderDayFlow(flowBox, isExamDay);
+  }
+
+  const cbox=document.getElementById('compareBox');
+  const cands = comparisonCandidates();
+  if(cands.length){
+    const names = cands.map(l=>esc(l.code)+'. '+esc(l.title)).join(', ');
+    cbox.innerHTML = `<div class="compareCard"><b>⚠ 오늘 실제 수업일인 예습 강의 ${cands.length}개</b> — 작년 필기로 미리 끝내둔 거라, 올해 필기 받으면 달라진 점 있는지 비교해봐.<br>${names}
+    <details style="margin-top:6px"><summary style="cursor:pointer;font-size:10.5px;font-weight:700">비교 프롬프트 보기</summary><div class="opromptbox" style="margin-left:0">${esc(COMPARE_PROMPT)}</div></details></div>`;
+  } else { cbox.innerHTML=''; }
+
+  const pq=preQueue(); const pbox=document.getElementById('preQ'); pbox.innerHTML='';
+  pbox.appendChild(el('<p class="hint">오늘 확정된 몫과는 별개로, 아직 안 배운 강의를 미리 당겨서 인코딩하고 싶으면 여기서 할 수 있어. 오늘 몫 자체는 늘어나지 않아.</p>'));
+  pq.length? pq.forEach(l=>pbox.appendChild(encCard(l))) : pbox.appendChild(el('<div class="empty">아직 안 배운 강의 없음</div>'));
+
+  const prq=previewReviewQueue(); const prbox=document.getElementById('preRQ'); prbox.innerHTML='';
+  prbox.appendChild(el('<p class="hint">알고리즘이 여유될 때 자동으로 당겨주기도 하지만, 지금 당장 먼저 끝내고 싶은 복습이 있으면 여기서 바로 완료할 수 있어.</p>'));
+  prq.length? prq.forEach(o=>prbox.appendChild(reviewPreviewCard(o))) : prbox.appendChild(el('<div class="empty">미리 할 복습 없음</div>'));
+}
+function slotChip(l, slot){
+  const cls = slot.done ? 'done' : (slot.due==null ? 'na' : (slot.due===S.cur ? 'due' : 'inactive'));
+  const label = slot.key;
+  const title = `${slot.key}차: ${STAGE_DESC[slot.key].desc}` + (slot.due!=null? ` (예정 Day${slot.due})` : (slot.done? '' : ' — 남은 기간 안에 배정 못함'));
+  const clickable = S.lec[l.id].enc!=null && (slot.done || slot.due===S.cur);
+  if(clickable){
+    const b = el(`<button class="${cls}" title="${title}">${label}</button>`);
+    b.onclick=()=>{
+      const nv = !S.lec[l.id].r[slot.key];
+      S.lec[l.id].r[slot.key] = nv;
+      if(!S.lec[l.id].rDay) S.lec[l.id].rDay={1:null,2:null};
+      S.lec[l.id].rDay[slot.key] = nv ? S.cur : null;
+      saveApp(); render();
+    };
+    return `<div class="chip">${b.outerHTML}<span class="lbl">${slot.key}</span></div>`;
+  }
+  return `<div class="chip"><span class="sq ${S.lec[l.id].enc==null?'inactive':cls}" title="${title}"></span><span class="lbl">${slot.key}</span></div>`;
+}
+/* ===== 학습 계획 탭: 오늘부터 시험일까지 일별 계획 ===== */
+function renderTypeCostInputs(){
+  const tc = S.typeCost || {new:1,r1:0.5,r2:0.25};
+  const nEl=document.getElementById('tcNew'), r1El=document.getElementById('tcR1'), r2El=document.getElementById('tcR2');
+  if(document.activeElement!==nEl) nEl.value=tc.new;
+  if(document.activeElement!==r1El) r1El.value=tc.r1;
+  if(document.activeElement!==r2El) r2El.value=tc.r2;
+}
+function tagGroupsHtml(items, isDoneFn){
+  const groups={new:[], r1:[], r2:[]};
+  items.forEach(it=>{ if(groups[it.type]) groups[it.type].push(it); });
+  const labels={new:'신규',r1:'1차',r2:'2차'};
+  let html='';
+  ['new','r1','r2'].forEach(type=>{
+    if(!groups[type].length) return;
+    const tags = groups[type].map(it=>{
+      const l=byId(it.lecId); if(!l) return '';
+      const done = isDoneFn ? isDoneFn(it) : false;
+      return `<span class="plantag ${type} ${done?'done':''}">${esc(l.code)}</span>`;
+    }).join('');
+    html += `<div class="plantaggrp"><span class="glbl">${labels[type]}</span>${tags}</div>`;
+  });
+  return html? `<div class="plantags">${html}</div>` : '';
+}
+function renderPlan(){
+  renderTypeCostInputs();
+  const box=document.getElementById('planList'); box.innerHTML='';
+  const warnEl=document.getElementById('planWarn');
+  const uEnd=usableDays();
+  if(SCHEDULE.unscheduled.length){
+    const names = SCHEDULE.unscheduled.slice(0,6).map(it=>{
+      const l=byId(it.lecId); const kind = it.type==='new'?'신규':(it.type==='r1'?'1차':'2차');
+      return `${l.code}(${kind})`;
+    }).join(', ');
+    warnEl.innerHTML = `<p class="hint" style="color:var(--warn);font-weight:700">⚠ 남은 시험기간 안에 다 못 채운 항목이 ${SCHEDULE.unscheduled.length}개 있어 (${esc(names)}${SCHEDULE.unscheduled.length>6?' 외':''}). 하루 목표 크레딧을 올리거나 시험범위를 조정해봐.</p>`;
+    warnEl.style.display='';
+  } else { warnEl.style.display='none'; warnEl.innerHTML=''; }
+
+  let scale=0.01;
+  for(let d=S.cur; d<=S.examDay; d++){
+    const load = d===S.cur ? lockedTodayTotalCost() : (SCHEDULE.byDay[d]||[]).reduce((a,it)=>a+it.cost,0);
+    scale=Math.max(scale, load, dayCapacity(d));
+  }
+  scale*=1.08;
+
+  for(let d=S.cur; d<=S.examDay; d++){
+    const info=dInfo(d);
+    const cap=dayCapacity(d);
+    const blocked = d>uEnd;
+    const isToday = d===S.cur;
+    const cls = isToday?'cur':'';
+    let barHtml, tagsHtml, n=0, r1=0, r2=0;
+
+    if(isToday){
+      const total=lockedTodayTotalCost(), done=lockedTodayDoneCost(), remaining=Math.max(0,total-done);
+      const donePct=Math.min(100, done/scale*100);
+      const remPct=Math.min(100-donePct, remaining/scale*100);
+      const capPct=Math.min(100, cap/scale*100);
+      barHtml = `<div class="pbarwrap"><div class="pbar2">
+        <div class="pbarseg" style="width:${donePct}%;background:var(--done)"></div>
+        <div class="pbarseg" style="width:${remPct}%;background:var(--progress)"></div>
+      </div><div class="pcapline" style="left:${capPct}%"></div></div>`;
+      const items = S.todayLock.items;
+      n=items.filter(it=>it.type==='new').length; r1=items.filter(it=>it.type==='r1').length; r2=items.filter(it=>it.type==='r2').length;
+      tagsHtml = tagGroupsHtml(items, it=>{
+        const st=S.lec[it.lecId]; if(!st) return false;
+        if(it.type==='new') return st.enc!=null;
+        if(it.type==='r1') return !!st.r[1];
+        return !!st.r[2];
+      });
+    } else {
+      const items = SCHEDULE.byDay[d]||[];
+      const load = items.reduce((a,it)=>a+it.cost,0);
+      const loadPct=Math.min(100, load/scale*100);
+      const capPct=Math.min(100, cap/scale*100);
+      let color = blocked? 'var(--inactive-soft)' : (load>cap+1e-9?'var(--warn)':'var(--progress)');
+      if(load<1e-9 && !blocked) color='var(--inactive-soft)';
+      barHtml = `<div class="pbarwrap"><div class="pbar" style="width:${loadPct}%;background:${color}"></div><div class="pcapline" style="left:${capPct}%"></div></div>`;
+      n=items.filter(it=>it.type==='new').length; r1=items.filter(it=>it.type==='r1').length; r2=items.filter(it=>it.type==='r2').length;
+      tagsHtml = tagGroupsHtml(items, null);
+    }
+
+    const capInput = blocked? '' : `<input type="number" step="0.25" min="0" class="capinput" data-day="${d}" value="${cap.toFixed(2)}">`;
+    const row = el(`<div class="planrow ${cls}">
+      <div class="pd">Day${d}<div class="pdate">${info.date}(${info.dow})</div></div>
+      <div>
+        ${barHtml}
+        ${tagsHtml}
+        ${blocked?`<div class="pnote">분배 제외${info.note?' · '+esc(info.note):''}</div>`:(info.note?`<div class="pnote">${esc(info.note)}</div>`:'')}
+      </div>
+      <div class="pcount">신규 ${n}·1차 ${r1}·2차 ${r2}${capInput}</div>
+    </div>`);
+    if(!blocked){
+      row.querySelector('.capinput').addEventListener('change', e=>{
+        const v=parseFloat(e.target.value);
+        if(!S.capOverride) S.capOverride={};
+        if(isNaN(v) || v<0) delete S.capOverride[d]; else S.capOverride[d]=v;
+        if(d===S.cur) S.todayLock=null; // 오늘 크레딧 자체를 바꿨으니 오늘 몫도 다시 정한다(이미 완료한 건 보존)
+        saveApp(); render();
+      });
+    }
+    box.appendChild(row);
+  }
+}
+function stage0Chip(l){
+  const enc = S.lec[l.id].enc!=null;
+  return `<div class="chip"><span class="sq ${enc?'done-static':'inactive'}" title="신규: ${STAGE_DESC[0].desc}" style="${enc?'background:var(--done);color:#fff':''}"></span><span class="lbl">신</span></div>`;
+}
+function buildRow(l, st){
+  const excluded = !!st.excluded;
+  const enc = st.enc!=null;
+  const ss = slots(l);
+  let chipsHtml='';
+  if(excluded){ chipsHtml=''; }
+  else if(enc){ chipsHtml = `<div class="chips">${stage0Chip(l)}${ss.map(s=>slotChip(l,s)).join('')}</div>`; }
+  else { chipsHtml = `<div class="chips">${['신',1,2].map(k=>`<div class="chip"><span class="sq inactive"></span><span class="lbl">${k}</span></div>`).join('')}</div>`; }
+
+  const row = el(`<div class="row" style="${excluded?'opacity:.45':''}">
+    <div class="rt"><div class="rn">${excluded?'<s>':''}${l.type==='실습'?'<span class="badge lab" style="margin-right:4px">실습</span>':''}${esc(l.code)}. ${esc(l.title)}${excluded?'</s>':''}</div><div class="rp">${esc(l.prof)}${excluded?' · 시험범위 제외됨':''}</div></div>
+    ${chipsHtml}
+    ${excluded?'':`<span class="encpill ${enc?'':'no'}">${enc?'enc D'+st.enc:'미인코딩'}</span>`}
+    ${(!excluded && enc)?'<button class="undo undo-enc">되돌리기</button>':''}
+    <button class="undo edit-lec">수정</button>
+    <button class="undo excl-toggle">${excluded?'포함시키기':'시험범위 제외'}</button>
+    <button class="tabdel del-lec" title="강의 삭제">×</button>
+  </div>`);
+
+  if(!excluded){
+    const undoBtn = row.querySelector('.undo-enc');
+    if(undoBtn) undoBtn.onclick=()=> askConfirm(`"${l.title}" 인코딩을 취소할까?`, '체크리스트 2개(1~2차)도 함께 초기화돼.', ()=>{
+      st.enc=null; st.r={1:false,2:false}; st.rDay={1:null,2:null}; saveApp(); render();
+    });
+  }
+  row.querySelector('.edit-lec').onclick=()=> openEditLecModal(l);
+  row.querySelector('.del-lec').onclick=()=>{
+    askConfirm(`"${l.title}"을 목록에서 완전히 삭제할까?`, '시험범위 제외와 달리 강의 자체가 사라지고, 인코딩·체크 기록도 함께 없어져. 되돌릴 수 없어.', ()=>{
+      const idx=LEC.findIndex(x=>x.id===l.id); if(idx>=0) LEC.splice(idx,1);
+      delete S.lec[l.id];
+      S.todayLock=null;
+      saveApp(); render();
+    }, '삭제');
+  };
+  const exclBtn = row.querySelector('.excl-toggle');
+  exclBtn.onclick = ()=>{
+    if(excluded){ st.excluded=false; S.todayLock=null; saveApp(); render(); }
+    else askConfirm(`"${l.title}"을 시험범위에서 제외할까?`, '진도·통계·오늘 할일 목록에서 빠지고, 남은 강의들의 학습 계획이 새 크레딧 기준으로 다시 계산돼. 나중에 언제든 다시 포함시킬 수 있어.', ()=>{
+      st.excluded=true; S.todayLock=null; saveApp(); render();
+    }, '제외');
+  };
+  return row;
+}
+function renderList(){
+  const wrap=document.getElementById('fullList'); wrap.innerHTML='';
+  SCHOOL_DAYS.forEach(d=>{
+    const items=LEC.filter(l=>l.day===d.day);
+    const grp = el(`<div class="daygrp"><div class="dayhd"><span>Day ${d.day}</span><span>${d.date}(${d.dow})</span>${d.note?`<span class="ex">${esc(d.note)}</span>`:''}</div></div>`);
+    if(!items.length){ grp.appendChild(el('<div class="row"><span style="color:var(--faint);font-size:11px">강의 없음</span></div>')); }
+    items.forEach(l=> grp.appendChild(buildRow(l, S.lec[l.id])));
+    wrap.appendChild(grp);
+  });
+  const daySel = document.getElementById('alDay'); daySel.innerHTML = SCHOOL_DAYS.map(d=>`<option value="${d.day}">Day${d.day} ${d.date}(${d.dow})</option>`).join('');
+}
+function renderPrompts(){
+  const box=document.getElementById('plib'); box.innerHTML='';
+  PROMPTS().forEach(p=>{
+    const c = el(`<div class="pcard">
+      <div class="ptitle">${esc(p.t)}</div>
+      <div class="pwhen">${esc(p.w)}</div>
+      <div class="ptext">${esc(p.x)}</div>
+      <button class="copybtn">복사</button>
+    </div>`);
+    c.querySelector('.copybtn').onclick=(e)=> copyText(p.x, e.target);
+    box.appendChild(c);
+  });
+}
+function render(){
+  renderBlockTabs();
+  const has = App.blocks.length>0 && !!S;
+  document.getElementById('mainArea').style.display = has? '' : 'none';
+  document.getElementById('emptyState').style.display = has? 'none' : '';
+  if(!has) return;
+  SCHEDULE = computeSchedule();
+  renderHeader(); renderBanner(); renderLoadPanel(); renderStats(); renderToday(); renderPlan(); renderList(); renderPrompts();
+}
+
+/* ===== 복사 & 토스트 ===== */
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1600);
+}
+async function copyText(text, btn){
+  try{ await navigator.clipboard.writeText(text); }
+  catch(e){
+    const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
+    ta.select(); try{ document.execCommand('copy'); }catch(e2){} document.body.removeChild(ta);
+  }
+  btn.textContent='복사됨'; btn.classList.add('copied');
+  showToast('클립보드에 복사됨');
+  setTimeout(()=>{ btn.textContent='복사'; btn.classList.remove('copied'); }, 1400);
+}
+
+/* ===== 확인 모달 ===== */
+const mask=document.getElementById('mask'); let _cb=null;
+function askConfirm(title, body, onYes, yesLabel){
+  document.getElementById('mkT').textContent=title;
+  document.getElementById('mkB').textContent=body;
+  document.getElementById('mkYes').textContent = yesLabel || '되돌리기';
+  mask.classList.add('on'); _cb=onYes;
+}
+document.getElementById('mkYes').onclick=()=>{ mask.classList.remove('on'); if(_cb) _cb(); };
+document.getElementById('mkNo').onclick=()=>{ mask.classList.remove('on'); };
+
+/* ===== 새 블록 추가 (수동) ===== */
+const nbMask=document.getElementById('nbMask');
+function openAddModal(){
+  document.getElementById('nbSubject').value='';
+  document.getElementById('nbStart').value='';
+  document.getElementById('nbExam').value='';
+  document.getElementById('nbStatus').textContent='';
+  nbMask.classList.add('on');
+}
+function closeAddModal(){ nbMask.classList.remove('on'); }
+document.getElementById('nbCancel').onclick=closeAddModal;
+document.getElementById('emptyAddBtn').onclick=openAddModal;
+
+function buildSchoolDays(startStr, examStr, examLabel){
+  const start=new Date(startStr+'T00:00:00'), exam=new Date(examStr+'T00:00:00');
+  const dows=['일','월','화','수','목','금','토'];
+  const days=[]; let idx=1;
+  for(let d=new Date(start); d<=exam; d.setDate(d.getDate()+1)){
+    const isExam = d.getTime()===exam.getTime();
+    const dow = dows[d.getDay()];
+    const isWeekend = d.getDay()===0||d.getDay()===6;
+    days.push({day:idx++, date:`${d.getMonth()+1}/${d.getDate()}`, dow, note: isExam? `${examLabel} 시험` : (isWeekend?'주말·캐치업':'')});
+  }
+  return days;
+}
+document.getElementById('nbSubmit').onclick = ()=>{
+  const subject = document.getElementById('nbSubject').value.trim();
+  const startStr = document.getElementById('nbStart').value;
+  const examStr = document.getElementById('nbExam').value;
+  const statusEl = document.getElementById('nbStatus');
+  if(!subject||!startStr||!examStr){ statusEl.textContent='과목명·시작일·시험일을 모두 입력해줘.'; return; }
+  if(new Date(examStr) < new Date(startStr)){ statusEl.textContent='시험일이 시작일보다 빨라.'; return; }
+  const schoolDays = buildSchoolDays(startStr, examStr, subject);
+  const lec = [];
+  const block = {id:'b'+Date.now(), name:subject, schoolDays, lec, state:freshState(schoolDays, lec)};
+  App.blocks.push(block); App.active=block.id;
+  activateBlock(block.id);
+  saveApp();
+  closeAddModal();
+  render();
+  showToast(`"${subject}" 블록 생성됨 — "전체 강의" 탭에서 강의를 하나씩 추가해줘`);
+};
+
+/* ===== 강의 수정 모달 ===== */
+const elMask=document.getElementById('elMask');
+let _editingLec=null;
+function openEditLecModal(l){
+  _editingLec=l;
+  document.getElementById('elCode').value=l.code;
+  document.getElementById('elTitle').value=l.title;
+  document.getElementById('elProf').value=l.prof;
+  document.getElementById('elType').value=l.type==='실습'?'실습':'강의';
+  const daySel=document.getElementById('elDay');
+  daySel.innerHTML = SCHOOL_DAYS.map(d=>`<option value="${d.day}">Day${d.day} ${d.date}(${d.dow})</option>`).join('');
+  daySel.value=l.day;
+  elMask.classList.add('on');
+}
+function closeEditLecModal(){ elMask.classList.remove('on'); _editingLec=null; }
+document.getElementById('elCancel').onclick=closeEditLecModal;
+document.getElementById('elSave').onclick=()=>{
+  if(!_editingLec) return;
+  const title=document.getElementById('elTitle').value.trim();
+  if(!title){ showToast('강의명을 입력해줘'); return; }
+  _editingLec.code = document.getElementById('elCode').value.trim() || _editingLec.code;
+  _editingLec.title = title;
+  _editingLec.prof = document.getElementById('elProf').value.trim() || '미정';
+  _editingLec.type = document.getElementById('elType').value;
+  _editingLec.day = parseInt(document.getElementById('elDay').value);
+  S.todayLock=null; // 강의 정보가 바뀌었으니 오늘 몫도 다시 정한다
+  saveApp();
+  closeEditLecModal();
+  render();
+};
+
+/* ===== 수동 강의 추가 (보정용) ===== */
+document.getElementById('alAdd').onclick=()=>{
+  const code=document.getElementById('alCode').value.trim();
+  const title=document.getElementById('alTitle').value.trim();
+  const prof=document.getElementById('alProf').value.trim();
+  const type=document.getElementById('alType').value;
+  const day=parseInt(document.getElementById('alDay').value);
+  if(!title){ showToast('강의명을 입력해줘'); return; }
+  const newId = (LEC.reduce((m,l)=>Math.max(m,l.id),0))+1;
+  LEC.push({id:newId, day, code:code||`강${newId}`, title, prof:prof||'미정', type});
+  S.lec[newId]=freshLecState();
+  S.todayLock=null; // 강의가 늘었으니 오늘 몫도 다시 정한다
+  document.getElementById('alCode').value=''; document.getElementById('alTitle').value=''; document.getElementById('alProf').value='';
+  saveApp(); render();
+};
+
+/* ===== 단계별 크레딧 조정 ===== */
+[['tcNew','new'],['tcR1','r1'],['tcR2','r2']].forEach(([id,key])=>{
+  document.getElementById(id).addEventListener('change', e=>{
+    const v=parseFloat(e.target.value);
+    if(isNaN(v) || v<0 || !S) return;
+    if(!S.typeCost) S.typeCost={new:1,r1:0.5,r2:0.25};
+    S.typeCost[key]=v;
+    S.todayLock=null;
+    saveApp(); render();
+  });
+});
+document.getElementById('resetOverrides').onclick=()=>{
+  if(!S) return;
+  askConfirm('전체 크레딧 재분배', '지금까지 개별 날짜에 손댄 크레딧 조정을 전부 지우고, 현재 단계별 크레딧·남은 강의 기준으로 다시 고르게 나눠. 이미 완료한 항목은 그대로 유지되고, 오늘 몫도 이 기준으로 다시 정해져. 되돌릴 수 없어.', ()=>{
+    S.capOverride={};
+    S.todayLock=null;
+    saveApp(); render();
+  }, '재분배');
+};
+
+/* ===== 컨트롤 ===== */
+document.addEventListener('click', e=>{
+  const t=e.target.closest('[data-a]'); if(!t) return;
+  const a=t.dataset.a;
+  if(!S) return;
+  if(a==='day-'&&S.cur>1) S.cur--;
+  else if(a==='day+'&&S.cur<MAXDAY) S.cur++;
+  else if(a==='exam-'&&S.examDay>1&&S.examDay>S.cur){ S.examDay--; S.todayLock=null; }
+  else if(a==='exam+'&&S.examDay<MAXDAY){ S.examDay++; S.todayLock=null; }
+  else if(a==='reset'){ askConfirm('이 블록 초기화','이 블록의 모든 진도·정리본 링크가 초기화돼. 되돌릴 수 없어.', ()=>{
+      const b=App.blocks.find(x=>x.id===App.active); b.state=freshState(b.schoolDays,b.lec); activateBlock(b.id); saveApp(); render();
+    }, '초기화'); return; }
+  saveApp(); render();
+});
+document.querySelectorAll('.tab').forEach(tb=>{
+  tb.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.panelset').forEach(x=>x.classList.remove('on'));
+    tb.classList.add('on');
+    document.getElementById('tab-'+tb.dataset.tab).classList.add('on');
+  };
+});
+(async ()=>{ await loadApp(); render(); })();
+</script>
