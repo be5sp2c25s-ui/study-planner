@@ -230,6 +230,8 @@
   .flowmeta{font-size:10.5px;color:var(--muted);display:block;font-weight:400}
   .flowdone{border:none;border-radius:9px;padding:7px 13px;font-size:11.5px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;flex-shrink:0}
   .flowdone.done{color:var(--ink)}
+  .add-plan-btn{align-self:flex-start;border:1px dashed var(--faint);border-radius:9px;padding:8px 12px;background:var(--surface);color:var(--muted);font-size:11.5px;font-weight:700;cursor:pointer}
+  .add-plan-btn:hover{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
   .flowbody{display:none;padding:2px 14px 12px 14px;border-top:1px solid var(--line)}
   .substep{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:11.5px}
   .substep .schk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--line);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;background:var(--surface)}
@@ -362,6 +364,19 @@
   </div>
 </div></div>
 
+<div class="mask" id="mpMask"><div class="modal wide">
+  <h3>오늘 계획 추가</h3>
+  <p style="margin-bottom:12px">오늘 탭에 직접 할 일을 추가해주세요.</p>
+  <div class="form-row"><label>배지</label><input type="text" id="mpBadge" placeholder="예: 족보, 복습, 과제"></div>
+  <div class="form-row"><label>제목</label><input type="text" id="mpTitle" placeholder="오늘 할 일 제목"></div>
+  <div class="form-row"><label>세부 항목</label><textarea id="mpSteps" class="review-input" placeholder="한 줄에 하나씩 입력해주세요."></textarea></div>
+  <div class="nbstatus" id="mpStatus"></div>
+  <div class="acts">
+    <button class="no" id="mpCancel">취소</button>
+    <button class="yes primary" id="mpSubmit">추가</button>
+  </div>
+</div></div>
+
 <div class="mask" id="ebMask"><div class="modal wide">
   <h3>블록 정보 수정</h3>
   <div class="form-row"><label>과목명</label><input type="text" id="ebSubject"></div>
@@ -463,7 +478,7 @@ document.addEventListener('keydown', e=>{
 
 function freshState(schoolDays, lec){
   const m={}; lec.forEach(l=> m[l.id]=freshLecState());
-  return {cur:1, examDay: schoolDays.length, capOverride:{}, todayLock:null, typeCost:{new:1,r1:0.5,r2:0.25}, onboarding:{}, examEve:{}, ankiCheck:{}, lec:m};
+  return {cur:1, examDay: schoolDays.length, capOverride:{}, todayLock:null, typeCost:{new:1,r1:0.5,r2:0.25}, onboarding:{}, examEve:{}, ankiCheck:{}, manualPlans:{}, lec:m};
 }
 function freshLecState(){
   return {enc:null, r:{1:false,2:false}, rDay:{1:null,2:null}, subCheck:{new:{},r1:{},r2:{}}, excluded:false};
@@ -1052,6 +1067,37 @@ function flowCard(type, l){
   };
   return item;
 }
+function manualPlanCard(plan){
+  const flowKey=`${App.active}:manual:${plan.id}`;
+  const steps=Array.isArray(plan.steps) ? plan.steps : [];
+  const checks=Array.isArray(plan.checks) ? plan.checks : (plan.checks=[]);
+  const done=!!plan.done;
+  const item=el(`<div class="flowitem">
+    <div class="flowhead">
+      <span class="flowbadge" style="background:var(--accent-soft);color:var(--accent)">${esc(plan.badge)}</span>
+      <span class="flowtitle">${esc(plan.title)}<span class="flowmeta">${checks.filter(Boolean).length}/${steps.length} 체크됨</span></span>
+      <button class="flowdone ${done?'done':''}" style="${done?'background:var(--inactive-soft);color:var(--inactive)':''}">${done?'완료됨':'완료'}</button>
+    </div>
+    <div class="flowbody" style="display:${expandedFlowCards.has(flowKey)?'block':'none'}"></div>
+  </div>`);
+  const body=item.querySelector('.flowbody');
+  steps.forEach((step,index)=>{
+    const row=el(`<div class="substep"><span class="schk ${checks[index]?'done':''}">${checks[index]?'✓':''}</span><span class="slabel ${checks[index]?'done':''}">${esc(step)}</span></div>`);
+    row.querySelector('.schk').onclick=e=>{
+      e.stopPropagation(); checks[index]=!checks[index]; saveApp(); render();
+    };
+    body.appendChild(row);
+  });
+  item.querySelector('.flowhead').onclick=e=>{
+    if(e.target.closest('.flowdone')) return;
+    const expanded=body.style.display!=='none'; body.style.display=expanded?'none':'block';
+    if(expanded) expandedFlowCards.delete(flowKey); else expandedFlowCards.add(flowKey);
+  };
+  item.querySelector('.flowdone').onclick=e=>{
+    e.stopPropagation(); plan.done=!plan.done; saveApp(); render();
+  };
+  return item;
+}
 function ankiFlowCard(){
   const done = !!(S.ankiCheck && S.ankiCheck[S.cur]);
   const item = el(`<div class="flowitem">
@@ -1074,16 +1120,22 @@ function renderDayFlow(box, isExamDay){
     box.appendChild(el('<div class="empty" style="padding:24px 4px">오늘은 시험 보는 날이야. 화이팅! 🍀</div>'));
     return;
   }
+  if(!S.manualPlans) S.manualPlans={};
+  const manualPlans=S.manualPlans[S.cur] || (S.manualPlans[S.cur]=[]);
   const items = (SCHEDULE.byDay[S.cur]||[]).slice().sort((a,b)=>{
     const aDone=a.type==='new' ? S.lec[a.lecId].enc!=null : !!S.lec[a.lecId].r[a.type==='r1'?1:2];
     const bDone=b.type==='new' ? S.lec[b.lecId].enc!=null : !!S.lec[b.lecId].r[b.type==='r1'?1:2];
     return Number(aDone)-Number(bDone) || TYPE_ORDER[a.type]-TYPE_ORDER[b.type] || a.lecId-b.lecId;
   });
-  if(!items.length){ box.appendChild(el('<div class="empty">오늘 배정된 신규·복습 없음</div>')); }
+  box.appendChild(el('<button class="add-plan-btn" type="button">+ 오늘 계획 추가</button>'));
   const isDone = it => it.type==='new' ? S.lec[it.lecId].enc!=null : !!S.lec[it.lecId].r[it.type==='r1'?1:2];
   items.filter(it=>!isDone(it)).forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId))));
+  manualPlans.filter(plan=>!plan.done).forEach(plan=> box.appendChild(manualPlanCard(plan)));
   box.appendChild(ankiFlowCard());
   items.filter(isDone).forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId))));
+  manualPlans.filter(plan=>plan.done).forEach(plan=> box.appendChild(manualPlanCard(plan)));
+  if(!items.length && !manualPlans.length) box.insertBefore(el('<div class="empty">오늘 배정된 신규·복습 없음</div>'),box.children[1]);
+  box.querySelector('.add-plan-btn').onclick=openManualPlanModal;
 }
 function renderExamEve(box){
   if(!S.examEve) S.examEve={};
@@ -1453,6 +1505,28 @@ function openAddModal(){
 function closeAddModal(){ nbMask.classList.remove('on'); }
 document.getElementById('nbCancel').onclick=closeAddModal;
 document.getElementById('emptyAddBtn').onclick=openAddModal;
+
+const mpMask=document.getElementById('mpMask');
+function openManualPlanModal(){
+  document.getElementById('mpBadge').value='';
+  document.getElementById('mpTitle').value='';
+  document.getElementById('mpSteps').value='';
+  document.getElementById('mpStatus').textContent='';
+  mpMask.classList.add('on');
+}
+function closeManualPlanModal(){ mpMask.classList.remove('on'); }
+document.getElementById('mpCancel').onclick=closeManualPlanModal;
+document.getElementById('mpSubmit').onclick=()=>{
+  const badge=document.getElementById('mpBadge').value.trim();
+  const title=document.getElementById('mpTitle').value.trim();
+  const steps=document.getElementById('mpSteps').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  const statusEl=document.getElementById('mpStatus');
+  if(!badge||!title){ statusEl.textContent='배지와 제목을 입력해주세요.'; return; }
+  if(!S.manualPlans) S.manualPlans={};
+  if(!S.manualPlans[S.cur]) S.manualPlans[S.cur]=[];
+  S.manualPlans[S.cur].push({id:'m'+Date.now(),badge,title,steps,checks:steps.map(()=>false),done:false});
+  saveApp(); closeManualPlanModal(); render();
+};
 
 const ebMask=document.getElementById('ebMask');
 let _editingBlock=null;
