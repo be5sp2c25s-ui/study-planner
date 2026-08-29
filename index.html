@@ -9,9 +9,9 @@
     --accent:#2F6FED; --accent-soft:#EAF0FE;
     --idle:#1C2430;
     --progress:#2F6FED; --progress-soft:#EAF0FE;
-    --done:#E07B1E; --done-soft:#FBEBD9;
+    --done:#2F6FED; --done-soft:#97b0fc;
     --inactive:#565F6E; --inactive-soft:#D8DCE4;
-    --warn:#C22067; --warn-soft:#FBDDEA;
+    --warn:#002057; --warn-soft:#FBDDEA;
     --disp:'Pretendard',-apple-system,'Segoe UI','Noto Sans KR',sans-serif;
     --sans:'Pretendard',-apple-system,'Segoe UI','Noto Sans KR',sans-serif;
   }
@@ -27,10 +27,18 @@
   .blocktabgrp{display:inline-flex;align-items:center;gap:2px}
   .tabdel{width:18px;height:18px;border:none;border-radius:50%;background:transparent;color:var(--faint);font-size:12px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
   .tabdel:hover{background:var(--warn-soft);color:var(--warn)}
+  .tabedit{width:34px;height:24px;border:none;border-radius:7px;background:transparent;color:var(--faint);font-size:11px;line-height:1;white-space:nowrap;cursor:pointer;padding:0 5px}
+  .tabedit:hover{background:var(--accent-soft);color:var(--accent)}
 
   header{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;padding:6px 2px 18px}
   .brand{display:flex;align-items:center;gap:12px}
-  .brand .dot{width:32px;height:32px;border-radius:9px;background:var(--ink);flex-shrink:0}
+  .brand .dot{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:18px;line-height:1;flex-shrink:0;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
+  .brand .dot:hover{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+  .emoji-picker-wrap{position:relative;flex-shrink:0}
+  .emoji-picker{position:absolute;top:40px;left:0;z-index:20;display:none;grid-template-columns:repeat(6,32px);gap:5px;max-height:70vh;overflow-y:auto;padding:9px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 22px rgba(28,36,48,.14)}
+  .emoji-picker.on{display:grid}
+  .emoji-choice{width:32px;height:32px;border:1px solid transparent;border-radius:7px;background:transparent;font-size:19px;line-height:1;cursor:pointer;padding:0}
+  .emoji-choice:hover{background:var(--accent-soft);border-color:var(--accent)}
   .brand h1{font-family:var(--disp);font-weight:800;font-size:18px;letter-spacing:-0.3px;margin:0;color:var(--ink)}
   .brand p{margin:2px 0 0;font-size:12px;color:var(--muted)}
   .ctrls{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end}
@@ -88,7 +96,7 @@
   .card .t{font-size:13px;font-weight:800}
   .card .m{font-size:10.5px;color:var(--muted);margin-top:2px}
   .go{margin-top:8px;border:none;border-radius:9px;padding:9px 13px;font-size:12.5px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff}
-  .go.amber{background:var(--done)}
+  .go.amber{background:var(--done);color:var(--ink)}
   .empty{font-size:12px;color:var(--faint);text-align:center;padding:18px 4px}
 
   details.pre{margin-top:6px}
@@ -109,7 +117,7 @@
   .chips{display:flex;gap:4px}
   .chip{display:flex;flex-direction:column;align-items:center;gap:1px;width:28px}
   .chip button, .chip span.sq{width:19px;height:19px;border-radius:6px;border:none;cursor:pointer;background:var(--inactive-soft);font-size:8.5px;display:flex;align-items:center;justify-content:center;padding:0;color:var(--inactive)}
-  .chip button.done{background:var(--done);color:#fff}
+  .chip button.done{background:var(--done);color:var(--ink)}
   .chip button.due{background:var(--progress);color:#fff}
   .chip button.overdue{background:var(--warn);color:#fff}
   .chip span.sq.na{background:repeating-linear-gradient(45deg,var(--line) 0 2px,var(--surface) 2px 4px);cursor:default}
@@ -130,7 +138,7 @@
   .pcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 15px;position:relative}
   .pcard .ptitle{font-family:var(--disp);font-weight:800;font-size:13px;margin-bottom:2px;color:var(--ink)}
   .pcard .pwhen{font-size:10.5px;color:var(--muted);margin-bottom:8px}
-  .pcard .ptext{font-size:11px;color:var(--muted);white-space:pre-wrap;max-height:70px;overflow:hidden;line-height:1.55}
+  .pcard .ptext{font-size:11px;color:var(--muted);white-space:pre-wrap;line-height:1.55}
   .copybtn{margin-top:9px;border:none;color:var(--accent);background:var(--accent-soft);border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer}
   .copybtn.copied{background:var(--accent);color:#fff}
   .instruction-card{grid-column:1/-1}
@@ -175,7 +183,6 @@
   .pcount{font-size:10.5px;color:var(--muted);white-space:nowrap;text-align:right}
   .pnote{font-size:9.5px;color:var(--muted);font-weight:700;grid-column:1/-1;margin-top:-2px}
   .capinput{width:56px;font-size:10.5px;border:1px solid var(--line);border-radius:6px;padding:3px 5px;margin-left:6px;font-family:var(--sans)}
-  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:10.5px;color:var(--muted);margin-top:8px}
   .typecosts{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px;padding:8px 10px;background:var(--surface2);border-radius:9px}
   .typecosts .tclbl{font-size:10.5px;font-weight:700;color:var(--muted)}
   .typecosts label{display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:var(--ink)}
@@ -187,11 +194,9 @@
   .plantaggrp .glbl{font-size:9px;font-weight:700;color:var(--faint);min-width:24px}
   .plantag{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px}
   .plantag.new{background:var(--progress-soft);color:var(--progress)}
-  .plantag.r1{background:var(--done-soft);color:var(--done)}
+  .plantag.r1{background:var(--done-soft);color:var(--ink)}
   .plantag.r2{background:var(--inactive-soft);color:var(--inactive)}
-  .plantag.done{opacity:.5;text-decoration:line-through}
-  .legend span{display:inline-flex;align-items:center;gap:5px}
-  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .plantag.done{opacity:.5}
 
   .battery-wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
   .battery{position:relative;width:72px;height:32px;border:2px solid var(--line);border-radius:7px;padding:3px;flex-shrink:0;background:var(--surface2)}
@@ -205,9 +210,9 @@
   .oitem{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-top:1px solid var(--line)}
   .oitem:first-of-type{border-top:none;padding-top:12px}
   .ochk{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
-  .ochk.done{background:var(--done);border-color:var(--done)}
+  .ochk.done{background:var(--done);border-color:var(--done);color:var(--ink)}
   .olabel{flex:1;font-size:12px;font-weight:600}
-  .olabel.done{text-decoration:line-through;color:var(--muted)}
+  .olabel.done{color:var(--muted)}
   .olabel.later{color:var(--muted);font-style:italic}
   .olater-badge{font-size:9.5px;font-weight:700;color:var(--inactive);background:var(--inactive-soft);padding:1px 7px;border-radius:20px;margin-left:6px}
   .olaterbtn{border:none;background:transparent;color:var(--faint);font-size:10.5px;font-weight:700;cursor:pointer;text-decoration:underline;flex-shrink:0}
@@ -219,17 +224,18 @@
   .flowhead{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer}
   .flowbadge{font-size:10px;font-weight:800;padding:3px 9px;border-radius:8px;flex-shrink:0}
   .flowbadge.new{background:var(--progress-soft);color:var(--progress)}
-  .flowbadge.r1{background:var(--done-soft);color:var(--done)}
+  .flowbadge.r1{background:var(--done-soft);color:var(--ink)}
   .flowbadge.r2{background:var(--inactive-soft);color:var(--inactive)}
   .flowtitle{flex:1;font-size:13px;font-weight:700;min-width:0}
   .flowmeta{font-size:10.5px;color:var(--muted);display:block;font-weight:400}
   .flowdone{border:none;border-radius:9px;padding:7px 13px;font-size:11.5px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;flex-shrink:0}
-  .flowbody{padding:2px 14px 12px 14px;border-top:1px solid var(--line)}
+  .flowdone.done{color:var(--ink)}
+  .flowbody{display:none;padding:2px 14px 12px 14px;border-top:1px solid var(--line)}
   .substep{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:11.5px}
   .substep .schk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--line);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;background:var(--surface)}
-  .substep .schk.done{background:var(--done);border-color:var(--done)}
+  .substep .schk.done{background:var(--done);border-color:var(--done);color:var(--ink)}
   .substep .slabel{flex:1}
-  .substep .slabel.done{text-decoration:line-through;color:var(--faint)}
+  .substep .slabel.done{color:var(--faint)}
 
   .eeve{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
   .eeve h2{font-family:var(--disp);font-weight:800;font-size:14px;margin:0 0 8px}
@@ -251,7 +257,10 @@
   <div id="mainArea" style="display:none">
     <header>
       <div class="brand">
-        <span class="dot"></span>
+        <div class="emoji-picker-wrap">
+          <button class="dot" id="blockEmoji" type="button" title="블록 이모티콘 선택">+</button>
+          <div class="emoji-picker" id="emojiPicker" role="listbox" aria-label="블록 이모티콘"></div>
+        </div>
         <div>
           <h1 id="blockTitle"></h1>
           <p>Task Manager & Study Planner</p>
@@ -284,16 +293,15 @@
 
     <div class="panelset on" id="tab-today">
       <div class="panel" id="loadPanel" style="margin-bottom:12px"></div>
-      <div class="stats" id="stats"></div>
       <div id="compareBox"></div>
       <div id="eeveBox"></div>
       <div class="dayflow" id="dayFlow"></div>
       <details class="pre">
-        <summary id="preSummary">📚 미리 신규 학습하기</summary>
+        <summary id="preSummary">미리 신규 학습하기</summary>
         <div class="panel" style="margin-top:8px" id="preQ"></div>
       </details>
       <details class="pre" style="margin-top:8px">
-        <summary id="preRSummary">🔁 미리 복습하기</summary>
+        <summary id="preRSummary">미리 복습하기</summary>
         <div class="panel" style="margin-top:8px" id="preRQ"></div>
       </details>
     </div>
@@ -308,12 +316,6 @@
           <label>1차 <input type="number" step="0.05" min="0" class="tcinput" id="tcR1"></label>
           <label>2차 <input type="number" step="0.05" min="0" class="tcinput" id="tcR2"></label>
           <button class="reset" id="resetOverrides" title="개별 날짜에 손댄 크레딧 조정을 전부 지우고 다시 고르게 나눔">전체 재분배</button>
-        </div>
-        <div class="legend">
-          <span><i style="background:var(--done)"></i>완료</span>
-          <span><i style="background:var(--progress)"></i>남음 (목표의 70% 미만)</span>
-          <span><i style="background:var(--done)"></i>남음 (목표치 근처)</span>
-          <span><i style="background:var(--warn)"></i>남음 (목표 초과)</span>
         </div>
         <div id="planWarn" style="display:none;margin-top:8px"></div>
         <div class="planlist" id="planList"></div>
@@ -357,6 +359,18 @@
   <div class="acts">
     <button class="no" id="nbCancel">취소</button>
     <button class="yes primary" id="nbSubmit">블록 생성하기</button>
+  </div>
+</div></div>
+
+<div class="mask" id="ebMask"><div class="modal wide">
+  <h3>블록 정보 수정</h3>
+  <div class="form-row"><label>과목명</label><input type="text" id="ebSubject"></div>
+  <div class="form-row"><label>블록 시작일</label><input type="date" id="ebStart"></div>
+  <div class="form-row"><label>시험일</label><input type="date" id="ebExam"></div>
+  <div class="nbstatus" id="ebStatus"></div>
+  <div class="acts">
+    <button class="no" id="ebCancel">취소</button>
+    <button class="yes primary" id="ebSave">저장</button>
   </div>
 </div></div>
 
@@ -423,6 +437,29 @@ const store = window.storage ? window.storage : (fbDb ? {
 });
 let App = {blocks:[], active:null};
 let S=null, LEC=[], SCHOOL_DAYS=[], MAXDAY=0;
+let undoSnapshot=null;
+const expandedFlowCards=new Set();
+
+function captureUndoSnapshot(target){
+  const control=target.closest('button,.ochk,.schk,.capinput');
+  if(!control || control.closest('.tab,.copybtn,.opromptbtn,.instruction-toggle')) return;
+  undoSnapshot=JSON.stringify(App);
+}
+document.addEventListener('click', e=>captureUndoSnapshot(e.target), true);
+document.addEventListener('keydown', e=>{
+  if(!(e.ctrlKey || e.metaKey) || e.key.toLowerCase()!=='z') return;
+  const active=document.activeElement;
+  if(active && (active.matches('input,textarea,[contenteditable="true"]') || active.isContentEditable)) return;
+  if(!undoSnapshot) return;
+  e.preventDefault();
+  try{ App=JSON.parse(undoSnapshot); }catch(error){ return; }
+  undoSnapshot=null;
+  if(App.blocks.length){
+    const block=App.blocks.find(b=>b.id===App.active) || App.blocks[0];
+    activateBlock(block.id);
+  } else { S=null; LEC=[]; SCHOOL_DAYS=[]; MAXDAY=0; }
+  saveApp(); render(); showToast('방금 한 작업을 되돌렸습니다.');
+});
 
 function freshState(schoolDays, lec){
   const m={}; lec.forEach(l=> m[l.id]=freshLecState());
@@ -446,6 +483,12 @@ async function saveApp(){ try{ await store.set(GKEY, JSON.stringify(App)); }catc
 
 const dInfo = d => SCHOOL_DAYS.find(x=>x.day===d);
 const byId = id => LEC.find(l=>l.id===id);
+const BLOCK_EMOJIS = [
+  '📚','📝','🎓','🔬','🧠','💡','📖','✏️','🧪','🩺','🌱','⭐','🎯','🚀','💬','✅','❤️','☀️','🌙','🍀','🐶','🐱','🦊','🐼','🌈','🔥','🍎','☕','🎵','🏆','⚡','🌸','🍋','🧩','🛠️','🗂️',
+  '⚕️','🏥','🚑','🚒','🧑‍⚕️','👨‍⚕️','👩‍⚕️','🩹','💊','💉','🩸','🩼','🦽','🦯','🩻','🧴','🧼','🧽','🧫','🦠','🧬','☣️','☢️','🔭','🔍','📐','📏','🧮','📊','📈','📉','🗒️','📋','🗃️','🗄️','💻','⌨️','🖥️',
+  '🫀','🫁','🫀','🦴','🦷','👁️','👂','👃','👅','🫂','🖐️','✋','🤚','💪','🦵','🦶','🧍','🧘','🫃','🫄','👶','🧑','👴','👵','🧓','🫃','🫁','🫀','🩺','🩸','🧠',
+  '🌡️','🤒','🤕','🤢','🤮','🤧','🥵','🥶','😷','😴','😵','😵‍💫','🤯','😰','😢','🫠','🫨','🧑‍🦽','🧑‍🦯','🧑‍🦼','🧑‍🍼','🛏️','🪑','🚪','🛡️','🔒','🫧','💧','🌡️','⏱️','⏲️','🔔','📞','☎️','🆘','🚨','⚠️','❗','❓','⭕','❌','➕','➖','✖️','➗','♻️','🧯','🗑️'
+];
 
 /* ===== 3단계 체크리스트 정의 =====
    신규(당일): 필기본 업로드→Claude 인출→정리본(PDF) 생성. 이미지 삽입·레이아웃은 직접.
@@ -459,17 +502,17 @@ const STAGE_DESC = [
 /* 각 단계 실제 작업 순서 — 메인 리스트에서 항목별로 펼쳐 보여주는 체크리스트.
    여기 체크는 순전히 개인 트래킹용이라 알고리즘(enc/r)에는 영향 없음. */
 const SUB_STEPS = {
-  new: ['강의록 flatten(주석 포함, Claude가 읽을 수 있게)','Claude에 강의록 넣고 시작','인출·문제 풀이 (강의록 옆에 켜두고 같이)','정리본 받기','정리본에 사진 붙이기 + 레이아웃 정리','니모닉 정리본에 옮기기'],
-  r1: ['족보해설에 최신 연도 기출 추가','Claude로 최신 연도 해설 만들어서 옮기기','족보 정답 안 보고 직접 풀이','해설 보고 채점','족보해설 보완 + 정리본에 굵게 표시'],
-  r2: ['정리본 1회독하며 형광펜 표시','Claude에 정리본 넣고 Anki 요청'],
+  new: ['필기 주석 flatten','인출 & 문제 풀이','정리본 제작(사진, 그림, 암기법)'],
+  r1: ['족보 해설에 2025년 족보 추가','2025 족보 해설 옮기기','족보 풀이','족보 오답','족보 해설 보완', '정리본에 출제 요소 표시'],
+  r2: ['정리본 1회독 (Highlights)','Anki 제작'],
 };
 /* ===== 새 블록 온보딩 체크리스트 ===== */
 const ONBOARD_ITEMS = [
   {key:'newProject', label:'Claude에 새 Project 생성'},
   {key:'profReview', label:'교수 지침 생성',
    prompt:`[선배 교수후기 첨부]\n이 교수후기들을 분석해서 Custom Instructions의 "교수별 학습 전략" 표(교수/유형/설명 방식)를 채워줘.`},
-  {key:'pasteInstructions', label:'Custom instruction', action:'openPrompts'},
-  {key:'uploadKnowledge', label:'선배 정리본·족보·족보해설·교수후기 Project Knowledge에 업로드'},
+  {key:'pasteInstructions', label:'Custom instruction 붙여넣기', action:'openPrompts'},
+  {key:'uploadKnowledge', label:'족보, 족보 해설, 선배 정리본 Project Knowledge에 업로드'},
 ];
 /* ===== 시험 전날 전용 루틴 (크레딧 분배 대상 아님) ===== */
 const EXAM_EVE_ITEMS = ['Anki 타임 (전체 복습)','족보 전체 풀이','족보에서 많이 틀린 부분 복습','가능하면 정리본 전체 1회독'];
@@ -562,7 +605,7 @@ __PROFESSOR_REVIEWS__
 function customInstructions(){
   const subject = App.blocks.find(b=>b.id===App.active)?.name || '[과목명]';
   const reviews = (App.blocks.find(b=>b.id===App.active)?.profReviews || '').trim();
-  const reviewText = reviews || '[여기에 교수 후기 내용을 붙여넣어 교수별 학습 전략 표를 채워줘]';
+  const reviewText = reviews || '[여기에 교수 후기 내용을 붙여넣어 교수별 학습 전략 표를 채워주세요.]';
   return CUSTOM_INSTRUCTIONS_TEMPLATE.replaceAll('[과목명]', subject).replace('__PROFESSOR_REVIEWS__', reviewText);
 }
 
@@ -709,7 +752,7 @@ function computeSchedule(){
     if(it.type==='new') done = st.enc!=null;
     else if(it.type==='r1') done = !!st.r[1];
     else done = !!st.r[2];
-    if(!done) byDay[startDay].push({type:it.type, lecId:it.lecId, cost:typeCost(it.type), original:it.original, day:startDay});
+    byDay[startDay].push({type:it.type, lecId:it.lecId, cost:typeCost(it.type), original:it.original, day:startDay, done});
   });
 
   let pool = buildPendingPool(lockedKeys);
@@ -730,7 +773,7 @@ let SCHEDULE=null; // computeSchedule() 결과 캐시 — render()에서 한 번
 function PROMPTS(){ return [
   {t:'PROMPT 1 · 신규 인코딩', w:'수업 당일, 강의 채팅에서', x:`[필기 강의록 첨부]\n오늘 이 강의록으로 시작할게. 목차와 우선순위(스탬프·족보 기준) 표부터 보여주고 확인받은 뒤 첫 챕터부터 진행해줘. 인출 문제는 단답식·객관식 위주로, 정말 인과관계를 이해했는지 확인해야 하는 경우에만 서술형으로 내줘 — 강의록에 번호로 나열된 걸 그대로 "3번은?" 식으로 묻지 말고 족보 출제 방식을 반영해줘. 필기에 "외우지 마" 표시가 있으면 (암기 불필요)로, "시험에 낸다/외워라"는 강조해서 다뤄줘. 전체 챕터와 인출세트 끝나면, 지금까지 설명한 내용을 PDF 정리본으로 만들어줘. 이미지가 필요한 부분은 실제 이미지 대신 빈 상자 자리만 표시해줘 — 이미지는 내가 강의록 보면서 PDF-XChange로 직접 넣을게.`},
   {t:'PROMPT 2 · 2차 복습 (형광펜 확인+Anki 생성)', w:'2차 복습일, 같은 강의 채팅', x:`정리본 한 번 읽으면서 모르는 부분 형광펜 표시했어. [형광펜 표시한 정리본 업로드] 신규 인코딩 때 틀렸던 개념, 족보에 자주 나온 개념, 강의 중 교수님이 강조한 내용, 이 정리본에서 형광펜·볼드로 표시된 것들 중에서 서로 겹치거나 출제 가능성이 높은 것만 선별해서 Anki 카드로 만들어줘. (암기 불필요)로 표시된 건 제외하고. Basic/Cloze 적절히 섞고 태그(강의 코드+오답/족보빈출/교수강조)도 달아줘. 원자 단위로, 덱 이름은 "[과목명]:: nn강. 강의제목" 형식으로, .apkg 파일로 줘.`},
-  {t:'PROMPT 3 · 족보해설 보완', w:'1차 복습, 최신 연도 기출 해설이 없을 때', x:`[선배 족보해설 + 이번 연도 족보 첨부]\n이번 연도 족보에 해설이 없어. 문제 하나하나 정확한 정답과 해설을 만들어줘 — 내가 그대로 족보해설 파일에 옮겨 적을 거야.`},
+  {t:'PROMPT 3 · 족보 해설 보완', w:'1차 복습, 최신 연도 기출 해설이 없을 때', x:`[선배 족보 해설 + 이번 연도 족보 첨부]\n이번 연도 족보에 해설이 없어. 문제 하나하나 정확한 정답과 해설을 만들어줘 — 내가 그대로 족보 해설 파일에 옮겨 적을 거야.`},
   {t:'PROMPT 4 · 예습 vs 실제 필기 비교', w:'예습해둔 강의의 실제 수업일에 필기 받으면', x:COMPARE_PROMPT},
   {t:'PROMPT 5 · 시험 전날 축약 정리본', w:'모든 정리본 완성 후, 시험 며칠 전', x:FINAL_SUMMARY_PROMPT},
 ];}
@@ -778,16 +821,6 @@ function comparisonCandidates(){
   return activeLectures().filter(l=> l.day===S.cur && S.lec[l.id].enc!=null && S.lec[l.id].enc<l.day);
 }
 function overdueEnc(){ return LEC.filter(l=>l.day<S.cur && S.lec[l.id].enc==null && !S.lec[l.id].excluded).length; }
-function stats(){
-  const active=activeLectures();
-  const total=active.length, enc=active.filter(l=>S.lec[l.id].enc!=null).length;
-  let done=enc, poss=enc;
-  active.forEach(l=> slots(l).forEach(s=>{ if(s.done || s.due!=null){ poss++; if(s.done) done++; } }));
-  const cap=dayCapacity(S.cur);
-  const used=(SCHEDULE.byDay[S.cur]||[]).reduce((a,it)=>a+it.cost,0);
-  return {total, enc, done, poss, overdue:overdueEnc(), excluded:LEC.length-active.length, cap, used};
-}
-
 /* ===== 렌더 유틸 ===== */
 function el(h){ const t=document.createElement('template'); t.innerHTML=h.trim(); return t.content.firstChild; }
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
@@ -798,12 +831,14 @@ function renderBlockTabs(){
     const grp=el(`<span class="blocktabgrp"></span>`);
     const t=el(`<button class="blocktab ${b.id===App.active?'on':''}">${esc(b.name)}</button>`);
     t.onclick=()=>{ activateBlock(b.id); saveApp(); render(); };
+    const edit=el(`<button class="tabedit" title="블록 정보 수정">수정</button>`);
+    edit.onclick=(e)=>{ e.stopPropagation(); openEditBlockModal(b); };
     const del=el(`<button class="tabdel" title="블록 삭제">×</button>`);
     del.onclick=(e)=>{
       e.stopPropagation();
       askConfirm(`"${b.name}" 블록을 삭제하시겠습니까?`, '이 블록의 강의·진도·정리본 링크가 전부 사라지며 되돌릴 수 없습니다.', ()=> deleteBlock(b.id), '삭제');
     };
-    grp.appendChild(t); grp.appendChild(del);
+    grp.appendChild(t); grp.appendChild(edit); grp.appendChild(del);
     box.appendChild(grp);
   });
   const add=el(`<button class="blocktab add">+ 새 블록</button>`);
@@ -820,8 +855,27 @@ function deleteBlock(id){
   saveApp(); render();
 }
 function renderHeader(){
+  const block=App.blocks.find(b=>b.id===App.active);
   const d=dInfo(S.cur), e=dInfo(S.examDay);
-  document.getElementById('blockTitle').textContent = App.blocks.find(b=>b.id===App.active).name ;
+  document.getElementById('blockTitle').textContent = block.name;
+  const emojiButton=document.getElementById('blockEmoji');
+  const emojiPicker=document.getElementById('emojiPicker');
+  emojiButton.textContent=block.emoji || '+';
+  emojiPicker.innerHTML='';
+  BLOCK_EMOJIS.forEach(emoji=>{
+    const choice=el(`<button class="emoji-choice" type="button" role="option" title="${emoji}">${emoji}</button>`);
+    choice.onclick=()=>{
+      block.emoji=emoji;
+      emojiPicker.classList.remove('on');
+      saveApp();
+      render();
+    };
+    emojiPicker.appendChild(choice);
+  });
+  emojiButton.onclick=e=>{
+    e.stopPropagation();
+    emojiPicker.classList.toggle('on');
+  };
   document.getElementById('dn').textContent=`${d.day}/${MAXDAY}`;
   document.getElementById('dd').textContent=`${d.date}(${d.dow})`;
   document.getElementById('en').textContent=`Day${e.day}`;
@@ -849,9 +903,9 @@ function renderBanner(){
 
   let dnum, sub;
   if(rem>1){ dnum=`D-${rem}`; sub='시험까지 남은 날'; }
-  else if(rem===1){ dnum='D-1'; sub='내일이 시험이야! 오늘은 가볍게 확인만 🍀'; }
-  else if(rem===0){ dnum='D-DAY'; sub='오늘 시험이야! 지금까지 한 만큼 충분해, 잘 보고 와 🍀🍀🍀'; }
-  else{ dnum='FIN'; sub='시험이 지났어. 다음 블록도 이 흐름대로!'; }
+  else if(rem===1){ dnum='D-1'; sub='내일이 시험이야! 마지막까지 화이팅🍀'; }
+  else if(rem===0){ dnum='D-DAY'; sub='오늘 시험이야! 지금까지 열심히 한 것보다도 더 잘 볼거야 🍀🍀🍀'; }
+  else{ dnum='FIN'; sub='시험이 끝났어. 그동안 수고했어! 다음 블록도 화이팅!'; }
 
   const b=document.getElementById('banner');
   b.className='gaugebar';
@@ -863,14 +917,6 @@ function renderBanner(){
     }
   }
 }
-function renderStats(){
-  const s=stats();
-  document.getElementById('stats').innerHTML = `
-    <div class="stat"><div class="k">신규 학습 진도</div><div class="v">${s.enc}<span style="font-size:13px;color:var(--faint)">/${s.total}</span></div></div>
-    <div class="stat"><div class="k">체크리스트 완료</div><div class="v">${s.done}<span style="font-size:13px;color:var(--faint)">/${s.poss}</span></div></div>
-    <div class="stat"><div class="k">밀린 신규 학습</div><div class="v">${s.overdue}</div></div>
-    <div class="stat"><div class="k">제외된 강의</div><div class="v">${s.excluded}</div></div>`;
-}
 function renderLoadPanel(){
   const blocked = S.cur>usableDays();
   const total = lockedTodayTotalCost();
@@ -879,7 +925,7 @@ function renderLoadPanel(){
   const pct = total>0 ? (used/total*100) : 100;
   let color, bg, statusText;
   if(pct>=100){ color='var(--done)'; bg='var(--done-soft)'; statusText='완료'; }
-  else if(pct>=50){ color='var(--progress)'; bg='var(--progress-soft)'; statusText='진행 중'; }
+  else if(pct>=1){ color='var(--progress)'; bg='var(--progress-soft)'; statusText='진행 중'; }
   else { color='var(--inactive)'; bg='var(--inactive-soft)'; statusText='시작 전'; }
   let hint;
   if(blocked) hint = ``;
@@ -970,14 +1016,16 @@ function flowCard(type, l){
   const steps = SUB_STEPS[type];
   const sc = st.subCheck[type] || (st.subCheck[type]={});
   const label = type==='new'?'신규':(type==='r1'?'1차':'2차');
+  const done = type==='new' ? st.enc!=null : !!st.r[type==='r1'?1:2];
+  const flowKey=`${App.active}:${type}:${l.id}`;
   const doneCount = steps.filter((_,i)=>sc[i]).length;
   const item = el(`<div class="flowitem">
     <div class="flowhead">
       <span class="flowbadge ${type}">${label}</span>
       <span class="flowtitle">${esc(l.code)}. ${esc(l.title)}<span class="flowmeta">${doneCount}/${steps.length} 체크됨</span></span>
-      <button class="flowdone">완료</button>
+      <button class="flowdone ${done?'done':''}" style="${done?'background:var(--inactive-soft);color:var(--inactive)':''}">${done?'완료됨':'완료'}</button>
     </div>
-    <div class="flowbody"></div>
+    <div class="flowbody" style="display:${expandedFlowCards.has(flowKey)?'block':'none'}"></div>
   </div>`);
   const body = item.querySelector('.flowbody');
   steps.forEach((label2, i)=>{
@@ -991,12 +1039,15 @@ function flowCard(type, l){
   });
   item.querySelector('.flowhead').addEventListener('click', (e)=>{
     if(e.target.closest('.flowdone')) return;
-    body.style.display = body.style.display==='none' ? '' : 'none';
+    const expanded=body.style.display!=='none';
+    body.style.display=expanded?'none':'block';
+    if(expanded) expandedFlowCards.delete(flowKey);
+    else expandedFlowCards.add(flowKey);
   });
   item.querySelector('.flowdone').onclick=(e)=>{
     e.stopPropagation();
-    if(type==='new'){ st.enc=S.cur; }
-    else { const key=type==='r1'?1:2; st.r[key]=true; if(!st.rDay) st.rDay={1:null,2:null}; st.rDay[key]=S.cur; }
+    if(type==='new'){ st.enc=done ? null : S.cur; }
+    else { const key=type==='r1'?1:2; st.r[key]=!done; if(!st.rDay) st.rDay={1:null,2:null}; st.rDay[key]=st.r[key] ? S.cur : null; }
     saveApp(); render();
   };
   return item;
@@ -1007,7 +1058,7 @@ function ankiFlowCard(){
     <div class="flowhead">
       <span class="flowbadge" style="background:var(--accent-soft);color:var(--accent)">Anki</span>
       <span class="flowtitle">오늘 Anki 복습</span>
-      <button class="flowdone" style="${done?'background:var(--done)':''}">${done?'완료됨':'완료'}</button>
+      <button class="flowdone ${done?'done':''}" style="${done?'background:var(--inactive-soft);color:var(--inactive)':''}">${done?'완료됨':'완료'}</button>
     </div>
   </div>`);
   item.querySelector('.flowdone').onclick=()=>{
@@ -1023,10 +1074,16 @@ function renderDayFlow(box, isExamDay){
     box.appendChild(el('<div class="empty" style="padding:24px 4px">오늘은 시험 보는 날이야. 화이팅! 🍀</div>'));
     return;
   }
-  const items = (SCHEDULE.byDay[S.cur]||[]).slice().sort((a,b)=> TYPE_ORDER[a.type]-TYPE_ORDER[b.type] || a.lecId-b.lecId);
+  const items = (SCHEDULE.byDay[S.cur]||[]).slice().sort((a,b)=>{
+    const aDone=a.type==='new' ? S.lec[a.lecId].enc!=null : !!S.lec[a.lecId].r[a.type==='r1'?1:2];
+    const bDone=b.type==='new' ? S.lec[b.lecId].enc!=null : !!S.lec[b.lecId].r[b.type==='r1'?1:2];
+    return Number(aDone)-Number(bDone) || TYPE_ORDER[a.type]-TYPE_ORDER[b.type] || a.lecId-b.lecId;
+  });
   if(!items.length){ box.appendChild(el('<div class="empty">오늘 배정된 신규·복습 없음</div>')); }
-  items.forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId))));
+  const isDone = it => it.type==='new' ? S.lec[it.lecId].enc!=null : !!S.lec[it.lecId].r[it.type==='r1'?1:2];
+  items.filter(it=>!isDone(it)).forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId))));
   box.appendChild(ankiFlowCard());
+  items.filter(isDone).forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId))));
 }
 function renderExamEve(box){
   if(!S.examEve) S.examEve={};
@@ -1047,9 +1104,9 @@ function renderExamEve(box){
 function renderOnboarding(){
   const box=document.getElementById('onboardBox'); if(!box) return;
   if(!S.onboarding) S.onboarding={};
+  const wasOpen=box.querySelector('.onboard')?.open ?? true;
   const doneCount = ONBOARD_ITEMS.filter(it=> S.onboarding[it.key]===true).length;
-  const allDone = doneCount===ONBOARD_ITEMS.length;
-  box.innerHTML = `<details class="onboard" ${allDone?'':'open'}>
+  box.innerHTML = `<details class="onboard" ${wasOpen?'open':''}>
     <summary>블록 사전 준비 (${doneCount}/${ONBOARD_ITEMS.length})</summary>
     <div id="onboardList" style="margin-top:8px"></div>
   </details>`;
@@ -1062,7 +1119,6 @@ function renderOnboarding(){
       <span class="ochk ${done?'done':''}">${done?'✓':''}</span>
       <span class="olabel ${done?'done':''} ${later?'later':''}">${esc(it.label)}${later?'<span class="olater-badge">나중에</span>':''}</span>
       ${(it.prompt||it.action)?'<button class="opromptbtn">복사</button>':''}
-      ${!done?`<button class="olaterbtn">${later?'취소':'나중에'}</button>`:''}
     </div>`);
     row.querySelector('.ochk').onclick=()=>{ S.onboarding[it.key] = done? false : true; saveApp(); render(); };
     const laterBtn = row.querySelector('.olaterbtn');
@@ -1316,7 +1372,7 @@ function renderPrompts(){
     </div>
     <div class="instruction-body">
       <label class="review-label" for="profReviews">교수 후기 붙여넣기</label>
-      <textarea class="review-input" id="profReviews" placeholder="교수별 학습 전략을 파악할 교수 후기를 여기에 붙여넣어주세요.">${esc(App.blocks.find(b=>b.id===App.active)?.profReviews || '')}</textarea>
+      <textarea class="review-input" id="profReviews" placeholder="교수별 학습 전략을 파악할 교수 후기를 여기에 붙여넣어 주세요.">${esc(App.blocks.find(b=>b.id===App.active)?.profReviews || '')}</textarea>
       <div class="instruction-preview"></div>
     </div>
   </div>`);
@@ -1355,7 +1411,7 @@ function render(){
   document.getElementById('emptyState').style.display = has? 'none' : '';
   if(!has) return;
   SCHEDULE = computeSchedule();
-  renderHeader(); renderBanner(); renderLoadPanel(); renderStats(); renderToday(); renderPlan(); renderList(); renderPrompts();
+  renderHeader(); renderBanner(); renderLoadPanel(); renderToday(); renderPlan(); renderList(); renderPrompts();
 }
 
 /* ===== 복사 & 토스트 ===== */
@@ -1398,6 +1454,45 @@ function closeAddModal(){ nbMask.classList.remove('on'); }
 document.getElementById('nbCancel').onclick=closeAddModal;
 document.getElementById('emptyAddBtn').onclick=openAddModal;
 
+const ebMask=document.getElementById('ebMask');
+let _editingBlock=null;
+function dateInputValue(value){
+  if(/^\d{4}-\d{2}-\d{2}$/.test(value||'')) return value;
+  const match=String(value||'').match(/^(\d+)\/(\d+)/);
+  return match ? `${new Date().getFullYear()}-${String(match[1]).padStart(2,'0')}-${String(match[2]).padStart(2,'0')}` : '';
+}
+function openEditBlockModal(block){
+  _editingBlock=block;
+  document.getElementById('ebSubject').value=block.name;
+  document.getElementById('ebStart').value=dateInputValue(block.startDate || block.schoolDays[0]?.date);
+  document.getElementById('ebExam').value=dateInputValue(block.examDate || block.schoolDays[block.schoolDays.length-1]?.date);
+  document.getElementById('ebStatus').textContent='';
+  ebMask.classList.add('on');
+}
+function closeEditBlockModal(){ ebMask.classList.remove('on'); _editingBlock=null; }
+document.getElementById('ebCancel').onclick=closeEditBlockModal;
+document.getElementById('ebSave').onclick=()=>{
+  if(!_editingBlock) return;
+  const subject=document.getElementById('ebSubject').value.trim();
+  const startStr=document.getElementById('ebStart').value;
+  const examStr=document.getElementById('ebExam').value;
+  const statusEl=document.getElementById('ebStatus');
+  if(!subject||!startStr||!examStr){ statusEl.textContent='과목명·시작일·시험일을 모두 입력해주세요.'; return; }
+  if(new Date(examStr)<new Date(startStr)){ statusEl.textContent='시험일이 시작일보다 빠릅니다.'; return; }
+  _editingBlock.name=subject;
+  _editingBlock.startDate=startStr;
+  _editingBlock.examDate=examStr;
+  _editingBlock.schoolDays=buildSchoolDays(startStr,examStr,subject);
+  _editingBlock.lec.forEach(l=>{ l.day=Math.min(l.day,_editingBlock.schoolDays.length); });
+  _editingBlock.state.examDay=_editingBlock.schoolDays.length;
+  _editingBlock.state.cur=Math.min(_editingBlock.state.cur,_editingBlock.state.examDay);
+  _editingBlock.state.todayLock=null;
+  activateBlock(_editingBlock.id);
+  saveApp();
+  closeEditBlockModal();
+  render();
+};
+
 function buildSchoolDays(startStr, examStr, examLabel){
   const start=new Date(startStr+'T00:00:00'), exam=new Date(examStr+'T00:00:00');
   const dows=['일','월','화','수','목','금','토'];
@@ -1419,7 +1514,7 @@ document.getElementById('nbSubmit').onclick = ()=>{
   if(new Date(examStr) < new Date(startStr)){ statusEl.textContent='시험일이 시작일보다 빠릅니다.'; return; }
   const schoolDays = buildSchoolDays(startStr, examStr, subject);
   const lec = [];
-  const block = {id:'b'+Date.now(), name:subject, profReviews:'', schoolDays, lec, state:freshState(schoolDays, lec)};
+  const block = {id:'b'+Date.now(), name:subject, emoji:'', profReviews:'', startDate:startStr, examDate:examStr, schoolDays, lec, state:freshState(schoolDays, lec)};
   App.blocks.push(block); App.active=block.id;
   activateBlock(block.id);
   saveApp();
