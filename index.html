@@ -1,6 +1,9 @@
 <!-- 블록제 통합 스터디 워크스페이스 · 멀티블록 v2 -->
+<title>스터디 플래너</title>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" type="image/svg+xml" href="./logo.svg" />
+<link rel="apple-touch-icon" href="./logo.svg" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
   :root{
@@ -92,6 +95,7 @@
   .badge.lab{background:var(--bg);color:var(--muted)}
   .badge.carry{background:var(--warn-soft);color:var(--warn)}
   .badge.due{background:var(--progress-soft);color:var(--progress)}
+  .badge.assign{background:var(--warn-soft);color:var(--warn)}
   .badge.late{background:var(--warn-soft);color:var(--warn)}
   .card .t{font-size:13px;font-weight:800}
   .card .m{font-size:10.5px;color:var(--muted);margin-top:2px}
@@ -196,6 +200,7 @@
   .plantag.new{background:var(--progress-soft);color:var(--progress)}
   .plantag.r1{background:var(--done-soft);color:var(--ink)}
   .plantag.r2{background:var(--inactive-soft);color:var(--inactive)}
+  .plantag.assign{background:var(--warn-soft);color:var(--warn)}
   .plantag.done{opacity:.5}
 
   .battery-wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
@@ -226,6 +231,7 @@
   .flowbadge.new{background:var(--progress-soft);color:var(--progress)}
   .flowbadge.r1{background:var(--done-soft);color:var(--ink)}
   .flowbadge.r2{background:var(--inactive-soft);color:var(--inactive)}
+  .flowbadge.assign{background:var(--warn-soft);color:var(--warn)}
   .flowtitle{flex:1;font-size:13px;font-weight:700;min-width:0}
   .flowmeta{font-size:10.5px;color:var(--muted);display:block;font-weight:400}
   .flowdone{border:none;border-radius:9px;padding:7px 13px;font-size:11.5px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;flex-shrink:0}
@@ -332,8 +338,10 @@
           <input type="text" id="alCode" placeholder="코드(ex. 1강)">
           <input type="text" id="alTitle" placeholder="강의명">
           <input type="text" id="alProf" placeholder="교수명">
-          <select id="alType"><option value="강의">강의</option><option value="실습">실습</option></select>
+          <select id="alType"><option value="강의">강의</option><option value="실습">실습</option><option value="과제">과제</option></select>
           <select id="alDay"></select>
+          <input type="number" id="alCredit" placeholder="크레딧(예상 소요)" step="0.25" min="0" style="width:120px;display:none">
+          <textarea id="alChecklist" placeholder="체크리스트 (한 줄에 하나씩, 선택)" style="display:none;width:100%;min-height:56px;margin-top:2px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:11.5px;font-family:var(--sans);background:var(--surface);resize:vertical"></textarea>
           <button id="alAdd">+ 강의 추가</button>
         </div>
       </div>
@@ -390,12 +398,14 @@
 </div></div>
 
 <div class="mask" id="elMask"><div class="modal wide">
-  <h3>강의 수정</h3>
-  <div class="form-row"><label>코드</label><input type="text" id="elCode"></div>
-  <div class="form-row"><label>강의명</label><input type="text" id="elTitle"></div>
-  <div class="form-row"><label>교수명</label><input type="text" id="elProf"></div>
-  <div class="form-row"><label>구분</label><select id="elType"><option value="강의">강의</option><option value="실습">실습</option></select></div>
-  <div class="form-row"><label>Day</label><select id="elDay"></select></div>
+  <h3 id="elTitleHeading">강의 수정</h3>
+  <div class="form-row" id="elCodeRow"><label>코드</label><input type="text" id="elCode"></div>
+  <div class="form-row"><label id="elTitleLabel">강의명</label><input type="text" id="elTitle"></div>
+  <div class="form-row" id="elProfRow"><label>교수명</label><input type="text" id="elProf"></div>
+  <div class="form-row" id="elTypeRow"><label>구분</label><select id="elType"><option value="강의">강의</option><option value="실습">실습</option></select></div>
+  <div class="form-row" id="elCreditRow" style="display:none"><label>크레딧(예상 소요)</label><input type="number" step="0.25" min="0" id="elCredit"></div>
+  <div class="form-row"><label id="elDayLabel">Day</label><select id="elDay"></select></div>
+  <div class="form-row" id="elChecklistRow" style="display:none"><label>체크리스트 (한 줄에 하나씩)</label><textarea id="elChecklist" class="review-input" style="min-height:80px"></textarea></div>
   <div class="acts">
     <button class="no" id="elCancel">취소</button>
     <button class="yes primary" id="elSave">저장</button>
@@ -481,7 +491,7 @@ function freshState(schoolDays, lec){
   return {cur:1, examDay: schoolDays.length, capOverride:{}, todayLock:null, typeCost:{new:1,r1:0.5,r2:0.25}, onboarding:{}, examEve:{}, ankiCheck:{}, manualPlans:{}, lec:m};
 }
 function freshLecState(){
-  return {enc:null, r:{1:false,2:false}, rDay:{1:null,2:null}, subCheck:{new:{},r1:{},r2:{}}, excluded:false};
+  return {enc:null, r:{1:false,2:false}, rDay:{1:null,2:null}, subCheck:{new:{},r1:{},r2:{},assign:{}}, excluded:false};
 }
 function activateBlock(id){
   const b=App.blocks.find(x=>x.id===id); if(!b) return;
@@ -651,10 +661,17 @@ function usableDays(){ return Math.max(1, S.examDay-2); } // 시험 당일·전�
 const DEFAULT_TYPE_COST = {new:1, r1:0.5, r2:0.25};
 function typeCost(type){ return (S.typeCost && S.typeCost[type]!=null) ? S.typeCost[type] : DEFAULT_TYPE_COST[type]; }
 function totalLecCost(){ return typeCost('new')+typeCost('r1')+typeCost('r2'); }
+/* 과제는 3단계가 아니라 등록할 때 직접 정한 크레딧 하나로 한 번에 완료된다. */
+function itemTotalCost(l){ return l.type==='과제' ? (l.credit>0 ? l.credit : 1) : totalLecCost(); }
+function itemCost(it){
+  if(it.type==='assign'){ const l=byId(it.lecId); return l ? itemTotalCost(l) : 1; }
+  return typeCost(it.type);
+}
 function remainingCredits(){
   let sum=0;
   activeLectures().forEach(l=>{
     const st=S.lec[l.id];
+    if(l.type==='과제'){ if(st.enc==null) sum+=itemTotalCost(l); return; }
     if(st.enc==null) sum+=totalLecCost();
     else sum += (st.r[1]?0:typeCost('r1')) + (st.r[2]?0:typeCost('r2'));
   });
@@ -682,7 +699,7 @@ function defaultCapacityFor(d, remainingCred, fromDay){
    다른 날과 동일하게가 아니라 정확히 1만큼 덜 배정된다. */
 function lockedTodayTotalCost(){
   if(!S.todayLock || S.todayLock.day!==S.cur) return 0;
-  return S.todayLock.items.reduce((a,it)=>a+typeCost(it.type),0);
+  return S.todayLock.items.reduce((a,it)=>a+itemCost(it),0);
 }
 function lockedTodayDoneCost(){
   if(!S.todayLock || S.todayLock.day!==S.cur) return 0;
@@ -690,10 +707,10 @@ function lockedTodayDoneCost(){
   S.todayLock.items.forEach(it=>{
     const st=S.lec[it.lecId]; if(!st) return;
     let done;
-    if(it.type==='new') done = st.enc!=null;
-    else if(it.type==='r1') done = !!st.r[1];
-    else done = !!st.r[2];
-    if(done) sum+=typeCost(it.type);
+    if(it.type==='r1') done = !!st.r[1];
+    else if(it.type==='r2') done = !!st.r[2];
+    else done = st.enc!=null; // 'new' 또는 'assign'
+    if(done) sum+=itemCost(it);
   });
   return sum;
 }
@@ -710,7 +727,8 @@ function buildPendingPool(excludeKeys){
   const pool=[];
   activeLectures().forEach(l=>{
     const st=S.lec[l.id];
-    const push=(type,original)=>{ if(excludeKeys && excludeKeys.has(l.id+':'+type)) return; pool.push({type, lecId:l.id, cost:typeCost(type), original, nominal:original}); };
+    const push=(type,original,cost)=>{ if(excludeKeys && excludeKeys.has(l.id+':'+type)) return; pool.push({type, lecId:l.id, cost:(cost!=null?cost:typeCost(type)), original, nominal:original}); };
+    if(l.type==='과제'){ if(st.enc==null) push('assign', l.day, itemTotalCost(l)); return; }
     if(st.enc==null){ push('new',l.day); push('r1',l.day+1); push('r2',l.day+3); }
     else {
       if(!st.r[1]){ push('r1',st.enc+1); if(!st.r[2]) push('r2',st.enc+3); }
@@ -719,7 +737,7 @@ function buildPendingPool(excludeKeys){
   });
   return pool;
 }
-const TYPE_ORDER={new:0,r1:1,r2:2};
+const TYPE_ORDER={assign:-1,new:0,r1:1,r2:2};
 const scheduleSortFn=(a,b)=> a.nominal-b.nominal || TYPE_ORDER[a.type]-TYPE_ORDER[b.type] || a.lecId-b.lecId;
 /* 그날 목표 크레딧(cap)이 남아 있는 한(used<cap) 다음 항목을 마저 진행한다 — 정확히
    맞아떨어지지 않아 살짝 넘어가도 OK. 여유가 완전히 없어지면(used>=cap) 그 시점에서
@@ -740,11 +758,12 @@ function ensureTodayLock(){
   const pinned=[];
   activeLectures().forEach(l=>{
     const st=S.lec[l.id];
+    if(l.type==='과제'){ if(st.enc===S.cur) pinned.push({type:'assign', lecId:l.id, original:l.day}); return; }
     if(st.enc===S.cur) pinned.push({type:'new', lecId:l.id, original:l.day});
     if(st.r[1] && st.rDay && st.rDay[1]===S.cur) pinned.push({type:'r1', lecId:l.id, original:(st.enc!=null?st.enc+1:l.day+1)});
     if(st.r[2] && st.rDay && st.rDay[2]===S.cur) pinned.push({type:'r2', lecId:l.id, original:(st.enc!=null?st.enc+3:l.day+3)});
   });
-  const pinnedCost = pinned.reduce((a,it)=>a+typeCost(it.type),0);
+  const pinnedCost = pinned.reduce((a,it)=>a+itemCost(it),0);
   const cap = (S.capOverride && S.capOverride[S.cur]!=null) ? S.capOverride[S.cur] : defaultCapacityFor(S.cur, remainingCredits()+pinnedCost, S.cur);
   const pool = buildPendingPool(null);
   const {placed} = fillDay(pool, Math.max(0, cap-pinnedCost));
@@ -764,10 +783,10 @@ function computeSchedule(){
     lockedKeys.add(it.lecId+':'+it.type);
     const st=S.lec[it.lecId]; if(!st) return;
     let done;
-    if(it.type==='new') done = st.enc!=null;
-    else if(it.type==='r1') done = !!st.r[1];
-    else done = !!st.r[2];
-    byDay[startDay].push({type:it.type, lecId:it.lecId, cost:typeCost(it.type), original:it.original, day:startDay, done});
+    if(it.type==='r1') done = !!st.r[1];
+    else if(it.type==='r2') done = !!st.r[2];
+    else done = st.enc!=null; // 'new' 또는 'assign'
+    byDay[startDay].push({type:it.type, lecId:it.lecId, cost:itemCost(it), original:it.original, day:startDay, done});
   });
 
   let pool = buildPendingPool(lockedKeys);
@@ -778,7 +797,7 @@ function computeSchedule(){
   }
   const unscheduled = pool; // 크레딧이 부족하게 조정된 경우에만 남음
   const byLecture={};
-  activeLectures().forEach(l=>{ byLecture[l.id]={new:null,r1:null,r2:null}; });
+  activeLectures().forEach(l=>{ byLecture[l.id]={new:null,r1:null,r2:null,assign:null}; });
   Object.values(byDay).flat().forEach(it=>{ byLecture[it.lecId][it.type]=it.day; });
   return {byDay, byLecture, unscheduled, startDay, uEnd};
 }
@@ -804,7 +823,7 @@ function slots(l){
 }
 function encQueue(){ return (SCHEDULE.byDay[S.cur]||[]).filter(it=>it.type==='new').map(it=>byId(it.lecId)); }
 function preQueue(){
-  return activeLectures().filter(l=> S.lec[l.id].enc==null && SCHEDULE.byLecture[l.id].new!==S.cur)
+  return activeLectures().filter(l=> l.type!=='과제' && S.lec[l.id].enc==null && SCHEDULE.byLecture[l.id].new!==S.cur)
     .sort((a,b)=>{
       const da=SCHEDULE.byLecture[a.id].new, db=SCHEDULE.byLecture[b.id].new;
       if(da==null && db==null) return a.id-b.id;
@@ -833,7 +852,7 @@ function previewReviewQueue(){
 /* 오늘(l.day===S.cur)이 실제 수업일인데, 이미 그 전에(예습으로) 인코딩이 끝난 강의 —
    작년 필기로 미리 했으니 올해 필기와 비교해볼 대상. */
 function comparisonCandidates(){
-  return activeLectures().filter(l=> l.day===S.cur && S.lec[l.id].enc!=null && S.lec[l.id].enc<l.day);
+  return activeLectures().filter(l=> l.type!=='과제' && l.day===S.cur && S.lec[l.id].enc!=null && S.lec[l.id].enc<l.day);
 }
 function overdueEnc(){ return LEC.filter(l=>l.day<S.cur && S.lec[l.id].enc==null && !S.lec[l.id].excluded).length; }
 /* ===== 렌더 유틸 ===== */
@@ -1027,17 +1046,20 @@ function reviewPreviewCard(o){
    서브체크는 순전히 개인 트래킹용(알고리즘엔 영향 없음). "완료" 버튼만 실제 진도(enc/r)를 바꾼다. */
 function flowCard(type, l){
   const st = S.lec[l.id];
-  if(!st.subCheck) st.subCheck={new:{},r1:{},r2:{}};
-  const steps = SUB_STEPS[type];
+  if(!st.subCheck) st.subCheck={new:{},r1:{},r2:{},assign:{}};
+  if(!st.subCheck.assign) st.subCheck.assign={};
+  const isAssign = type==='assign';
+  const steps = isAssign ? (Array.isArray(l.checklist)?l.checklist:[]) : SUB_STEPS[type];
   const sc = st.subCheck[type] || (st.subCheck[type]={});
-  const label = type==='new'?'신규':(type==='r1'?'1차':'2차');
-  const done = type==='new' ? st.enc!=null : !!st.r[type==='r1'?1:2];
+  const label = isAssign?'과제':(type==='new'?'신규':(type==='r1'?'1차':'2차'));
+  const done = (type==='new'||isAssign) ? st.enc!=null : !!st.r[type==='r1'?1:2];
   const flowKey=`${App.active}:${type}:${l.id}`;
   const doneCount = steps.filter((_,i)=>sc[i]).length;
+  const titleText = isAssign ? esc(l.title) : `${esc(l.code)}. ${esc(l.title)}`;
   const item = el(`<div class="flowitem">
     <div class="flowhead">
       <span class="flowbadge ${type}">${label}</span>
-      <span class="flowtitle">${esc(l.code)}. ${esc(l.title)}<span class="flowmeta">${doneCount}/${steps.length} 체크됨</span></span>
+      <span class="flowtitle">${titleText}<span class="flowmeta">${steps.length? `${doneCount}/${steps.length} 체크됨` : (isAssign?`크레딧 ${l.credit||1}`:'')}</span></span>
       <button class="flowdone ${done?'done':''}" style="${done?'background:var(--inactive-soft);color:var(--inactive)':''}">${done?'완료됨':'완료'}</button>
     </div>
     <div class="flowbody" style="display:${expandedFlowCards.has(flowKey)?'block':'none'}"></div>
@@ -1052,16 +1074,18 @@ function flowCard(type, l){
     };
     body.appendChild(row);
   });
-  item.querySelector('.flowhead').addEventListener('click', (e)=>{
-    if(e.target.closest('.flowdone')) return;
-    const expanded=body.style.display!=='none';
-    body.style.display=expanded?'none':'block';
-    if(expanded) expandedFlowCards.delete(flowKey);
-    else expandedFlowCards.add(flowKey);
-  });
+  if(steps.length){
+    item.querySelector('.flowhead').addEventListener('click', (e)=>{
+      if(e.target.closest('.flowdone')) return;
+      const expanded=body.style.display!=='none';
+      body.style.display=expanded?'none':'block';
+      if(expanded) expandedFlowCards.delete(flowKey);
+      else expandedFlowCards.add(flowKey);
+    });
+  }
   item.querySelector('.flowdone').onclick=(e)=>{
     e.stopPropagation();
-    if(type==='new'){ st.enc=done ? null : S.cur; }
+    if(type==='new'||isAssign){ st.enc=done ? null : S.cur; }
     else { const key=type==='r1'?1:2; st.r[key]=!done; if(!st.rDay) st.rDay={1:null,2:null}; st.rDay[key]=st.r[key] ? S.cur : null; }
     saveApp(); render();
   };
@@ -1123,12 +1147,12 @@ function renderDayFlow(box, isExamDay){
   if(!S.manualPlans) S.manualPlans={};
   const manualPlans=S.manualPlans[S.cur] || (S.manualPlans[S.cur]=[]);
   const items = (SCHEDULE.byDay[S.cur]||[]).slice().sort((a,b)=>{
-    const aDone=a.type==='new' ? S.lec[a.lecId].enc!=null : !!S.lec[a.lecId].r[a.type==='r1'?1:2];
-    const bDone=b.type==='new' ? S.lec[b.lecId].enc!=null : !!S.lec[b.lecId].r[b.type==='r1'?1:2];
+    const aDone=(a.type==='new'||a.type==='assign') ? S.lec[a.lecId].enc!=null : !!S.lec[a.lecId].r[a.type==='r1'?1:2];
+    const bDone=(b.type==='new'||b.type==='assign') ? S.lec[b.lecId].enc!=null : !!S.lec[b.lecId].r[b.type==='r1'?1:2];
     return Number(aDone)-Number(bDone) || TYPE_ORDER[a.type]-TYPE_ORDER[b.type] || a.lecId-b.lecId;
   });
   box.appendChild(el('<button class="add-plan-btn" type="button">+ 오늘 계획 추가</button>'));
-  const isDone = it => it.type==='new' ? S.lec[it.lecId].enc!=null : !!S.lec[it.lecId].r[it.type==='r1'?1:2];
+  const isDone = it => (it.type==='new'||it.type==='assign') ? S.lec[it.lecId].enc!=null : !!S.lec[it.lecId].r[it.type==='r1'?1:2];
   items.filter(it=>!isDone(it)).forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId))));
   manualPlans.filter(plan=>!plan.done).forEach(plan=> box.appendChild(manualPlanCard(plan)));
   box.appendChild(ankiFlowCard());
@@ -1259,16 +1283,16 @@ function renderTypeCostInputs(){
   if(document.activeElement!==r2El) r2El.value=tc.r2;
 }
 function tagGroupsHtml(items, isDoneFn){
-  const groups={new:[], r1:[], r2:[]};
+  const groups={assign:[], new:[], r1:[], r2:[]};
   items.forEach(it=>{ if(groups[it.type]) groups[it.type].push(it); });
-  const labels={new:'신규',r1:'1차',r2:'2차'};
+  const labels={assign:'과제',new:'신규',r1:'1차',r2:'2차'};
   let html='';
-  ['new','r1','r2'].forEach(type=>{
+  ['assign','new','r1','r2'].forEach(type=>{
     if(!groups[type].length) return;
     const tags = groups[type].map(it=>{
       const l=byId(it.lecId); if(!l) return '';
       const done = isDoneFn ? isDoneFn(it) : false;
-      return `<span class="plantag ${type} ${done?'done':''}">${esc(l.code)}</span>`;
+      return `<span class="plantag ${type} ${done?'done':''}">${esc(l.code || l.title)}</span>`;
     }).join('');
     html += `<div class="plantaggrp"><span class="glbl">${labels[type]}</span>${tags}</div>`;
   });
@@ -1281,8 +1305,8 @@ function renderPlan(){
   const uEnd=usableDays();
   if(SCHEDULE.unscheduled.length){
     const names = SCHEDULE.unscheduled.slice(0,6).map(it=>{
-      const l=byId(it.lecId); const kind = it.type==='new'?'신규':(it.type==='r1'?'1차':'2차');
-      return `${l.code}(${kind})`;
+      const l=byId(it.lecId); const kind = it.type==='assign'?'과제':(it.type==='new'?'신규':(it.type==='r1'?'1차':'2차'));
+      return `${l.code||l.title}(${kind})`;
     }).join(', ');
     warnEl.innerHTML = `<p class="hint" style="color:var(--warn);font-weight:700">⚠ 남은 시험기간 안에 다 못 채운 항목이 ${SCHEDULE.unscheduled.length}개 있습니다. (${esc(names)}${SCHEDULE.unscheduled.length>6?' 외':''}). 하루 목표 크레딧을 올리거나 시험범위를 조정해야합니다.</p>`;
     warnEl.style.display='';
@@ -1301,7 +1325,7 @@ function renderPlan(){
     const blocked = d>uEnd;
     const isToday = d===S.cur;
     const cls = isToday?'cur':'';
-    let barHtml, tagsHtml, n=0, r1=0, r2=0;
+    let barHtml, tagsHtml, n=0, r1=0, r2=0, assign=0;
 
     if(isToday){
       const total=lockedTodayTotalCost(), done=lockedTodayDoneCost(), remaining=Math.max(0,total-done);
@@ -1313,10 +1337,10 @@ function renderPlan(){
         <div class="pbarseg" style="width:${remPct}%;background:var(--progress)"></div>
       </div><div class="pcapline" style="left:${capPct}%"></div></div>`;
       const items = S.todayLock.items;
-      n=items.filter(it=>it.type==='new').length; r1=items.filter(it=>it.type==='r1').length; r2=items.filter(it=>it.type==='r2').length;
+      n=items.filter(it=>it.type==='new').length; r1=items.filter(it=>it.type==='r1').length; r2=items.filter(it=>it.type==='r2').length; assign=items.filter(it=>it.type==='assign').length;
       tagsHtml = tagGroupsHtml(items, it=>{
         const st=S.lec[it.lecId]; if(!st) return false;
-        if(it.type==='new') return st.enc!=null;
+        if(it.type==='new'||it.type==='assign') return st.enc!=null;
         if(it.type==='r1') return !!st.r[1];
         return !!st.r[2];
       });
@@ -1328,7 +1352,7 @@ function renderPlan(){
       let color = blocked? 'var(--inactive-soft)' : (load>cap+1e-9?'var(--warn)':'var(--progress)');
       if(load<1e-9 && !blocked) color='var(--inactive-soft)';
       barHtml = `<div class="pbarwrap"><div class="pbar" style="width:${loadPct}%;background:${color}"></div><div class="pcapline" style="left:${capPct}%"></div></div>`;
-      n=items.filter(it=>it.type==='new').length; r1=items.filter(it=>it.type==='r1').length; r2=items.filter(it=>it.type==='r2').length;
+      n=items.filter(it=>it.type==='new').length; r1=items.filter(it=>it.type==='r1').length; r2=items.filter(it=>it.type==='r2').length; assign=items.filter(it=>it.type==='assign').length;
       tagsHtml = tagGroupsHtml(items, null);
     }
 
@@ -1340,7 +1364,7 @@ function renderPlan(){
         ${tagsHtml}
         ${blocked?`<div class="pnote">분배 제외${info.note?' · '+esc(info.note):''}</div>`:(info.note?`<div class="pnote">${esc(info.note)}</div>`:'')}
       </div>
-      <div class="pcount">신규 ${n}·1차 ${r1}·2차 ${r2}${capInput}</div>
+      <div class="pcount">${assign?`과제 ${assign}·`:''}신규 ${n}·1차 ${r1}·2차 ${r2}${capInput}</div>
     </div>`);
     if(!blocked){
       row.querySelector('.capinput').addEventListener('change', e=>{
@@ -1401,13 +1425,83 @@ function buildRow(l, st){
   };
   return row;
 }
+/* ===== 과제 행 (전체 강의 탭) =====
+   신규→1차→2차 3단계가 아니라 등록 시 정한 크레딧으로 한 번에 완료되는 항목.
+   완료 여부는 st.enc(완료된 날)를 그대로 재사용해서 기존 스케줄링 로직과 자연스럽게 맞물린다. */
+function buildAssignRow(l, st){
+  const excluded = !!st.excluded;
+  const done = st.enc!=null;
+  const due = SCHEDULE.byLecture[l.id] ? SCHEDULE.byLecture[l.id].assign : null;
+  const cls = done ? 'done' : (due==null ? 'na' : (due===S.cur ? 'due' : 'inactive'));
+  const chipTitle = done ? `완료됨 (Day${st.enc})` : (`크레딧 ${l.credit||1}` + (due!=null? ` · 예정 Day${due}` : ' — 배정 못함'));
+  const clickable = !excluded && (done || due===S.cur);
+  const checklist = Array.isArray(l.checklist) ? l.checklist : [];
+  if(!st.subCheck) st.subCheck={new:{},r1:{},r2:{},assign:{}};
+  if(!st.subCheck.assign) st.subCheck.assign={};
+  const sc = st.subCheck.assign;
+  const checkedCount = checklist.filter((_,i)=>sc[i]).length;
+
+  const chipsHtml = excluded ? '' : `<div class="chips"><div class="chip">${clickable?`<button class="assign-complete-btn ${cls}" title="${esc(chipTitle)}">완</button>`:`<span class="sq ${cls}" title="${esc(chipTitle)}"></span>`}<span class="lbl">과제</span></div></div>`;
+
+  const wrap = el(`<div></div>`);
+  const row = el(`<div class="row" style="${excluded?'opacity:.45':''}">
+    <div class="rt"><div class="rn">${excluded?'<s>':''}<span class="badge assign" style="margin-right:4px">과제</span>${esc(l.title)}${excluded?'</s>':''}</div><div class="rp">기한 Day${l.day} (${dInfo(l.day).date}) · 크레딧 ${l.credit||1}${excluded?' · 제외됨':''}</div></div>
+    ${chipsHtml}
+    ${excluded?'':`<span class="encpill ${done?'':'no'}">${done?'완료 D'+st.enc:'미완료'}</span>`}
+    ${checklist.length?`<button class="undo assign-checklist-toggle">체크리스트 ${checkedCount}/${checklist.length}</button>`:''}
+    ${(!excluded && done)?'<button class="undo undo-enc">되돌리기</button>':''}
+    <button class="undo edit-lec">수정</button>
+    <button class="undo excl-toggle">${excluded?'포함시키기':'제외'}</button>
+    <button class="tabdel del-lec" title="과제 삭제">×</button>
+  </div>`);
+  wrap.appendChild(row);
+
+  if(clickable){
+    row.querySelector('.assign-complete-btn').onclick=()=>{ st.enc = done? null : S.cur; saveApp(); render(); };
+  }
+  if(!excluded && done){
+    row.querySelector('.undo-enc').onclick=()=> askConfirm(`"${l.title}" 완료를 취소하시겠습니까?`, '이 과제는 다시 미완료 상태가 됩니다.', ()=>{
+      st.enc=null; saveApp(); render();
+    });
+  }
+  row.querySelector('.edit-lec').onclick=()=> openEditLecModal(l);
+  row.querySelector('.del-lec').onclick=()=>{
+    askConfirm(`"${l.title}"을 완전히 삭제하시겠습니까?`, '과제 자체가 사라지고 완료·체크 기록도 함께 없어지며 되돌릴 수 없습니다.', ()=>{
+      const idx=LEC.findIndex(x=>x.id===l.id); if(idx>=0) LEC.splice(idx,1);
+      delete S.lec[l.id];
+      S.todayLock=null;
+      saveApp(); render();
+    }, '삭제');
+  };
+  row.querySelector('.excl-toggle').onclick=()=>{
+    if(excluded){ st.excluded=false; S.todayLock=null; saveApp(); render(); }
+    else askConfirm(`"${l.title}"을 제외하시겠습니까?`, '이 과제는 크레딧 분배 대상에서 제외됩니다.', ()=>{
+      st.excluded=true; S.todayLock=null; saveApp(); render();
+    }, '제외');
+  };
+
+  if(checklist.length){
+    const body = el(`<div class="flowbody" style="border-top:1px solid var(--line);padding:8px 16px 10px 16px;display:none"></div>`);
+    checklist.forEach((step,i)=>{
+      const srow = el(`<div class="substep"><span class="schk ${sc[i]?'done':''}">${sc[i]?'✓':''}</span><span class="slabel ${sc[i]?'done':''}">${esc(step)}</span></div>`);
+      srow.querySelector('.schk').onclick=()=>{ sc[i]=!sc[i]; saveApp(); render(); };
+      body.appendChild(srow);
+    });
+    wrap.appendChild(body);
+    row.querySelector('.assign-checklist-toggle').onclick=()=>{
+      const open = body.style.display!=='none';
+      body.style.display = open?'none':'block';
+    };
+  }
+  return wrap;
+}
 function renderList(){
   const wrap=document.getElementById('fullList'); wrap.innerHTML='';
   SCHOOL_DAYS.forEach(d=>{
     const items=LEC.filter(l=>l.day===d.day);
     const grp = el(`<div class="daygrp"><div class="dayhd"><span>Day ${d.day}</span><span>${d.date}(${d.dow})</span>${d.note?`<span class="ex">${esc(d.note)}</span>`:''}</div></div>`);
     if(!items.length){ grp.appendChild(el('<div class="row"><span style="color:var(--faint);font-size:11px">강의 없음</span></div>')); }
-    items.forEach(l=> grp.appendChild(buildRow(l, S.lec[l.id])));
+    items.forEach(l=> grp.appendChild(l.type==='과제' ? buildAssignRow(l, S.lec[l.id]) : buildRow(l, S.lec[l.id])));
     wrap.appendChild(grp);
   });
   const daySel = document.getElementById('alDay'); daySel.innerHTML = SCHOOL_DAYS.map(d=>`<option value="${d.day}">Day${d.day} ${d.date}(${d.dow})</option>`).join('');
@@ -1602,10 +1696,21 @@ const elMask=document.getElementById('elMask');
 let _editingLec=null;
 function openEditLecModal(l){
   _editingLec=l;
-  document.getElementById('elCode').value=l.code;
+  const isAssign = l.type==='과제';
+  document.getElementById('elTitleHeading').textContent = isAssign? '과제 수정' : '강의 수정';
+  document.getElementById('elCodeRow').style.display = isAssign?'none':'';
+  document.getElementById('elProfRow').style.display = isAssign?'none':'';
+  document.getElementById('elTypeRow').style.display = isAssign?'none':'';
+  document.getElementById('elCreditRow').style.display = isAssign?'':'none';
+  document.getElementById('elChecklistRow').style.display = isAssign?'':'none';
+  document.getElementById('elTitleLabel').textContent = isAssign?'과제명':'강의명';
+  document.getElementById('elDayLabel').textContent = isAssign?'기한':'Day';
+  document.getElementById('elCode').value=l.code||'';
   document.getElementById('elTitle').value=l.title;
-  document.getElementById('elProf').value=l.prof;
+  document.getElementById('elProf').value=l.prof||'';
   document.getElementById('elType').value=l.type==='실습'?'실습':'강의';
+  document.getElementById('elCredit').value = l.credit!=null? l.credit : 1;
+  document.getElementById('elChecklist').value = Array.isArray(l.checklist) ? l.checklist.join('\n') : '';
   const daySel=document.getElementById('elDay');
   daySel.innerHTML = SCHOOL_DAYS.map(d=>`<option value="${d.day}">Day${d.day} ${d.date}(${d.dow})</option>`).join('');
   daySel.value=l.day;
@@ -1615,32 +1720,60 @@ function closeEditLecModal(){ elMask.classList.remove('on'); _editingLec=null; }
 document.getElementById('elCancel').onclick=closeEditLecModal;
 document.getElementById('elSave').onclick=()=>{
   if(!_editingLec) return;
+  const isAssign = _editingLec.type==='과제';
   const title=document.getElementById('elTitle').value.trim();
-  if(!title){ showToast('강의명을 입력해주세요'); return; }
-  _editingLec.code = document.getElementById('elCode').value.trim() || _editingLec.code;
+  if(!title){ showToast(isAssign?'과제명을 입력해주세요':'강의명을 입력해주세요'); return; }
   _editingLec.title = title;
-  _editingLec.prof = document.getElementById('elProf').value.trim() || '미정';
-  _editingLec.type = document.getElementById('elType').value;
   _editingLec.day = parseInt(document.getElementById('elDay').value);
-  S.todayLock=null; // 강의 정보가 바뀌었으니 오늘 몫도 다시 정한다
+  if(isAssign){
+    const credit=parseFloat(document.getElementById('elCredit').value);
+    _editingLec.credit = (isNaN(credit)||credit<=0) ? 1 : credit;
+    _editingLec.checklist = document.getElementById('elChecklist').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  } else {
+    _editingLec.code = document.getElementById('elCode').value.trim() || _editingLec.code;
+    _editingLec.prof = document.getElementById('elProf').value.trim() || '미정';
+    _editingLec.type = document.getElementById('elType').value;
+  }
+  S.todayLock=null; // 정보가 바뀌었으니 오늘 몫도 다시 정한다
   saveApp();
   closeEditLecModal();
   render();
 };
 
-/* ===== 수동 강의 추가 (보정용) ===== */
+/* ===== 수동 강의/과제 추가 (보정용) ===== */
+const alTypeEl=document.getElementById('alType');
+function syncAddLecFields(){
+  const isAssign = alTypeEl.value==='과제';
+  document.getElementById('alCode').style.display = isAssign?'none':'';
+  document.getElementById('alProf').style.display = isAssign?'none':'';
+  document.getElementById('alCredit').style.display = isAssign?'':'none';
+  document.getElementById('alChecklist').style.display = isAssign?'':'none';
+  document.getElementById('alTitle').placeholder = isAssign?'과제명':'강의명';
+  document.getElementById('alAdd').textContent = isAssign? '+ 과제 추가' : '+ 강의 추가';
+}
+alTypeEl.addEventListener('change', syncAddLecFields);
+syncAddLecFields();
 document.getElementById('alAdd').onclick=()=>{
-  const code=document.getElementById('alCode').value.trim();
-  const title=document.getElementById('alTitle').value.trim();
-  const prof=document.getElementById('alProf').value.trim();
   const type=document.getElementById('alType').value;
+  const title=document.getElementById('alTitle').value.trim();
   const day=parseInt(document.getElementById('alDay').value);
-  if(!title){ showToast('강의명을 입력해주세요'); return; }
+  if(!title){ showToast(type==='과제'?'과제명을 입력해주세요':'강의명을 입력해주세요'); return; }
   const newId = (LEC.reduce((m,l)=>Math.max(m,l.id),0))+1;
-  LEC.push({id:newId, day, code:code||`강${newId}`, title, prof:prof||'미정', type});
+  if(type==='과제'){
+    const credit=parseFloat(document.getElementById('alCredit').value);
+    const checklist=document.getElementById('alChecklist').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+    LEC.push({id:newId, day, code:'', title, prof:'', type:'과제', credit:(isNaN(credit)||credit<=0)?1:credit, checklist});
+    document.getElementById('alChecklist').value='';
+    document.getElementById('alCredit').value='';
+  } else {
+    const code=document.getElementById('alCode').value.trim();
+    const prof=document.getElementById('alProf').value.trim();
+    LEC.push({id:newId, day, code:code||`강${newId}`, title, prof:prof||'미정', type});
+    document.getElementById('alCode').value=''; document.getElementById('alProf').value='';
+  }
   S.lec[newId]=freshLecState();
-  S.todayLock=null; // 강의가 늘었으니 오늘 몫도 다시 정한다
-  document.getElementById('alCode').value=''; document.getElementById('alTitle').value=''; document.getElementById('alProf').value='';
+  S.todayLock=null; // 항목이 늘었으니 오늘 몫도 다시 정한다
+  document.getElementById('alTitle').value='';
   saveApp(); render();
 };
 
