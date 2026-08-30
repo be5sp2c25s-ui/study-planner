@@ -147,8 +147,9 @@
   .copybtn.copied{background:var(--accent);color:#fff}
   .pcard .pactions,.pcard .pedit-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
   .pcard .pmod{color:var(--accent);font-weight:700}
-  .peditbtn,.pcancelbtn,.presetbtn{margin-top:9px;border:none;color:var(--ink);background:var(--surface2);border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer}
+  .peditbtn,.pcancelbtn,.presetbtn,.psavedefaultbtn{margin-top:9px;border:none;color:var(--ink);background:var(--surface2);border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer}
   .presetbtn{color:var(--warn);background:var(--warn-soft)}
+  .psavedefaultbtn{color:var(--accent);background:var(--accent-soft)}
   .pedit-input{width:100%;min-height:130px;resize:vertical;border:1px solid var(--accent);border-radius:9px;padding:9px 10px;font:11px/1.55 var(--sans);color:var(--ink);background:var(--surface);margin-top:2px}
   .instruction-sub{margin-bottom:16px}
   .instruction-sub:last-of-type{margin-bottom:0}
@@ -240,8 +241,9 @@
   .opromptedittext{margin:6px 0 0 26px;width:calc(100% - 26px);min-height:160px;resize:vertical;border:1px solid var(--accent);border-radius:9px;padding:9px 10px;font:10.5px/1.55 var(--sans);color:var(--ink);background:var(--surface)}
   .opromptsavebar{margin:6px 0 0 26px;display:flex;gap:6px}
   .opromptsavebtn{border:none;background:var(--accent);color:#fff;font-size:10px;font-weight:700;cursor:pointer;border-radius:7px;padding:5px 10px}
-  .opromptcancelbtn,.opromptresetbtn{border:none;background:var(--surface2);color:var(--ink);font-size:10px;font-weight:700;cursor:pointer;border-radius:7px;padding:5px 10px}
+  .opromptcancelbtn,.opromptresetbtn,.opromptsavedefaultbtn{border:none;background:var(--surface2);color:var(--ink);font-size:10px;font-weight:700;cursor:pointer;border-radius:7px;padding:5px 10px}
   .opromptresetbtn{color:var(--warn);background:var(--warn-soft)}
+  .opromptsavedefaultbtn{color:var(--accent);background:var(--accent-soft)}
 
   .dayflow{display:flex;flex-direction:column;gap:10px;margin:16px 0}
   .flowitem{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
@@ -479,7 +481,7 @@ const store = window.storage ? window.storage : (fbDb ? {
   async get(k){ if(!(k in mem)) throw new Error('nf'); return {value:mem[k]}; },
   async set(k,v){ mem[k]=v; return {value:v}; },
 });
-let App = {blocks:[], active:null, promptOverrides:{}, customInstructionOverride:''};
+let App = {blocks:[], active:null, promptOverrides:{}, promptDefaults:{}, customInstructionOverride:'', customInstructionDefault:''};
 let S=null, LEC=[], SCHOOL_DAYS=[], MAXDAY=0;
 let undoSnapshot=null;
 const expandedFlowCards=new Set();
@@ -507,7 +509,7 @@ document.addEventListener('keydown', e=>{
 
 function freshState(schoolDays, lec){
   const m={}; lec.forEach(l=> m[l.id]=freshLecState());
-  return {cur:1, examDay: schoolDays.length, capOverride:{}, todayLock:null, typeCost:{new:1,r1:0.5,r2:0.25}, onboarding:{}, examEve:{}, ankiCheck:{}, manualPlans:{}, lec:m};
+  return {cur:1, examDay: schoolDays.length, capOverride:{}, todayLock:null, typeCost:{new:1,r1:0.5,r2:0.25}, onboarding:{}, examEve:{}, ankiCheck:{}, manualPlans:{}, pulledReviews:{}, lec:m};
 }
 function freshLecState(){
   return {enc:null, r:{1:false,2:false}, rDay:{1:null,2:null}, subCheck:{new:{},r1:{},r2:{},assign:{}}, excluded:false};
@@ -517,9 +519,11 @@ function activateBlock(id){
   App.active=id; SCHOOL_DAYS=b.schoolDays; LEC=b.lec; MAXDAY=SCHOOL_DAYS.length; S=b.state;
 }
 async function loadApp(){
-  try{ const r=await store.get(GKEY); const p=JSON.parse(r.value); if(p&&Array.isArray(p.blocks)) App=p; }catch(e){ App={blocks:[],active:null,promptOverrides:{},customInstructionOverride:''}; }
+  try{ const r=await store.get(GKEY); const p=JSON.parse(r.value); if(p&&Array.isArray(p.blocks)) App=p; }catch(e){ App={blocks:[],active:null,promptOverrides:{},promptDefaults:{},customInstructionOverride:'',customInstructionDefault:''}; }
   if(!App.promptOverrides) App.promptOverrides={};
+  if(!App.promptDefaults) App.promptDefaults={};
   if(typeof App.customInstructionOverride!=='string') App.customInstructionOverride='';
+  if(typeof App.customInstructionDefault!=='string') App.customInstructionDefault='';
   if(App.blocks.length){
     const found = App.blocks.find(b=>b.id===App.active);
     activateBlock(found? App.active : App.blocks[0].id);
@@ -578,8 +582,7 @@ const PROF_REVIEW_PROMPT_TEMPLATE = String.raw`[선배 후기 첨부]
 - 다 만든 후에, 내가 "이거 다 담은 거 맞아?"라고 물어보면 스스로 누락된 항목이 있는지 점검하고 알려줘.
 `;
 function profReviewPromptTemplate(){
-  const v = App.promptOverrides && App.promptOverrides['profReview'];
-  return (typeof v==='string' && v.trim().length) ? v : PROF_REVIEW_PROMPT_TEMPLATE;
+  return promptOverrideText('profReview', PROF_REVIEW_PROMPT_TEMPLATE);
 }
 const ONBOARD_ITEMS = [
   {
@@ -689,19 +692,34 @@ __PROFESSOR_REVIEWS__
 말머리는 하이픈 하나, 번호는 원문자, 특별 강조에는 ★를 사용해. 표는 얇은 전체 격자와
 #FFF9D6 헤더를 사용하고, 실제 이미지는 넣지 말고 빈 사각형과 캡션 자리만 표시해.
 최대한 압축하고 화려한 서식은 사용하지 마.`;
-function customInstructionsTemplate(){
-  const v = App.customInstructionOverride;
+function customInstructionsBase(){
+  const v = App.customInstructionDefault;
   return (typeof v==='string' && v.trim().length) ? v : CUSTOM_INSTRUCTIONS_TEMPLATE;
 }
+function customInstructionsTemplate(){
+  const v = App.customInstructionOverride;
+  if(typeof v==='string' && v.trim().length) return v;
+  return customInstructionsBase();
+}
 function setCustomInstructionOverride(text){
-  if(!text || !text.trim().length || text===CUSTOM_INSTRUCTIONS_TEMPLATE){
+  const base = customInstructionsBase();
+  if(!text || !text.trim().length || text===base){
     App.customInstructionOverride='';
   } else {
     App.customInstructionOverride=text;
   }
   saveApp();
 }
-function clearCustomInstructionOverride(){ App.customInstructionOverride=''; saveApp(); }
+function clearCustomInstructionOverride(){ App.customInstructionOverride=''; App.customInstructionDefault=''; saveApp(); }
+function saveCustomInstructionAsDefault(text){
+  if(!text || !text.trim().length || text===CUSTOM_INSTRUCTIONS_TEMPLATE){
+    App.customInstructionDefault='';
+  } else {
+    App.customInstructionDefault=text;
+  }
+  App.customInstructionOverride='';
+  saveApp();
+}
 function customInstructions(){
   const subject = App.blocks.find(b=>b.id===App.active)?.name || '[과목명]';
   const reviews = (App.blocks.find(b=>b.id===App.active)?.profReviews || '').trim();
@@ -886,14 +904,21 @@ function PROMPTS(){ return [
   {id:'p4', t:'PROMPT 4 · 예습 vs 실제 필기 비교', w:'예습해둔 강의의 실제 수업일에 필기 받으면', x:COMPARE_PROMPT},
   {id:'p5', t:'PROMPT 5 · 시험 전날 축약 정리본', w:'모든 정리본 완성 후, 시험 며칠 전', x:FINAL_SUMMARY_PROMPT},
 ];}
-/* 프롬프트 수정본 저장/조회 — App.promptOverrides에 id별로 보관 */
+/* 프롬프트 수정본 저장/조회 — App.promptOverrides(임시 수정) / App.promptDefaults(내 기본값으로 승격)에 id별로 보관
+   effective = 임시 수정 있으면 그것, 없으면 내 기본값, 없으면 하드코딩 원본 */
+function promptBaseText(id, fallback){
+  const v = App.promptDefaults && App.promptDefaults[id];
+  return (typeof v==='string' && v.trim().length) ? v : fallback;
+}
 function promptOverrideText(id, fallback){
   const v = App.promptOverrides && App.promptOverrides[id];
-  return (typeof v==='string' && v.trim().length) ? v : fallback;
+  if(typeof v==='string' && v.trim().length) return v;
+  return promptBaseText(id, fallback);
 }
 function setPromptOverride(id, text, fallback){
   if(!App.promptOverrides) App.promptOverrides={};
-  if(!text || !text.trim().length || text===fallback){
+  const base = promptBaseText(id, fallback);
+  if(!text || !text.trim().length || text===base){
     delete App.promptOverrides[id];
   } else {
     App.promptOverrides[id]=text;
@@ -901,7 +926,19 @@ function setPromptOverride(id, text, fallback){
   saveApp();
 }
 function clearPromptOverride(id){
-  if(App.promptOverrides && (id in App.promptOverrides)){ delete App.promptOverrides[id]; saveApp(); }
+  if(App.promptOverrides) delete App.promptOverrides[id];
+  if(App.promptDefaults) delete App.promptDefaults[id];
+  saveApp();
+}
+function savePromptAsDefault(id, text, fallback){
+  if(!App.promptDefaults) App.promptDefaults={};
+  if(!text || !text.trim().length || text===fallback){
+    delete App.promptDefaults[id];
+  } else {
+    App.promptDefaults[id]=text;
+  }
+  if(App.promptOverrides) delete App.promptOverrides[id];
+  saveApp();
 }
 
 /* ===== 파생 쿼리 (SCHEDULE 기반) ===== */
@@ -927,12 +964,13 @@ function preQueue(){
    수 있게 보여준다 — 알고리즘이 여유될 때 자동으로 당겨주는 것과는 별개의 수동 경로. */
 function previewReviewQueue(){
   const lockedKeys = new Set((S.todayLock&&S.todayLock.day===S.cur? S.todayLock.items:[]).map(it=>it.lecId+':'+it.type));
+  const pulled = S.pulledReviews || {};
   const out=[];
   activeLectures().forEach(l=>{
     const st=S.lec[l.id];
     if(st.enc==null) return;
-    if(!st.r[1] && !lockedKeys.has(l.id+':r1')) out.push({type:'r1', l});
-    else if(st.r[1] && !st.r[2] && !lockedKeys.has(l.id+':r2')) out.push({type:'r2', l});
+    if(!st.r[1] && !lockedKeys.has(l.id+':r1') && pulled[l.id+':r1']==null) out.push({type:'r1', l});
+    else if(st.r[1] && !st.r[2] && !lockedKeys.has(l.id+':r2') && pulled[l.id+':r2']==null) out.push({type:'r2', l});
   });
   return out.sort((a,b)=>{
     const da=SCHEDULE.byLecture[a.l.id][a.type], db=SCHEDULE.byLecture[b.l.id][b.type];
@@ -1123,13 +1161,11 @@ function reviewPreviewCard(o){
     <div class="top"><span class="code">${esc(l.code)}</span><span class="badge due">${day!=null?`예정 Day${day}`:'배정 전'}</span></div>
     <div class="t">${esc(l.title)}</div>
     <div class="m">${type==='r1'?'1차':'2차'} 복습 · 인코딩 Day${S.lec[l.id].enc}</div>
-    <button class="go amber">미리 완료</button>
+    <button class="go amber">오늘로 당기기</button>
   </div>`);
   c.querySelector('.go').onclick=()=>{
-    const st=S.lec[l.id];
-    st.r[key]=true;
-    if(!st.rDay) st.rDay={1:null,2:null};
-    st.rDay[key]=S.cur;
+    if(!S.pulledReviews) S.pulledReviews={};
+    S.pulledReviews[l.id+':'+type]=S.cur;
     saveApp(); render();
   };
   return c;
@@ -1237,8 +1273,15 @@ function renderDayFlow(box, isExamDay){
     return;
   }
   if(!S.manualPlans) S.manualPlans={};
+  if(!S.pulledReviews) S.pulledReviews={};
   const manualPlans=S.manualPlans[S.cur] || (S.manualPlans[S.cur]=[]);
-  const items = (SCHEDULE.byDay[S.cur]||[]).slice().sort((a,b)=>{
+  const scheduled = (SCHEDULE.byDay[S.cur]||[]).slice();
+  const scheduledKeys = new Set(scheduled.map(it=>it.lecId+':'+it.type));
+  const pulled = Object.entries(S.pulledReviews)
+    .filter(([k,day])=> day===S.cur)
+    .map(([k])=>{ const [lecId,type]=k.split(':'); return {lecId:Number(lecId), type}; })
+    .filter(p=>!scheduledKeys.has(p.lecId+':'+p.type));
+  const items = scheduled.concat(pulled).sort((a,b)=>{
     const aDone=(a.type==='new'||a.type==='assign') ? S.lec[a.lecId].enc!=null : !!S.lec[a.lecId].r[a.type==='r1'?1:2];
     const bDone=(b.type==='new'||b.type==='assign') ? S.lec[b.lecId].enc!=null : !!S.lec[b.lecId].r[b.type==='r1'?1:2];
     return Number(aDone)-Number(bDone) || TYPE_ORDER[a.type]-TYPE_ORDER[b.type] || a.lecId-b.lecId;
@@ -1324,12 +1367,17 @@ function renderOnboarding(){
       const ta = el(`<textarea class="opromptedittext">${esc(profReviewPromptTemplate())}</textarea>`);
       const bar = el(`<div class="opromptsavebar">
         <button class="opromptsavebtn">저장</button>
+        <button class="opromptsavedefaultbtn">기본값으로 저장</button>
         <button class="opromptcancelbtn">취소</button>
         ${overridden?'<button class="opromptresetbtn">기본값으로</button>':''}
       </div>`);
       bar.querySelector('.opromptsavebtn').onclick=()=>{
         setPromptOverride(it.key, ta.value, PROF_REVIEW_PROMPT_TEMPLATE);
         render(); showToast('학습 전략 생성 프롬프트를 수정했습니다.');
+      };
+      bar.querySelector('.opromptsavedefaultbtn').onclick=()=>{
+        savePromptAsDefault(it.key, ta.value, PROF_REVIEW_PROMPT_TEMPLATE);
+        render(); showToast('지금 상태를 기본값으로 저장했습니다.');
       };
       bar.querySelector('.opromptcancelbtn').onclick=()=>{ ta.remove(); bar.remove(); };
       const resetBtn=bar.querySelector('.opromptresetbtn');
@@ -1663,6 +1711,7 @@ function renderPrompts(){
         </div>
         <div class="pedit-actions" style="display:none">
           <button class="psavebtn copybtn" type="button">저장</button>
+          <button class="psavedefaultbtn" type="button">기본값으로 저장</button>
           <button class="pcancelbtn" type="button">취소</button>
           ${tmplOverridden?'<button class="presetbtn" type="button">기본값으로</button>':''}
         </div>
@@ -1721,6 +1770,10 @@ function renderPrompts(){
     setCustomInstructionOverride(tEdit.value);
     render(); showToast('Custom instruction 템플릿을 수정했습니다.');
   };
+  tmplSub.querySelector('.psavedefaultbtn').onclick=()=>{
+    saveCustomInstructionAsDefault(tEdit.value);
+    render(); showToast('지금 상태를 기본값으로 저장했습니다.');
+  };
   const tResetBtn=tmplSub.querySelector('.presetbtn');
   if(tResetBtn) tResetBtn.onclick=()=>{
     clearCustomInstructionOverride();
@@ -1742,6 +1795,7 @@ function renderPrompts(){
       </div>
       <div class="pedit-actions" style="display:none">
         <button class="psavebtn copybtn">저장</button>
+        <button class="psavedefaultbtn">기본값으로 저장</button>
         <button class="pcancelbtn">취소</button>
         ${overridden?'<button class="presetbtn">기본값으로</button>':''}
       </div>
@@ -1769,6 +1823,11 @@ function renderPrompts(){
       setPromptOverride(p.id, editInput.value, p.x);
       render();
       showToast('프롬프트를 수정했습니다.');
+    };
+    c.querySelector('.psavedefaultbtn').onclick=()=>{
+      savePromptAsDefault(p.id, editInput.value, p.x);
+      render();
+      showToast('지금 상태를 기본값으로 저장했습니다.');
     };
     const resetBtn=c.querySelector('.presetbtn');
     if(resetBtn) resetBtn.onclick=()=>{
