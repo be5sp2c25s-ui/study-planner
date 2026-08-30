@@ -145,6 +145,18 @@
   .pcard .ptext{font-size:11px;color:var(--muted);white-space:pre-wrap;line-height:1.55}
   .copybtn{margin-top:9px;border:none;color:var(--accent);background:var(--accent-soft);border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer}
   .copybtn.copied{background:var(--accent);color:#fff}
+  .pcard .pactions,.pcard .pedit-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .pcard .pmod{color:var(--accent);font-weight:700}
+  .peditbtn,.pcancelbtn,.presetbtn{margin-top:9px;border:none;color:var(--ink);background:var(--surface2);border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer}
+  .presetbtn{color:var(--warn);background:var(--warn-soft)}
+  .pedit-input{width:100%;min-height:130px;resize:vertical;border:1px solid var(--accent);border-radius:9px;padding:9px 10px;font:11px/1.55 var(--sans);color:var(--ink);background:var(--surface);margin-top:2px}
+  .instruction-sub{margin-bottom:16px}
+  .instruction-sub:last-of-type{margin-bottom:0}
+  .instruction-sub .sublabel{font-size:11px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:6px;margin-bottom:6px}
+  .instruction-sub .subview{white-space:pre-wrap;font-size:11px;line-height:1.6;color:var(--ink);background:var(--surface2);border-radius:9px;padding:10px 11px;max-height:260px;overflow:auto}
+  .instruction-sub .subview.placeholder{color:var(--faint)}
+  .instruction-sub textarea.pedit-input{min-height:110px}
+  .instruction-sub textarea.pedit-input.tmpl{min-height:320px;font-size:10.5px}
   .instruction-card{grid-column:1/-1}
   .instruction-body{display:none;margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
   .instruction-body.on{display:block}
@@ -223,6 +235,13 @@
   .olaterbtn{border:none;background:transparent;color:var(--faint);font-size:10.5px;font-weight:700;cursor:pointer;text-decoration:underline;flex-shrink:0}
   .opromptbtn{border:none;background:var(--accent-soft);color:var(--accent);font-size:10px;font-weight:700;cursor:pointer;border-radius:7px;padding:3px 8px;flex-shrink:0}
   .opromptbox{margin:6px 0 0 26px;padding:9px 11px;background:var(--surface2);border-radius:9px;font-size:10.5px;color:var(--muted);white-space:pre-wrap}
+  .opromptedit{border:none;background:var(--surface2);color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;border-radius:7px;padding:3px 8px;flex-shrink:0}
+  .omod{color:var(--accent);font-weight:700;font-size:10px;margin-left:4px}
+  .opromptedittext{margin:6px 0 0 26px;width:calc(100% - 26px);min-height:160px;resize:vertical;border:1px solid var(--accent);border-radius:9px;padding:9px 10px;font:10.5px/1.55 var(--sans);color:var(--ink);background:var(--surface)}
+  .opromptsavebar{margin:6px 0 0 26px;display:flex;gap:6px}
+  .opromptsavebtn{border:none;background:var(--accent);color:#fff;font-size:10px;font-weight:700;cursor:pointer;border-radius:7px;padding:5px 10px}
+  .opromptcancelbtn,.opromptresetbtn{border:none;background:var(--surface2);color:var(--ink);font-size:10px;font-weight:700;cursor:pointer;border-radius:7px;padding:5px 10px}
+  .opromptresetbtn{color:var(--warn);background:var(--warn-soft)}
 
   .dayflow{display:flex;flex-direction:column;gap:10px;margin:16px 0}
   .flowitem{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
@@ -460,7 +479,7 @@ const store = window.storage ? window.storage : (fbDb ? {
   async get(k){ if(!(k in mem)) throw new Error('nf'); return {value:mem[k]}; },
   async set(k,v){ mem[k]=v; return {value:v}; },
 });
-let App = {blocks:[], active:null};
+let App = {blocks:[], active:null, promptOverrides:{}, customInstructionOverride:''};
 let S=null, LEC=[], SCHOOL_DAYS=[], MAXDAY=0;
 let undoSnapshot=null;
 const expandedFlowCards=new Set();
@@ -498,7 +517,9 @@ function activateBlock(id){
   App.active=id; SCHOOL_DAYS=b.schoolDays; LEC=b.lec; MAXDAY=SCHOOL_DAYS.length; S=b.state;
 }
 async function loadApp(){
-  try{ const r=await store.get(GKEY); const p=JSON.parse(r.value); if(p&&Array.isArray(p.blocks)) App=p; }catch(e){ App={blocks:[],active:null}; }
+  try{ const r=await store.get(GKEY); const p=JSON.parse(r.value); if(p&&Array.isArray(p.blocks)) App=p; }catch(e){ App={blocks:[],active:null,promptOverrides:{},customInstructionOverride:''}; }
+  if(!App.promptOverrides) App.promptOverrides={};
+  if(typeof App.customInstructionOverride!=='string') App.customInstructionOverride='';
   if(App.blocks.length){
     const found = App.blocks.find(b=>b.id===App.active);
     activateBlock(found? App.active : App.blocks[0].id);
@@ -532,48 +553,55 @@ const SUB_STEPS = {
   r2: ['정리본 1회독 (Highlights)','Anki 제작'],
 };
 /* ===== 새 블록 온보딩 체크리스트 ===== */
+
+const PROF_REVIEW_PROMPT_TEMPLATE = String.raw`[선배 후기 첨부]
+업로드한 엑셀은 [과목명] 선배들의 후기야.
+이 후기를 바탕으로 아래 두 가지 산출물을 각각 만들어줘.
+1) [행동 규칙] Custom Instructions용 텍스트
+   - 형식: 붙여넣기 쉬운 코드블록, 800~1500자 이내
+   - 내용: "내가 강의자료/필기를 넣고 설명·인출을 요청할 때 네가 지켜야 할 규칙"만 담아줘.
+     예) 강조·별표만 다루면 되는지 / 세부·예외·수치까지 다뤄야 하는지 /
+         개념 흐름 위주인지 / 지엽 선지 감별까지 필요한지 /
+         족보를 못 믿을 사정이 있는지 / 시간을 많이 써야 할 파트 vs 빠르게 넘어갈 파트
+   - 교수/파트별로 "설명 깊이 + 인출 방향 + 주의점"을 한두 문장씩 압축해서 써줘.
+   - 여기에는 구체적 사실·수치·팁은 넣지 마. (2번 파일로 분리)
+2) [사실 정보] 참고자료 파일 (.md)
+   - Custom Instructions에서 뺀 구체적인 내용을 전부 담아줘:
+     시험 형식/문항 수/시간 배정, 자료 위치(안키·드라이브 등),
+     출제 이력이 있는 구체적 사례·수치·계산법, 실습/땡시 요령,
+     교수별 특이 에피소드나 힌트 등.
+   - 후기에 나온 내용은 절대 누락하지 말고 전부 반영해줘 (요약해서 빼지 말 것).
+   - 파일로 만들어서 다운로드할 수 있게 해줘.
+공통 규칙:
+- 후기 근거가 1명뿐이거나 서로 충돌하면 "확실하지 않음"이라고 표시해.
+- 엑셀에 없는 내용은 추측해서 만들지 마.
+- 다 만든 후에, 내가 "이거 다 담은 거 맞아?"라고 물어보면 스스로 누락된 항목이 있는지 점검하고 알려줘.
+`;
+function profReviewPromptTemplate(){
+  const v = App.promptOverrides && App.promptOverrides['profReview'];
+  return (typeof v==='string' && v.trim().length) ? v : PROF_REVIEW_PROMPT_TEMPLATE;
+}
 const ONBOARD_ITEMS = [
-  {key:'newProject', label:'Claude에 새 Project 생성'},
-  {key:'profReview', label:'학습 전략 프롬포트 생성',
-   prompt:`[선배 교수후기 첨부]\n업로드한 엑셀은 이 과목을 먼저 수강한 선배들의 후기야.
+  {
+  key:'newProject',
 
-후기들을 바탕으로, 앞으로 내가 각 교수님의 강의자료/필기를 넣고 너에게 설명을 요청할 때 적용할 **과목별·교수별 학습 지침**을 만들어줘.
-
-내가 원하는 건 후기 요약이 아니라, 네가 나를 가르칠 때 알아야 하는 규칙이야. 예를 들면:
-
-* 이 교수는 **강조·별표·빨간 글씨만 깊게** 다루면 되는지
-* 족보 밖의 **세부 내용·예외·수치까지** 설명하고 인출해야 하는지
-* 큰 **개념 흐름 이해** 위주로 설명하면 되는지
-* **코너링/지엽 선지** 대비를 위해 감별 포인트를 함께 알려줘야 하는지
-* 교수 교체 등으로 **기존 족보를 신뢰하면 안 되는지**
-* 특히 시간을 많이 들여 설명·인출해야 할 파트와, 빠르게 넘어가도 되는 파트가 무엇인지
-
-다음 형식으로 간결하게 정리해줘.
-
-## 전체 과목 전략
-
-* 고득점/변별을 위해 특히 깊게 다룰 파트
-* 최소 투입으로 점수를 확보할 파트
-* 족보·교수 교체·출제 기복 때문에 조심할 점
-
-## 교수·강의별 지도 지침
-
-| 교수(강의/파트) | 내가 강의를 넣었을 때 네가 설명할 깊이 | 인출 문제 방향 | 특별히 주의할 점 |
-| --------- | ---------------------- | -------- | --------- |
-
-설명할 깊이는 반드시 다음처럼 구체적인 행동으로 써줘:
-
-* 강조점만 설명 + 족보형 객관식 인출
-* 전체 강의록 설명 + 세부 예외까지 인출
-* 흐름 중심 설명 + 원인→기전→결과 인출
-* 지엽 오답 감별까지 포함한 객관식 인출
-* 정보 부족: 강의 내용 자체를 충실히 다루고, 족보 의존 금지
-
-후기 근거가 부족하거나 서로 충돌하면 단정하지 말고 “확실하지 않음”이라고 표시해. 엑셀에 없는 정보는 추측해서 만들지 마.`
+  get label() {
+    const subject = App.blocks.find(b => b.id === App.active)?.name || '[과목명]';
+    return `[${subject}] Project 생성`;
+  }
 },
-  {key:'pasteInstructions', label:'Custom instruction 붙여넣기', action:'openPrompts'},
-  {key:'uploadKnowledge', label:'족보, 족보 해설, 선배 정리본 Project Knowledge에 업로드'},
+  {
+    key:'profReview', 
+    label:'학습 전략 Instruction 생성 및 삽입',
+    get prompt() {
+     const subject = App.blocks.find(b => b.id === App.active)?.name || '[과목명]';
+     return profReviewPromptTemplate().replaceAll('[과목명]', subject);
+}
+},
+  {key:'pasteInstructions', label:'Custom Instruction 붙여넣기', action:'openPrompts'},
+  {key:'uploadKnowledge', label:'Project Knowledge 업로드'},
 ];
+
 /* ===== 시험 전날 전용 루틴 (크레딧 분배 대상 아님) ===== */
 const EXAM_EVE_ITEMS = ['Anki 타임 (전체 복습)','족보 전체 풀이','족보에서 많이 틀린 부분 복습','가능하면 정리본 전체 1회독'];
 const FINAL_SUMMARY_PROMPT = `[이 블록의 모든 정리본 첨부]\n이 블록 전체 정리본을 하나로 압축한 시험 전날용 요약본을 만들어줘.\n- 전체 범주·위계가 한눈에 보이게 큰 그림부터 잡아줘\n- 강의별로 겹치는 내용은 합쳐서 최소 분량으로\n- 족보에 출제된 개념 위주로, 족보 스타일을 반영해서 이 정도까지 외워야 하는지 아닌지 면밀히 판별해줘\n[족보 + 족보 해설 + 선배 정리본 첨부]도 같이 참고해서 교차검증해줘.`;
@@ -649,8 +677,7 @@ Extra를 사용하고, 정리본의 인용·암기법은 뒷면에 작은 글씨
 28. 강의록·필기본·교수 후기에서 짤족 또는 탈족 언급을 발견하면 반드시 알려줘. 짤족이면
 족보 문항을 Anki 대상으로 승격하고, 탈족이면 족보 의존도를 낮추고 개념 이해를 강화해.
 
-### [과목명] 학습 전략 표
-교수 / 유형 / 설명 방식
+### [과목명] 학습 전략
 __PROFESSOR_REVIEWS__
 
 ### 형식 · 기타
@@ -662,11 +689,24 @@ __PROFESSOR_REVIEWS__
 말머리는 하이픈 하나, 번호는 원문자, 특별 강조에는 ★를 사용해. 표는 얇은 전체 격자와
 #FFF9D6 헤더를 사용하고, 실제 이미지는 넣지 말고 빈 사각형과 캡션 자리만 표시해.
 최대한 압축하고 화려한 서식은 사용하지 마.`;
+function customInstructionsTemplate(){
+  const v = App.customInstructionOverride;
+  return (typeof v==='string' && v.trim().length) ? v : CUSTOM_INSTRUCTIONS_TEMPLATE;
+}
+function setCustomInstructionOverride(text){
+  if(!text || !text.trim().length || text===CUSTOM_INSTRUCTIONS_TEMPLATE){
+    App.customInstructionOverride='';
+  } else {
+    App.customInstructionOverride=text;
+  }
+  saveApp();
+}
+function clearCustomInstructionOverride(){ App.customInstructionOverride=''; saveApp(); }
 function customInstructions(){
   const subject = App.blocks.find(b=>b.id===App.active)?.name || '[과목명]';
   const reviews = (App.blocks.find(b=>b.id===App.active)?.profReviews || '').trim();
   const reviewText = reviews || '[여기에 내용을 붙여넣어 학습 전략 표를 채워주세요.]';
-  return CUSTOM_INSTRUCTIONS_TEMPLATE.replaceAll('[과목명]', subject).replace('__PROFESSOR_REVIEWS__', reviewText);
+  return customInstructionsTemplate().replaceAll('[과목명]', subject).replace('__PROFESSOR_REVIEWS__', reviewText);
 }
 
 /* ===== 부하균형 인출 알고리즘 (실시간 재계산) =====
@@ -840,12 +880,29 @@ let SCHEDULE=null; // computeSchedule() 결과 캐시 — render()에서 한 번
 
 /* ===== 프롬프트 라이브러리 (블록 무관 범용) ===== */
 function PROMPTS(){ return [
-  {t:'PROMPT 1 · 신규 인코딩', w:'수업 당일, 강의 채팅에서', x:`[필기 강의록 첨부]\n오늘 이 강의록으로 시작할게. 목차와 우선순위(스탬프·족보 기준) 표부터 보여주고 확인받은 뒤 첫 챕터부터 진행해줘. 인출 문제는 단답식·객관식 위주로, 정말 인과관계를 이해했는지 확인해야 하는 경우에만 서술형으로 내줘 — 강의록에 번호로 나열된 걸 그대로 "3번은?" 식으로 묻지 말고 족보 출제 방식을 반영해줘. 필기에 "외우지 마" 표시가 있으면 (암기 불필요)로, "시험에 낸다/외워라"는 강조해서 다뤄줘. 전체 챕터와 인출세트 끝나면, 지금까지 설명한 내용을 PDF 정리본으로 만들어줘. 이미지가 필요한 부분은 실제 이미지 대신 빈 상자 자리만 표시해줘 — 이미지는 내가 강의록 보면서 PDF-XChange로 직접 넣을게.`},
-  {t:'PROMPT 2 · 2차 복습 (형광펜 확인+Anki 생성)', w:'2차 복습일, 같은 강의 채팅', x:`정리본 한 번 읽으면서 모르는 부분 형광펜 표시했어. [형광펜 표시한 정리본 업로드] 신규 인코딩 때 틀렸던 개념, 족보에 자주 나온 개념, 강의 중 교수님이 강조한 내용, 이 정리본에서 형광펜·볼드로 표시된 것들 중에서 서로 겹치거나 출제 가능성이 높은 것만 선별해서 Anki 카드로 만들어줘. (암기 불필요)로 표시된 건 제외하고. Basic/Cloze 적절히 섞고 태그(강의 코드+오답/족보빈출/교수강조)도 달아줘. 원자 단위로, 덱 이름은 "[과목명]:: nn강. 강의제목" 형식으로, .apkg 파일로 줘.`},
-  {t:'PROMPT 3 · 족보 해설 보완', w:'1차 복습, 최신 연도 기출 해설이 없을 때', x:`[선배 족보 해설 + 이번 연도 족보 첨부]\n이번 연도 족보에 해설이 없어. 문제 하나하나 정확한 정답과 해설을 만들어줘 — 내가 그대로 족보 해설 파일에 옮겨 적을 거야.`},
-  {t:'PROMPT 4 · 예습 vs 실제 필기 비교', w:'예습해둔 강의의 실제 수업일에 필기 받으면', x:COMPARE_PROMPT},
-  {t:'PROMPT 5 · 시험 전날 축약 정리본', w:'모든 정리본 완성 후, 시험 며칠 전', x:FINAL_SUMMARY_PROMPT},
+  {id:'p1', t:'PROMPT 1 · 신규 인코딩', w:'수업 당일, 강의 채팅에서', x:`[필기 강의록 첨부]\n오늘 이 강의록으로 시작할게. 목차와 우선순위(스탬프·족보 기준) 표부터 보여주고 확인받은 뒤 첫 챕터부터 진행해줘. 인출 문제는 단답식·객관식 위주로, 정말 인과관계를 이해했는지 확인해야 하는 경우에만 서술형으로 내줘 — 강의록에 번호로 나열된 걸 그대로 "3번은?" 식으로 묻지 말고 족보 출제 방식을 반영해줘. 필기에 "외우지 마" 표시가 있으면 (암기 불필요)로, "시험에 낸다/외워라"는 강조해서 다뤄줘. 전체 챕터와 인출세트 끝나면, 지금까지 설명한 내용을 PDF 정리본으로 만들어줘. 이미지가 필요한 부분은 실제 이미지 대신 빈 상자 자리만 표시해줘 — 이미지는 내가 강의록 보면서 PDF-XChange로 직접 넣을게.`},
+  {id:'p2', t:'PROMPT 2 · 2차 복습 (형광펜 확인+Anki 생성)', w:'2차 복습일, 같은 강의 채팅', x:`정리본 한 번 읽으면서 모르는 부분 형광펜 표시했어. [형광펜 표시한 정리본 업로드] 신규 인코딩 때 틀렸던 개념, 족보에 자주 나온 개념, 강의 중 교수님이 강조한 내용, 이 정리본에서 형광펜·볼드로 표시된 것들 중에서 서로 겹치거나 출제 가능성이 높은 것만 선별해서 Anki 카드로 만들어줘. (암기 불필요)로 표시된 건 제외하고. Basic/Cloze 적절히 섞고 태그(강의 코드+오답/족보빈출/교수강조)도 달아줘. 원자 단위로, 덱 이름은 "[과목명]:: nn강. 강의제목" 형식으로, .apkg 파일로 줘.`},
+  {id:'p3', t:'PROMPT 3 · 족보 해설 보완', w:'1차 복습, 최신 연도 기출 해설이 없을 때', x:`[선배 족보 해설 + 이번 연도 족보 첨부]\n이번 연도 족보에 해설이 없어. 문제 하나하나 정확한 정답과 해설을 만들어줘 — 내가 그대로 족보 해설 파일에 옮겨 적을 거야.`},
+  {id:'p4', t:'PROMPT 4 · 예습 vs 실제 필기 비교', w:'예습해둔 강의의 실제 수업일에 필기 받으면', x:COMPARE_PROMPT},
+  {id:'p5', t:'PROMPT 5 · 시험 전날 축약 정리본', w:'모든 정리본 완성 후, 시험 며칠 전', x:FINAL_SUMMARY_PROMPT},
 ];}
+/* 프롬프트 수정본 저장/조회 — App.promptOverrides에 id별로 보관 */
+function promptOverrideText(id, fallback){
+  const v = App.promptOverrides && App.promptOverrides[id];
+  return (typeof v==='string' && v.trim().length) ? v : fallback;
+}
+function setPromptOverride(id, text, fallback){
+  if(!App.promptOverrides) App.promptOverrides={};
+  if(!text || !text.trim().length || text===fallback){
+    delete App.promptOverrides[id];
+  } else {
+    App.promptOverrides[id]=text;
+  }
+  saveApp();
+}
+function clearPromptOverride(id){
+  if(App.promptOverrides && (id in App.promptOverrides)){ delete App.promptOverrides[id]; saveApp(); }
+}
 
 /* ===== 파생 쿼리 (SCHEDULE 기반) ===== */
 function slots(l){
@@ -1201,7 +1258,7 @@ function renderExamEve(box){
   box.innerHTML = `<div class="eeve">
     <h2>시험 D-1</h2>
     <p class="hint">오늘은 크레딧을 배정하지 않습니다.</p>
-    <details style="margin:10px 0"><summary style="cursor:pointer;font-size:11.5px;font-weight:700;color:var(--muted)">시험 전날 축약 정리본 프롬프트</summary><div class="opromptbox" style="margin-left:0">${esc(FINAL_SUMMARY_PROMPT)}</div></details>
+    <details style="margin:10px 0"><summary style="cursor:pointer;font-size:11.5px;font-weight:700;color:var(--muted)">시험 전날 축약 정리본 프롬프트</summary><div class="opromptbox" style="margin-left:0">${esc(promptOverrideText('p5', FINAL_SUMMARY_PROMPT))}</div></details>
     <div id="eeveList"></div>
   </div>`;
   const list = box.querySelector('#eeveList');
@@ -1226,10 +1283,13 @@ function renderOnboarding(){
     const state = S.onboarding[it.key];
     const done = state===true, later = state==='later';
     const wrap = el(`<div></div>`);
+    const editable = it.key==='profReview';
+    const overridden = editable && (App.promptOverrides && typeof App.promptOverrides[it.key]==='string' && App.promptOverrides[it.key].trim().length);
     const row = el(`<div class="oitem">
       <span class="ochk ${done?'done':''}">${done?'✓':''}</span>
-      <span class="olabel ${done?'done':''} ${later?'later':''}">${esc(it.label)}${later?'<span class="olater-badge">나중에</span>':''}</span>
+      <span class="olabel ${done?'done':''} ${later?'later':''}">${esc(it.label)}${later?'<span class="olater-badge">나중에</span>':''}${overridden?'<span class="omod">수정됨</span>':''}</span>
       ${(it.prompt||it.action)?'<button class="opromptbtn">복사</button>':''}
+      ${editable?'<button class="opromptedit">수정</button>':''}
     </div>`);
     row.querySelector('.ochk').onclick=()=>{ S.onboarding[it.key] = done? false : true; saveApp(); render(); };
     const laterBtn = row.querySelector('.olaterbtn');
@@ -1254,6 +1314,31 @@ function renderOnboarding(){
       }
       wrap.appendChild(el(`<div class="opromptbox">${esc(it.prompt)}</div>`));
       copyText(it.prompt, pBtn);
+    };
+    const eBtn = row.querySelector('.opromptedit');
+    if(eBtn) eBtn.onclick=()=>{
+      const existingEdit = wrap.querySelector('.opromptedittext');
+      if(existingEdit){ existingEdit.remove(); wrap.querySelector('.opromptsavebar')?.remove(); return; }
+      wrap.querySelector('.opromptbox')?.remove();
+      if(pBtn){ pBtn.textContent='복사'; pBtn.classList.remove('copied'); }
+      const ta = el(`<textarea class="opromptedittext">${esc(profReviewPromptTemplate())}</textarea>`);
+      const bar = el(`<div class="opromptsavebar">
+        <button class="opromptsavebtn">저장</button>
+        <button class="opromptcancelbtn">취소</button>
+        ${overridden?'<button class="opromptresetbtn">기본값으로</button>':''}
+      </div>`);
+      bar.querySelector('.opromptsavebtn').onclick=()=>{
+        setPromptOverride(it.key, ta.value, PROF_REVIEW_PROMPT_TEMPLATE);
+        render(); showToast('학습 전략 생성 프롬프트를 수정했습니다.');
+      };
+      bar.querySelector('.opromptcancelbtn').onclick=()=>{ ta.remove(); bar.remove(); };
+      const resetBtn=bar.querySelector('.opromptresetbtn');
+      if(resetBtn) resetBtn.onclick=()=>{
+        clearPromptOverride(it.key);
+        render(); showToast('기본 프롬프트로 되돌렸습니다.');
+      };
+      wrap.appendChild(ta);
+      wrap.appendChild(bar);
     };
     wrap.appendChild(row);
     list.appendChild(wrap);
@@ -1280,7 +1365,7 @@ function renderToday(){
   if(cands.length){
     const names = cands.map(l=>esc(l.code)+'. '+esc(l.title)).join(', ');
     cbox.innerHTML = `<div class="compareCard"><b>⚠ 오늘 실제 수업일인 예습 강의 ${cands.length}개</b> — 작년 필기로 미리 끝내둔 거라, 올해 필기 받으면 달라진 점 있는지 비교해봐.<br>${names}
-    <details style="margin-top:6px"><summary style="cursor:pointer;font-size:10.5px;font-weight:700">비교 프롬프트 보기</summary><div class="opromptbox" style="margin-left:0">${esc(COMPARE_PROMPT)}</div></details></div>`;
+    <details style="margin-top:6px"><summary style="cursor:pointer;font-size:10.5px;font-weight:700">비교 프롬프트 보기</summary><div class="opromptbox" style="margin-left:0">${esc(promptOverrideText('p4', COMPARE_PROMPT))}</div></details></div>`;
   } else { cbox.innerHTML=''; }
 
   const pq=preQueue(); const pbox=document.getElementById('preQ'); pbox.innerHTML='';
@@ -1543,45 +1628,154 @@ function renderList(){
 }
 function renderPrompts(){
   const box=document.getElementById('plib'); box.innerHTML='';
-  const instructions = customInstructions();
+  const block=App.blocks.find(b=>b.id===App.active);
+  const reviewsCurrent = block?.profReviews || '';
+  const tmplCurrent = customInstructionsTemplate();
+  const tmplOverridden = tmplCurrent !== CUSTOM_INSTRUCTIONS_TEMPLATE;
   const instructionCard = el(`<div class="pcard instruction-card">
     <div class="ptitle">Custom instructions</div>
-    <div class="pwhen">현재 블록: ${esc(App.blocks.find(b=>b.id===App.active)?.name || '')}</div>
+    <div class="pwhen">현재 블록: ${esc(block?.name || '')}</div>
     <div class="instruction-actions">
       <button class="instruction-toggle" type="button">지침 열기</button>
       <button class="copybtn" type="button">전체 지침 복사</button>
     </div>
     <div class="instruction-body">
-      <label class="review-label" for="profReviews">학습 전략 붙여넣기</label>
-      <textarea class="review-input" id="profReviews" placeholder="선배들의 후기를 통해 생성한 학습 전략을 여기에 붙여넣어 주세요.">${esc(App.blocks.find(b=>b.id===App.active)?.profReviews || '')}</textarea>
+
+      <div class="instruction-sub" data-sub="reviews">
+        <span class="sublabel">학습 전략 붙여넣기</span>
+        <div class="subview ${reviewsCurrent?'':'placeholder'}">${esc(reviewsCurrent || '아직 붙여넣은 학습 전략이 없습니다.')}</div>
+        <textarea class="pedit-input" style="display:none" placeholder="선배들의 후기를 통해 생성한 학습 전략을 여기에 붙여넣어 주세요.">${esc(reviewsCurrent)}</textarea>
+        <div class="pactions">
+          <button class="peditbtn" type="button">수정</button>
+        </div>
+        <div class="pedit-actions" style="display:none">
+          <button class="psavebtn copybtn" type="button">저장</button>
+          <button class="pcancelbtn" type="button">취소</button>
+        </div>
+      </div>
+
+      <div class="instruction-sub" data-sub="tmpl">
+        <span class="sublabel">Custom instruction 템플릿${tmplOverridden?' · <span class="pmod">수정됨</span>':''}</span>
+        <div class="subview">${esc(tmplCurrent)}</div>
+        <textarea class="pedit-input tmpl" style="display:none">${esc(tmplCurrent)}</textarea>
+        <div class="pactions">
+          <button class="peditbtn" type="button">수정</button>
+        </div>
+        <div class="pedit-actions" style="display:none">
+          <button class="psavebtn copybtn" type="button">저장</button>
+          <button class="pcancelbtn" type="button">취소</button>
+          ${tmplOverridden?'<button class="presetbtn" type="button">기본값으로</button>':''}
+        </div>
+      </div>
+
       <div class="instruction-preview"></div>
     </div>
   </div>`);
   const body=instructionCard.querySelector('.instruction-body');
   const preview=instructionCard.querySelector('.instruction-preview');
-  const reviewInput=instructionCard.querySelector('.review-input');
   const refreshPreview=()=>{ preview.textContent=customInstructions(); };
   instructionCard.querySelector('.instruction-toggle').onclick=()=>{
     const open=body.classList.toggle('on');
     instructionCard.querySelector('.instruction-toggle').textContent=open?'지침 닫기':'지침 열기';
     if(open) refreshPreview();
   };
-  reviewInput.addEventListener('input', e=>{
-    const block=App.blocks.find(b=>b.id===App.active); if(!block) return;
-    block.profReviews=e.target.value;
-    refreshPreview();
-    saveApp();
-  });
   instructionCard.querySelector('.copybtn').onclick=e=>copyText(customInstructions(),e.target);
+
+  // 학습 전략 섹션: 수정/저장/취소
+  const reviewsSub = instructionCard.querySelector('[data-sub="reviews"]');
+  const rView=reviewsSub.querySelector('.subview');
+  const rEdit=reviewsSub.querySelector('.pedit-input');
+  const rViewActions=reviewsSub.querySelector('.pactions');
+  const rEditActions=reviewsSub.querySelector('.pedit-actions');
+  reviewsSub.querySelector('.peditbtn').onclick=()=>{
+    rView.style.display='none'; rViewActions.style.display='none';
+    rEdit.style.display=''; rEditActions.style.display=''; rEdit.focus();
+  };
+  reviewsSub.querySelector('.pcancelbtn').onclick=()=>{
+    rEdit.value = App.blocks.find(b=>b.id===App.active)?.profReviews || '';
+    rView.style.display=''; rViewActions.style.display='';
+    rEdit.style.display='none'; rEditActions.style.display='none';
+  };
+  reviewsSub.querySelector('.psavebtn').onclick=()=>{
+    const b=App.blocks.find(x=>x.id===App.active); if(!b) return;
+    b.profReviews=rEdit.value;
+    saveApp(); render(); showToast('학습 전략을 저장했습니다.');
+  };
+
+  // Custom instruction 템플릿 섹션: 수정/저장/취소/기본값
+  const tmplSub = instructionCard.querySelector('[data-sub="tmpl"]');
+  const tView=tmplSub.querySelector('.subview');
+  const tEdit=tmplSub.querySelector('.pedit-input');
+  const tViewActions=tmplSub.querySelector('.pactions');
+  const tEditActions=tmplSub.querySelector('.pedit-actions');
+  tmplSub.querySelector('.peditbtn').onclick=()=>{
+    tView.style.display='none'; tViewActions.style.display='none';
+    tEdit.style.display=''; tEditActions.style.display=''; tEdit.focus();
+  };
+  tmplSub.querySelector('.pcancelbtn').onclick=()=>{
+    tEdit.value = customInstructionsTemplate();
+    tView.style.display=''; tViewActions.style.display='';
+    tEdit.style.display='none'; tEditActions.style.display='none';
+  };
+  tmplSub.querySelector('.psavebtn').onclick=()=>{
+    setCustomInstructionOverride(tEdit.value);
+    render(); showToast('Custom instruction 템플릿을 수정했습니다.');
+  };
+  const tResetBtn=tmplSub.querySelector('.presetbtn');
+  if(tResetBtn) tResetBtn.onclick=()=>{
+    clearCustomInstructionOverride();
+    render(); showToast('기본 템플릿으로 되돌렸습니다.');
+  };
+
   box.appendChild(instructionCard);
   PROMPTS().forEach(p=>{
+    const current = promptOverrideText(p.id, p.x);
+    const overridden = current !== p.x;
     const c = el(`<div class="pcard">
       <div class="ptitle">${esc(p.t)}</div>
-      <div class="pwhen">${esc(p.w)}</div>
-      <div class="ptext">${esc(p.x)}</div>
-      <button class="copybtn">복사</button>
+      <div class="pwhen">${esc(p.w)}${overridden?' · <span class="pmod">수정됨</span>':''}</div>
+      <div class="ptext">${esc(current)}</div>
+      <textarea class="pedit-input" style="display:none">${esc(current)}</textarea>
+      <div class="pactions">
+        <button class="copybtn">복사</button>
+        <button class="peditbtn">수정</button>
+      </div>
+      <div class="pedit-actions" style="display:none">
+        <button class="psavebtn copybtn">저장</button>
+        <button class="pcancelbtn">취소</button>
+        ${overridden?'<button class="presetbtn">기본값으로</button>':''}
+      </div>
     </div>`);
-    c.querySelector('.copybtn').onclick=(e)=> copyText(p.x, e.target);
+    const ptextEl=c.querySelector('.ptext');
+    const editInput=c.querySelector('.pedit-input');
+    const viewActions=c.querySelector('.pactions');
+    const editActions=c.querySelector('.pedit-actions');
+    c.querySelector('.copybtn').onclick=(e)=> copyText(promptOverrideText(p.id,p.x), e.target);
+    c.querySelector('.peditbtn').onclick=()=>{
+      ptextEl.style.display='none';
+      viewActions.style.display='none';
+      editInput.style.display='';
+      editActions.style.display='';
+      editInput.focus();
+    };
+    c.querySelector('.pcancelbtn').onclick=()=>{
+      editInput.value=promptOverrideText(p.id,p.x);
+      ptextEl.style.display='';
+      viewActions.style.display='';
+      editInput.style.display='none';
+      editActions.style.display='none';
+    };
+    c.querySelector('.psavebtn').onclick=()=>{
+      setPromptOverride(p.id, editInput.value, p.x);
+      render();
+      showToast('프롬프트를 수정했습니다.');
+    };
+    const resetBtn=c.querySelector('.presetbtn');
+    if(resetBtn) resetBtn.onclick=()=>{
+      clearPromptOverride(p.id);
+      render();
+      showToast('기본 프롬프트로 되돌렸습니다.');
+    };
     box.appendChild(c);
   });
 }
