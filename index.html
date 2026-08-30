@@ -534,8 +534,43 @@ const SUB_STEPS = {
 /* ===== 새 블록 온보딩 체크리스트 ===== */
 const ONBOARD_ITEMS = [
   {key:'newProject', label:'Claude에 새 Project 생성'},
-  {key:'profReview', label:'교수 지침 생성',
-   prompt:`[선배 교수후기 첨부]\n이 교수후기들을 분석해서 Custom Instructions의 "교수별 학습 전략" 표(교수/유형/설명 방식)를 채워줘.`},
+  {key:'profReview', label:'학습 전략 프롬포트 생성',
+   prompt:`[선배 교수후기 첨부]\n업로드한 엑셀은 이 과목을 먼저 수강한 선배들의 후기야.
+
+후기들을 바탕으로, 앞으로 내가 각 교수님의 강의자료/필기를 넣고 너에게 설명을 요청할 때 적용할 **과목별·교수별 학습 지침**을 만들어줘.
+
+내가 원하는 건 후기 요약이 아니라, 네가 나를 가르칠 때 알아야 하는 규칙이야. 예를 들면:
+
+* 이 교수는 **강조·별표·빨간 글씨만 깊게** 다루면 되는지
+* 족보 밖의 **세부 내용·예외·수치까지** 설명하고 인출해야 하는지
+* 큰 **개념 흐름 이해** 위주로 설명하면 되는지
+* **코너링/지엽 선지** 대비를 위해 감별 포인트를 함께 알려줘야 하는지
+* 교수 교체 등으로 **기존 족보를 신뢰하면 안 되는지**
+* 특히 시간을 많이 들여 설명·인출해야 할 파트와, 빠르게 넘어가도 되는 파트가 무엇인지
+
+다음 형식으로 간결하게 정리해줘.
+
+## 전체 과목 전략
+
+* 고득점/변별을 위해 특히 깊게 다룰 파트
+* 최소 투입으로 점수를 확보할 파트
+* 족보·교수 교체·출제 기복 때문에 조심할 점
+
+## 교수·강의별 지도 지침
+
+| 교수(강의/파트) | 내가 강의를 넣었을 때 네가 설명할 깊이 | 인출 문제 방향 | 특별히 주의할 점 |
+| --------- | ---------------------- | -------- | --------- |
+
+설명할 깊이는 반드시 다음처럼 구체적인 행동으로 써줘:
+
+* 강조점만 설명 + 족보형 객관식 인출
+* 전체 강의록 설명 + 세부 예외까지 인출
+* 흐름 중심 설명 + 원인→기전→결과 인출
+* 지엽 오답 감별까지 포함한 객관식 인출
+* 정보 부족: 강의 내용 자체를 충실히 다루고, 족보 의존 금지
+
+후기 근거가 부족하거나 서로 충돌하면 단정하지 말고 “확실하지 않음”이라고 표시해. 엑셀에 없는 정보는 추측해서 만들지 마.`
+},
   {key:'pasteInstructions', label:'Custom instruction 붙여넣기', action:'openPrompts'},
   {key:'uploadKnowledge', label:'족보, 족보 해설, 선배 정리본 Project Knowledge에 업로드'},
 ];
@@ -614,7 +649,7 @@ Extra를 사용하고, 정리본의 인용·암기법은 뒷면에 작은 글씨
 28. 강의록·필기본·교수 후기에서 짤족 또는 탈족 언급을 발견하면 반드시 알려줘. 짤족이면
 족보 문항을 Anki 대상으로 승격하고, 탈족이면 족보 의존도를 낮추고 개념 이해를 강화해.
 
-### 교수별 학습 전략 표
+### [과목명] 학습 전략 표
 교수 / 유형 / 설명 방식
 __PROFESSOR_REVIEWS__
 
@@ -630,7 +665,7 @@ __PROFESSOR_REVIEWS__
 function customInstructions(){
   const subject = App.blocks.find(b=>b.id===App.active)?.name || '[과목명]';
   const reviews = (App.blocks.find(b=>b.id===App.active)?.profReviews || '').trim();
-  const reviewText = reviews || '[여기에 교수 후기 내용을 붙여넣어 교수별 학습 전략 표를 채워주세요.]';
+  const reviewText = reviews || '[여기에 내용을 붙여넣어 학습 전략 표를 채워주세요.]';
   return CUSTOM_INSTRUCTIONS_TEMPLATE.replaceAll('[과목명]', subject).replace('__PROFESSOR_REVIEWS__', reviewText);
 }
 
@@ -1517,8 +1552,8 @@ function renderPrompts(){
       <button class="copybtn" type="button">전체 지침 복사</button>
     </div>
     <div class="instruction-body">
-      <label class="review-label" for="profReviews">교수 후기 붙여넣기</label>
-      <textarea class="review-input" id="profReviews" placeholder="교수별 학습 전략을 파악할 교수 후기를 여기에 붙여넣어 주세요.">${esc(App.blocks.find(b=>b.id===App.active)?.profReviews || '')}</textarea>
+      <label class="review-label" for="profReviews">학습 전략 붙여넣기</label>
+      <textarea class="review-input" id="profReviews" placeholder="선배들의 후기를 통해 생성한 학습 전략을 여기에 붙여넣어 주세요.">${esc(App.blocks.find(b=>b.id===App.active)?.profReviews || '')}</textarea>
       <div class="instruction-preview"></div>
     </div>
   </div>`);
