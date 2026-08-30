@@ -256,6 +256,8 @@
   .flowtitle{flex:1;font-size:13px;font-weight:700;min-width:0}
   .flowmeta{font-size:10.5px;color:var(--muted);display:block;font-weight:400}
   .flowdone{border:none;border-radius:9px;padding:7px 13px;font-size:11.5px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;flex-shrink:0}
+  .unpullbtn{border:none;border-radius:9px;padding:7px 11px;font-size:11px;font-weight:700;cursor:pointer;background:var(--surface2);color:var(--muted);flex-shrink:0}
+  .pulledtag{color:var(--accent);font-weight:700}
   .flowdone.done{color:var(--ink)}
   .add-plan-btn{align-self:flex-start;border:1px dashed var(--faint);border-radius:9px;padding:8px 12px;background:var(--surface);color:var(--muted);font-size:11.5px;font-weight:700;cursor:pointer}
   .add-plan-btn:hover{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
@@ -1172,7 +1174,7 @@ function reviewPreviewCard(o){
 }
 /* ===== 오늘 할 일: 단계별 서브체크리스트가 딸린 세로 리스트 카드 =====
    서브체크는 순전히 개인 트래킹용(알고리즘엔 영향 없음). "완료" 버튼만 실제 진도(enc/r)를 바꾼다. */
-function flowCard(type, l){
+function flowCard(type, l, isPulled){
   const st = S.lec[l.id];
   if(!st.subCheck) st.subCheck={new:{},r1:{},r2:{},assign:{}};
   if(!st.subCheck.assign) st.subCheck.assign={};
@@ -1187,7 +1189,8 @@ function flowCard(type, l){
   const item = el(`<div class="flowitem">
     <div class="flowhead">
       <span class="flowbadge ${type}">${label}</span>
-      <span class="flowtitle">${titleText}<span class="flowmeta">${steps.length? `${doneCount}/${steps.length} 체크됨` : (isAssign?`크레딧 ${l.credit||1}`:'')}</span></span>
+      <span class="flowtitle">${titleText}<span class="flowmeta">${steps.length? `${doneCount}/${steps.length} 체크됨` : (isAssign?`크레딧 ${l.credit||1}`:'')}${isPulled?' · <span class="pulledtag">미리 당겨옴</span>':''}</span></span>
+      ${isPulled?'<button class="unpullbtn" title="오늘로 당긴 것을 취소하고 원래대로 되돌립니다">당김 취소</button>':''}
       <button class="flowdone ${done?'done':''}" style="${done?'background:var(--inactive-soft);color:var(--inactive)':''}">${done?'완료됨':'완료'}</button>
     </div>
     <div class="flowbody" style="display:${expandedFlowCards.has(flowKey)?'block':'none'}"></div>
@@ -1204,7 +1207,7 @@ function flowCard(type, l){
   });
   if(steps.length){
     item.querySelector('.flowhead').addEventListener('click', (e)=>{
-      if(e.target.closest('.flowdone')) return;
+      if(e.target.closest('.flowdone,.unpullbtn')) return;
       const expanded=body.style.display!=='none';
       body.style.display=expanded?'none':'block';
       if(expanded) expandedFlowCards.delete(flowKey);
@@ -1216,6 +1219,17 @@ function flowCard(type, l){
     if(type==='new'||isAssign){ st.enc=done ? null : S.cur; }
     else { const key=type==='r1'?1:2; st.r[key]=!done; if(!st.rDay) st.rDay={1:null,2:null}; st.rDay[key]=st.r[key] ? S.cur : null; }
     saveApp(); render();
+  };
+  const unpullBtn = item.querySelector('.unpullbtn');
+  if(unpullBtn) unpullBtn.onclick=(e)=>{
+    e.stopPropagation();
+    if(S.pulledReviews) delete S.pulledReviews[l.id+':'+type];
+    const key=type==='r1'?1:2;
+    st.r[key]=false;
+    if(!st.rDay) st.rDay={1:null,2:null};
+    st.rDay[key]=null;
+    saveApp(); render();
+    showToast('오늘로 당긴 걸 취소했습니다.');
   };
   return item;
 }
@@ -1279,7 +1293,7 @@ function renderDayFlow(box, isExamDay){
   const scheduledKeys = new Set(scheduled.map(it=>it.lecId+':'+it.type));
   const pulled = Object.entries(S.pulledReviews)
     .filter(([k,day])=> day===S.cur)
-    .map(([k])=>{ const [lecId,type]=k.split(':'); return {lecId:Number(lecId), type}; })
+    .map(([k])=>{ const [lecId,type]=k.split(':'); return {lecId:Number(lecId), type, pulled:true}; })
     .filter(p=>!scheduledKeys.has(p.lecId+':'+p.type));
   const items = scheduled.concat(pulled).sort((a,b)=>{
     const aDone=(a.type==='new'||a.type==='assign') ? S.lec[a.lecId].enc!=null : !!S.lec[a.lecId].r[a.type==='r1'?1:2];
@@ -1288,10 +1302,10 @@ function renderDayFlow(box, isExamDay){
   });
   box.appendChild(el('<button class="add-plan-btn" type="button">+ 오늘 계획 추가</button>'));
   const isDone = it => (it.type==='new'||it.type==='assign') ? S.lec[it.lecId].enc!=null : !!S.lec[it.lecId].r[it.type==='r1'?1:2];
-  items.filter(it=>!isDone(it)).forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId))));
+  items.filter(it=>!isDone(it)).forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId), it.pulled)));
   manualPlans.filter(plan=>!plan.done).forEach(plan=> box.appendChild(manualPlanCard(plan)));
   box.appendChild(ankiFlowCard());
-  items.filter(isDone).forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId))));
+  items.filter(isDone).forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId), it.pulled)));
   manualPlans.filter(plan=>plan.done).forEach(plan=> box.appendChild(manualPlanCard(plan)));
   if(!items.length && !manualPlans.length) box.insertBefore(el('<div class="empty">오늘 배정된 신규·복습 없음</div>'),box.children[1]);
   box.querySelector('.add-plan-btn').onclick=openManualPlanModal;
