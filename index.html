@@ -773,7 +773,7 @@ function remainingCredits(){
   return sum;
 }
 function rampDays(){ return Math.max(1, Math.ceil(0.2*usableDays())); }
-function dayWeight(d){ return d<=rampDays() ? 0.7 : 1.0; }
+function dayWeight(d){ return 1.0; }
 /* remainingCred를 fromDay~시험 전날 사이에, 초반 램프 가중치를 반영해서 나눈 값 중
    day d의 몫. 총합은 항상 remainingCred로 보존된다. */
 function defaultCapacityFor(d, remainingCred, fromDay){
