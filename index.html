@@ -100,7 +100,8 @@
   .card .t{font-size:13px;font-weight:800}
   .card .m{font-size:10.5px;color:var(--muted);margin-top:2px}
   .go{margin-top:8px;border:none;border-radius:9px;padding:9px 13px;font-size:12.5px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff}
-  .go.amber{background:var(--done);color:var(--ink)}
+  .go.compact{padding:7px 11px;font-size:11.5px}
+  .go.amber{background:var(--done);color:#fff}
   .empty{font-size:12px;color:var(--faint);text-align:center;padding:18px 4px}
 
   details.pre{margin-top:6px}
@@ -169,6 +170,8 @@
 
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 18px;border-radius:9px;font-size:12px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
   .toast.show{opacity:1}
+  .pull-refresh{position:fixed;top:0;left:50%;z-index:70;transform:translate(-50%,-100%);padding:7px 14px;border-radius:0 0 10px 10px;background:var(--ink);color:#fff;font-size:11px;font-weight:700;opacity:0;transition:transform .15s,opacity .15s;pointer-events:none}
+  .pull-refresh.ready{transform:translate(-50%,0);opacity:1}
 
   .mask{position:fixed;inset:0;background:rgba(28,36,48,.35);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
   .mask.on{display:flex}
@@ -223,12 +226,16 @@
   .battery-pct{font-family:var(--disp);font-weight:800;font-size:21px;letter-spacing:-0.3px}
 
   .onboard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
-  .onboard summary{cursor:pointer;font-weight:800;font-size:13px;font-family:var(--disp);list-style:none;color:var(--ink)}
+  .onboard summary{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;font-weight:800;font-size:13px;font-family:var(--disp);list-style:none;color:var(--ink)}
   .onboard summary::-webkit-details-marker{display:none}
+  .onboard-close{border:none;background:transparent;color:var(--muted);font-size:16px;line-height:1;cursor:pointer;padding:0 2px}
+  .onboard-close:hover{color:var(--ink)}
+  .onboard-reopen{border:1px dashed var(--faint);border-radius:9px;padding:7px 11px;background:var(--surface);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;margin-bottom:14px}
+  .onboard-reopen:hover{border-color:var(--accent);color:var(--accent)}
   .oitem{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-top:1px solid var(--line)}
   .oitem:first-of-type{border-top:none;padding-top:12px}
   .ochk{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
-  .ochk.done{background:var(--done);border-color:var(--done);color:var(--ink)}
+  .ochk.done{background:var(--done);border-color:var(--done);color:#fff}
   .olabel{flex:1;font-size:12px;font-weight:600}
   .olabel.done{color:var(--muted)}
   .olabel.later{color:var(--muted);font-style:italic}
@@ -264,13 +271,17 @@
   .flowbody{display:none;padding:2px 14px 12px 14px;border-top:1px solid var(--line)}
   .substep{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:11.5px}
   .substep .schk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--line);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;background:var(--surface)}
-  .substep .schk.done{background:var(--done);border-color:var(--done);color:var(--ink)}
+  .substep .schk.done{background:var(--done);border-color:var(--done);color:#fff}
   .substep .slabel{flex:1}
   .substep .slabel.done{color:var(--faint)}
 
   .eeve{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
   .eeve h2{font-family:var(--disp);font-weight:800;font-size:14px;margin:0 0 8px}
-  .compareCard{border-left:4px solid var(--warn);background:var(--warn-soft);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:11.5px}
+  .compareCard{border-left:4px solid var(--warn);background:#FFF4C2;border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:11.5px}
+  .compareCard-head{display:flex;align-items:flex-start;gap:8px}
+  .compareCard-head b{flex:1}
+  .compareCard-close{border:none;background:transparent;color:var(--muted);font-size:16px;line-height:1;cursor:pointer;padding:0 2px}
+  .compareCard-close:hover{color:var(--ink)}
 
   .emptystate{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:36px 20px;text-align:center}
   .emptystate button{margin-top:12px;border:none;border-radius:9px;padding:10px 18px;font-size:12.5px;font-weight:700;background:var(--accent);color:#fff;cursor:pointer}
@@ -377,6 +388,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="pull-refresh" id="pullRefresh" aria-live="polite">놓으면 새로고침</div>
 <div class="mask" id="mask"><div class="modal">
   <h3 id="mkT"></h3><p id="mkB"></p>
   <div class="acts"><button class="no" id="mkNo">취소</button><button class="yes" id="mkYes">되돌리기</button></div>
@@ -454,14 +466,14 @@ const firebaseConfig = {
   messagingSenderId: "771523807633",
   appId: "1:771523807633:web:b428da6ae24b52f3daf230"
 };
-let fbDb=null, dbGet=null, dbSet=null, dbRef=null;
+let fbDb=null, dbGet=null, dbSet=null, dbRef=null, dbOnValue=null;
 if(!window.storage){
   try{
-    const [{initializeApp}, {getDatabase, ref, get, set}] = await Promise.all([
+    const [{initializeApp}, {getDatabase, ref, get, set, onValue}] = await Promise.all([
       import("https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js"),
       import("https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js"),
     ]);
-    dbGet=get; dbSet=set; dbRef=ref;
+    dbGet=get; dbSet=set; dbRef=ref; dbOnValue=onValue;
     fbDb = getDatabase(initializeApp(firebaseConfig));
   }catch(e){ console.warn('Firebase 로드 실패 — 메모리 저장소로 대체', e); }
 }
@@ -483,7 +495,7 @@ const store = window.storage ? window.storage : (fbDb ? {
   async get(k){ if(!(k in mem)) throw new Error('nf'); return {value:mem[k]}; },
   async set(k,v){ mem[k]=v; return {value:v}; },
 });
-let App = {blocks:[], active:null, promptOverrides:{}, promptDefaults:{}, customInstructionOverride:'', customInstructionDefault:''};
+let App = {blocks:[], active:null, promptOverrides:{}, promptDefaults:{}, customInstructionOverride:'', customInstructionDefault:'', compareDismissed:{}, onboardingDismissed:{}};
 let S=null, LEC=[], SCHOOL_DAYS=[], MAXDAY=0;
 let undoSnapshot=null;
 const expandedFlowCards=new Set();
@@ -521,17 +533,77 @@ function activateBlock(id){
   App.active=id; SCHOOL_DAYS=b.schoolDays; LEC=b.lec; MAXDAY=SCHOOL_DAYS.length; S=b.state;
 }
 async function loadApp(){
-  try{ const r=await store.get(GKEY); const p=JSON.parse(r.value); if(p&&Array.isArray(p.blocks)) App=p; }catch(e){ App={blocks:[],active:null,promptOverrides:{},promptDefaults:{},customInstructionOverride:'',customInstructionDefault:''}; }
+  try{ const r=await store.get(GKEY); const p=JSON.parse(r.value); if(p&&Array.isArray(p.blocks)) App=p; }catch(e){ App={blocks:[],active:null,promptOverrides:{},promptDefaults:{},customInstructionOverride:'',customInstructionDefault:'',compareDismissed:{},onboardingDismissed:{}}; }
   if(!App.promptOverrides) App.promptOverrides={};
   if(!App.promptDefaults) App.promptDefaults={};
   if(typeof App.customInstructionOverride!=='string') App.customInstructionOverride='';
   if(typeof App.customInstructionDefault!=='string') App.customInstructionDefault='';
+  if(!App.compareDismissed || typeof App.compareDismissed!=='object') App.compareDismissed={};
+  if(!App.onboardingDismissed || typeof App.onboardingDismissed!=='object') App.onboardingDismissed={};
   if(App.blocks.length){
     const found = App.blocks.find(b=>b.id===App.active);
     activateBlock(found? App.active : App.blocks[0].id);
   }
 }
-async function saveApp(){ try{ await store.set(GKEY, JSON.stringify(App)); }catch(e){ console.warn(e); } }
+let saveQueue=Promise.resolve();
+function saveApp(){
+  const payload=JSON.stringify(App);
+  saveQueue=saveQueue.then(()=>store.set(GKEY,payload)).catch(e=>console.warn(e));
+  return saveQueue;
+}
+
+async function refreshApp(showMessage=false){
+  try{
+    const r=await store.get(GKEY);
+    const latest=JSON.parse(r.value);
+    if(latest&&Array.isArray(latest.blocks)){
+      App=latest;
+      const active=App.blocks.find(b=>b.id===App.active) || App.blocks[0];
+      if(active) activateBlock(active.id);
+      render();
+      if(showMessage) showToast('최신 상태로 새로고침했습니다.');
+    }
+  }catch(e){ if(showMessage) showToast('새로고침에 실패했습니다.'); }
+}
+
+function startRealtimeSync(){
+  if(!fbDb || !dbOnValue) return;
+  dbOnValue(dbRef(fbDb,GKEY), snap=>{
+    if(!snap.exists()) return;
+    try{
+      const latest=JSON.parse(snap.val());
+      if(!latest || !Array.isArray(latest.blocks)) return;
+      if(JSON.stringify(latest)===JSON.stringify(App)) return;
+      App=latest;
+      const active=App.blocks.find(b=>b.id===App.active) || App.blocks[0];
+      if(active) activateBlock(active.id);
+      render();
+      showToast('다른 기기의 변경을 반영했습니다.');
+    }catch(e){ console.warn('Firebase 동기화 데이터 처리 실패',e); }
+  });
+}
+
+function setupPullToRefresh(){
+  let startY=0, pulling=false;
+  const indicator=document.getElementById('pullRefresh');
+  document.addEventListener('touchstart',e=>{
+    if(window.scrollY===0 && e.touches.length===1){ startY=e.touches[0].clientY; pulling=true; }
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(!pulling) return;
+    const distance=Math.max(0,Math.min(96,e.touches[0].clientY-startY));
+    if(distance<8){ indicator.classList.remove('ready'); return; }
+    e.preventDefault();
+    indicator.classList.toggle('ready',distance>=64);
+    indicator.textContent=distance>=64?'놓으면 새로고침':'아래로 당기는 중';
+  },{passive:false});
+  document.addEventListener('touchend',async()=>{
+    if(!pulling) return;
+    const ready=indicator.classList.contains('ready');
+    pulling=false; indicator.classList.remove('ready'); indicator.textContent='놓으면 새로고침';
+    if(ready){ indicator.classList.add('ready'); indicator.textContent='새로고침 중...'; await refreshApp(true); indicator.classList.remove('ready'); }
+  },{passive:true});
+}
 
 const dInfo = d => SCHOOL_DAYS.find(x=>x.day===d);
 const byId = id => LEC.find(l=>l.id===id);
@@ -981,10 +1053,9 @@ function previewReviewQueue(){
     return da-db || a.l.id-b.l.id;
   });
 }
-/* 오늘(l.day===S.cur)이 실제 수업일인데, 이미 그 전에(예습으로) 인코딩이 끝난 강의 —
-   작년 필기로 미리 했으니 올해 필기와 비교해볼 대상. */
+/* 오늘 실제 수업일인 일반 강의는 올해 필기와 비교해볼 수 있도록 안내한다. */
 function comparisonCandidates(){
-  return activeLectures().filter(l=> l.type!=='과제' && l.day===S.cur && S.lec[l.id].enc!=null && S.lec[l.id].enc<l.day);
+  return activeLectures().filter(l=> l.type!=='과제' && l.day===S.cur);
 }
 function overdueEnc(){ return LEC.filter(l=>l.day<S.cur && S.lec[l.id].enc==null && !S.lec[l.id].excluded).length; }
 /* ===== 렌더 유틸 ===== */
@@ -1136,7 +1207,7 @@ function encCard(l){
     </div>
     <div class="t">${esc(l.title)}</div>
     <div class="m">${esc(l.prof)} · ${d.date}(${d.dow})</div>
-    <button class="go">인코딩 완료</button>
+    <button class="go compact">인코딩 완료</button>
   </div>`);
   c.querySelector('.go').onclick=()=>{ S.lec[l.id].enc=S.cur; saveApp(); render(); };
   return c;
@@ -1163,7 +1234,7 @@ function reviewPreviewCard(o){
     <div class="top"><span class="code">${esc(l.code)}</span><span class="badge due">${day!=null?`예정 Day${day}`:'배정 전'}</span></div>
     <div class="t">${esc(l.title)}</div>
     <div class="m">${type==='r1'?'1차':'2차'} 복습 · 인코딩 Day${S.lec[l.id].enc}</div>
-    <button class="go amber">오늘로 당기기</button>
+    <button class="go amber compact">오늘로 당기기</button>
   </div>`);
   c.querySelector('.go').onclick=()=>{
     if(!S.pulledReviews) S.pulledReviews={};
@@ -1329,12 +1400,29 @@ function renderExamEve(box){
 function renderOnboarding(){
   const box=document.getElementById('onboardBox'); if(!box) return;
   if(!S.onboarding) S.onboarding={};
+  const blockKey=String(App.active);
+  if(App.onboardingDismissed[blockKey]){
+    box.innerHTML='<button class="onboard-reopen" type="button">블록 사전 준비 다시 보기</button>';
+    box.querySelector('.onboard-reopen').onclick=()=>{
+      delete App.onboardingDismissed[blockKey];
+      saveApp();
+      render();
+    };
+    return;
+  }
   const wasOpen=box.querySelector('.onboard')?.open ?? true;
   const doneCount = ONBOARD_ITEMS.filter(it=> S.onboarding[it.key]===true).length;
   box.innerHTML = `<details class="onboard" ${wasOpen?'open':''}>
-    <summary>블록 사전 준비 (${doneCount}/${ONBOARD_ITEMS.length})</summary>
+    <summary><span>블록 사전 준비 (${doneCount}/${ONBOARD_ITEMS.length})</span><button class="onboard-close" type="button" title="영역 닫기" aria-label="블록 사전 준비 닫기">×</button></summary>
     <div id="onboardList" style="margin-top:8px"></div>
   </details>`;
+  box.querySelector('.onboard-close').onclick=e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    App.onboardingDismissed[blockKey]=true;
+    saveApp();
+    render();
+  };
   const list = box.querySelector('#onboardList');
   ONBOARD_ITEMS.forEach(it=>{
     const state = S.onboarding[it.key];
@@ -1424,10 +1512,16 @@ function renderToday(){
 
   const cbox=document.getElementById('compareBox');
   const cands = comparisonCandidates();
-  if(cands.length){
+  const compareDismissKey=`${App.active}:${S.cur}`;
+  if(cands.length && !App.compareDismissed[compareDismissKey]){
     const names = cands.map(l=>esc(l.code)+'. '+esc(l.title)).join(', ');
-    cbox.innerHTML = `<div class="compareCard"><b>⚠ 오늘 실제 수업일인 예습 강의 ${cands.length}개</b> — 작년 필기로 미리 끝내둔 거라, 올해 필기 받으면 달라진 점 있는지 비교해봐.<br>${names}
+    cbox.innerHTML = `<div class="compareCard"><div class="compareCard-head"><b>⚠ 오늘 실제 수업일인 강의 ${cands.length}개가 있습니다.</b><button class="compareCard-close" title="안내 닫기" aria-label="안내 닫기">×</button></div>이번 연도 필기를 받으신 후, 비교 프롬프트로 한 번 비교해 보시는 것을 권해드립니다.<br>${names}
     <details style="margin-top:6px"><summary style="cursor:pointer;font-size:10.5px;font-weight:700">비교 프롬프트 보기</summary><div class="opromptbox" style="margin-left:0">${esc(promptOverrideText('p4', COMPARE_PROMPT))}</div></details></div>`;
+    cbox.querySelector('.compareCard-close').onclick=()=>{
+      App.compareDismissed[compareDismissKey]=true;
+      saveApp();
+      cbox.innerHTML='';
+    };
   } else { cbox.innerHTML=''; }
 
   const pq=preQueue(); const pbox=document.getElementById('preQ'); pbox.innerHTML='';
@@ -1686,7 +1780,10 @@ function renderList(){
     items.forEach(l=> grp.appendChild(l.type==='과제' ? buildAssignRow(l, S.lec[l.id]) : buildRow(l, S.lec[l.id])));
     wrap.appendChild(grp);
   });
-  const daySel = document.getElementById('alDay'); daySel.innerHTML = SCHOOL_DAYS.map(d=>`<option value="${d.day}">Day${d.day} ${d.date}(${d.dow})</option>`).join('');
+  const daySel = document.getElementById('alDay');
+  const selectedDay = daySel.value;
+  daySel.innerHTML = SCHOOL_DAYS.map(d=>`<option value="${d.day}">Day${d.day} ${d.date}(${d.dow})</option>`).join('');
+  if(selectedDay && SCHOOL_DAYS.some(d=>String(d.day)===selectedDay)) daySel.value=selectedDay;
 }
 function renderPrompts(){
   const box=document.getElementById('plib'); box.innerHTML='';
@@ -2121,5 +2218,11 @@ document.querySelectorAll('.tab').forEach(tb=>{
     document.getElementById('tab-'+tb.dataset.tab).classList.add('on');
   };
 });
-(async ()=>{ await loadApp(); render(); })();
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') refreshApp(); });
+(async ()=>{
+  await loadApp();
+  render();
+  startRealtimeSync();
+  setupPullToRefresh();
+})();
 </script>
