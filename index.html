@@ -500,6 +500,17 @@ let S=null, LEC=[], SCHOOL_DAYS=[], MAXDAY=0;
 let undoSnapshot=null;
 const expandedFlowCards=new Set();
 
+function normalizeApp(app){
+  if(!app || !Array.isArray(app.blocks)) return app;
+  if(!app.promptOverrides || typeof app.promptOverrides!=='object') app.promptOverrides={};
+  if(!app.promptDefaults || typeof app.promptDefaults!=='object') app.promptDefaults={};
+  if(typeof app.customInstructionOverride!=='string') app.customInstructionOverride='';
+  if(typeof app.customInstructionDefault!=='string') app.customInstructionDefault='';
+  if(!app.compareDismissed || typeof app.compareDismissed!=='object') app.compareDismissed={};
+  if(!app.onboardingDismissed || typeof app.onboardingDismissed!=='object') app.onboardingDismissed={};
+  return app;
+}
+
 function captureUndoSnapshot(target){
   const control=target.closest('button,.ochk,.schk,.capinput');
   if(!control || control.closest('.tab,.copybtn,.opromptbtn,.instruction-toggle')) return;
@@ -534,12 +545,7 @@ function activateBlock(id){
 }
 async function loadApp(){
   try{ const r=await store.get(GKEY); const p=JSON.parse(r.value); if(p&&Array.isArray(p.blocks)) App=p; }catch(e){ App={blocks:[],active:null,promptOverrides:{},promptDefaults:{},customInstructionOverride:'',customInstructionDefault:'',compareDismissed:{},onboardingDismissed:{}}; }
-  if(!App.promptOverrides) App.promptOverrides={};
-  if(!App.promptDefaults) App.promptDefaults={};
-  if(typeof App.customInstructionOverride!=='string') App.customInstructionOverride='';
-  if(typeof App.customInstructionDefault!=='string') App.customInstructionDefault='';
-  if(!App.compareDismissed || typeof App.compareDismissed!=='object') App.compareDismissed={};
-  if(!App.onboardingDismissed || typeof App.onboardingDismissed!=='object') App.onboardingDismissed={};
+  normalizeApp(App);
   if(App.blocks.length){
     const found = App.blocks.find(b=>b.id===App.active);
     activateBlock(found? App.active : App.blocks[0].id);
@@ -557,7 +563,7 @@ async function refreshApp(showMessage=false){
     const r=await store.get(GKEY);
     const latest=JSON.parse(r.value);
     if(latest&&Array.isArray(latest.blocks)){
-      App=latest;
+      App=normalizeApp(latest);
       const active=App.blocks.find(b=>b.id===App.active) || App.blocks[0];
       if(active) activateBlock(active.id);
       render();
@@ -574,7 +580,7 @@ function startRealtimeSync(){
       const latest=JSON.parse(snap.val());
       if(!latest || !Array.isArray(latest.blocks)) return;
       if(JSON.stringify(latest)===JSON.stringify(App)) return;
-      App=latest;
+      App=normalizeApp(latest);
       const active=App.blocks.find(b=>b.id===App.active) || App.blocks[0];
       if(active) activateBlock(active.id);
       render();
@@ -1373,12 +1379,11 @@ function renderDayFlow(box, isExamDay){
   });
   box.appendChild(el('<button class="add-plan-btn" type="button">+ 오늘 계획 추가</button>'));
   const isDone = it => (it.type==='new'||it.type==='assign') ? S.lec[it.lecId].enc!=null : !!S.lec[it.lecId].r[it.type==='r1'?1:2];
-  items.filter(it=>!isDone(it)).forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId), it.pulled)));
+  const pendingItems = items.filter(it=>!isDone(it));
+  pendingItems.forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId), it.pulled)));
   manualPlans.filter(plan=>!plan.done).forEach(plan=> box.appendChild(manualPlanCard(plan)));
   box.appendChild(ankiFlowCard());
-  items.filter(isDone).forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId), it.pulled)));
-  manualPlans.filter(plan=>plan.done).forEach(plan=> box.appendChild(manualPlanCard(plan)));
-  if(!items.length && !manualPlans.length) box.insertBefore(el('<div class="empty">오늘 배정된 신규·복습 없음</div>'),box.children[1]);
+  if(!pendingItems.length && !manualPlans.some(plan=>!plan.done)) box.insertBefore(el('<div class="empty">오늘 배정된 미완료 학습 없음</div>'),box.children[1]);
   box.querySelector('.add-plan-btn').onclick=openManualPlanModal;
 }
 function renderExamEve(box){
@@ -2201,8 +2206,13 @@ document.addEventListener('click', e=>{
   const t=e.target.closest('[data-a]'); if(!t) return;
   const a=t.dataset.a;
   if(!S) return;
-  if(a==='day-'&&S.cur>1) S.cur--;
-  else if(a==='day+'&&S.cur<MAXDAY) S.cur++;
+  if(a==='day-'&&S.cur>1){ S.cur--; S.todayLock=null; }
+  /* 날짜를 옮기면 오늘 몫은 항상 다시 정한다(=todayLock 해제). 미리보기로 계산해둔
+     SCHEDULE.byDay[내일]을 그대로 굳혀서 쓰면 안 된다 — 그 미리보기는 "오늘 몫을 전부
+     끝냈다"고 가정하고 오늘 항목을 빼놓은 시뮬레이션이라, 오늘 못 끝낸 항목이 내일로
+     이월되지 않고 사라진다. ensureTodayLock()이 실제 완료 상태를 보고 다시 채워야
+     이월·예습이 정상 반영된다. */
+  else if(a==='day+'&&S.cur<MAXDAY){ S.cur++; S.todayLock=null; }
   else if(a==='exam-'&&S.examDay>1&&S.examDay>S.cur){ S.examDay--; S.todayLock=null; }
   else if(a==='exam+'&&S.examDay<MAXDAY){ S.examDay++; S.todayLock=null; }
   else if(a==='reset'){ askConfirm('이 블록 초기화','이 블록의 모든 진도가 초기화되며 되돌릴 수 없습니다.', ()=>{
