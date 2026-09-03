@@ -851,7 +851,7 @@ function remainingCredits(){
   return sum;
 }
 function rampDays(){ return Math.max(1, Math.ceil(0.2*usableDays())); }
-function dayWeight(d){ return 1.0; }
+function dayWeight(d){ return d<=rampDays() ? 0.7 : 1.0; }
 /* remainingCred를 fromDay~시험 전날 사이에, 초반 램프 가중치를 반영해서 나눈 값 중
    day d의 몫. 총합은 항상 remainingCred로 보존된다. */
 function defaultCapacityFor(d, remainingCred, fromDay){
@@ -1379,11 +1379,12 @@ function renderDayFlow(box, isExamDay){
   });
   box.appendChild(el('<button class="add-plan-btn" type="button">+ 오늘 계획 추가</button>'));
   const isDone = it => (it.type==='new'||it.type==='assign') ? S.lec[it.lecId].enc!=null : !!S.lec[it.lecId].r[it.type==='r1'?1:2];
-  const pendingItems = items.filter(it=>!isDone(it));
-  pendingItems.forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId), it.pulled)));
+  items.filter(it=>!isDone(it)).forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId), it.pulled)));
   manualPlans.filter(plan=>!plan.done).forEach(plan=> box.appendChild(manualPlanCard(plan)));
   box.appendChild(ankiFlowCard());
-  if(!pendingItems.length && !manualPlans.some(plan=>!plan.done)) box.insertBefore(el('<div class="empty">오늘 배정된 미완료 학습 없음</div>'),box.children[1]);
+  items.filter(isDone).forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId), it.pulled)));
+  manualPlans.filter(plan=>plan.done).forEach(plan=> box.appendChild(manualPlanCard(plan)));
+  if(!items.length && !manualPlans.length) box.insertBefore(el('<div class="empty">오늘 배정된 신규·복습 없음</div>'),box.children[1]);
   box.querySelector('.add-plan-btn').onclick=openManualPlanModal;
 }
 function renderExamEve(box){
