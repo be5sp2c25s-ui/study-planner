@@ -143,8 +143,14 @@
   .go.amber{background:var(--done);color:#fff}
   .empty{font-size:12px;color:var(--faint);text-align:center;padding:18px 4px}
 
-  details.pre{margin-top:6px}
+  details.pre{margin:6px 0 14px}
+  #tab-today > details.pre:first-of-type{margin-top:20px}
   details.pre summary{cursor:pointer;font-size:12px;font-weight:700;color:var(--muted)}
+  details.pre > .panel{max-height:0;overflow:hidden;opacity:0;transform:translateY(-5px)}
+  details.pre.motion-open > .panel{animation:previewBoxIn 280ms var(--ease) both}
+  details.pre.motion-open > .panel .card{animation:flowStepIn 300ms var(--ease) both}
+  details.pre.motion-closing > .panel{animation:previewBoxOut 280ms var(--ease) both}
+  details.pre.motion-closing > .panel .card{animation:flowStepOut 230ms var(--ease) both}
 
   .listbox{background:var(--surface);border:1px solid transparent;border-radius:16px;margin-top:18px;overflow:hidden;box-shadow:var(--sh-2)}
   .lh{padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
@@ -318,7 +324,11 @@
   .flowpromptbtn.copied{background:var(--accent);color:#fff}
   .add-plan-btn{align-self:flex-start;border:1px dashed var(--faint);border-radius:9px;padding:8px 12px;background:var(--surface);color:var(--muted);font-size:11.5px;font-weight:700;cursor:pointer}
   .add-plan-btn:hover{border-color:var(--accent-ink);background:var(--accent-soft);color:var(--accent-ink)}
-  .flowbody{display:none;padding:2px 14px 12px 14px;border-top:1px solid var(--line)}
+  .flowbody{display:none;max-height:0;overflow:hidden;padding:2px 14px 12px 14px;border-top:1px solid var(--line)}
+  .flowbody.open{animation:flowDetailIn 280ms var(--ease) both}
+  .flowbody.open .substep{animation:flowStepIn 300ms var(--ease) both}
+  .flowbody.closing{animation:flowDetailOut 280ms var(--ease) both}
+  .flowbody.closing .substep{animation:flowStepOut 230ms var(--ease) both}
   .substep{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:11.5px}
   .substep .schk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--line);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;background:var(--surface)}
   .substep .schk.done{background:var(--done);border-color:var(--done);color:#fff}
@@ -341,6 +351,12 @@
      이징은 ease-out-quint(--ease) 통일, "완료" 계열만 overshoot(--ease-back)로 보상감을 몰아준다. */
   @keyframes panelIn{from{opacity:0}to{opacity:1}}
   @keyframes rowIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @keyframes flowDetailIn{from{opacity:0;max-height:0;transform:translateY(-5px);padding-top:0;padding-bottom:0;border-top-color:transparent}to{opacity:1;max-height:600px;transform:none}}
+  @keyframes flowDetailOut{from{opacity:1;max-height:600px;transform:none}to{opacity:0;max-height:0;transform:translateY(-5px);padding-top:0;padding-bottom:0;border-top-color:transparent}}
+  @keyframes previewBoxIn{from{opacity:0;max-height:0;transform:translateY(-5px)}to{opacity:1;max-height:3000px;transform:none}}
+  @keyframes previewBoxOut{from{opacity:1;max-height:3000px;transform:none}to{opacity:0;max-height:0;transform:translateY(-5px)}}
+  @keyframes flowStepIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+  @keyframes flowStepOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-4px)}}
   @keyframes popIn{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:none}}
   @keyframes maskIn{from{opacity:0}to{opacity:1}}
   @keyframes markFloat{
@@ -1359,7 +1375,7 @@ function renderLoadPanel(){
 }
 function bindBatteryInteraction(){
   const battery=document.querySelector('.battery');
-  const fill=battery?.querySelector('.battery-fill');
+  const fill=battery?.querySelector('#battFill');
   if(!battery || !fill) return;
   cancelAnimationFrame(batteryWaveFrame);
   const dents=Array(13).fill(0);
@@ -1382,7 +1398,10 @@ function bindBatteryInteraction(){
     const edge=[];
     for(let i=0;i<=12;i++){
       const y=i/12*100;
-      const wave=90+11*Math.sin(phase+i/12*Math.PI);
+      const wave=90
+        +6.5*Math.sin(phase+i/12*Math.PI)
+        +1.7*Math.sin((now/4100)*Math.PI*2+i/12*Math.PI*1.4+0.8)
+        +0.8*Math.sin((now/1700)*Math.PI*2-i/12*Math.PI*.7);
       const x=Math.max(58,Math.min(100,wave-dents[i]));
       edge.push(`${x.toFixed(1)}% ${y.toFixed(1)}%`);
     }
@@ -1471,6 +1490,35 @@ function reviewPreviewCard(o){
   };
   return c;
 }
+function bindPreviewDetailMotion(){
+  document.querySelectorAll('details.pre').forEach(detail=>{
+    if(detail.dataset.motionBound) return;
+    detail.dataset.motionBound='1';
+    const summary=detail.querySelector('summary');
+    const panel=detail.querySelector('.panel');
+    if(!summary || !panel) return;
+    summary.addEventListener('click', e=>{
+      e.preventDefault();
+      const cards=[...panel.querySelectorAll('.card')];
+      const opening=!detail.open || detail.classList.contains('motion-closing');
+      clearTimeout(detail.closeTimer);
+      if(opening){
+        detail.open=true;
+        detail.classList.remove('motion-closing');
+        detail.classList.add('motion-open');
+        cards.forEach((card,i)=>{ card.style.animationDelay=`${i*35}ms`; });
+      }else{
+        detail.classList.remove('motion-open');
+        detail.classList.add('motion-closing');
+        cards.forEach((card,i)=>{ card.style.animationDelay=`${(cards.length-1-i)*35}ms`; });
+        detail.closeTimer=setTimeout(()=>{
+          detail.open=false;
+          detail.classList.remove('motion-closing');
+        },280+cards.length*35);
+      }
+    });
+  });
+}
 /* ===== 오늘 할 일: 단계별 서브체크리스트가 딸린 세로 리스트 카드 =====
    서브체크는 순전히 개인 트래킹용(알고리즘엔 영향 없음). "완료" 버튼만 실제 진도(enc/r)를 바꾼다. */
 function flowCard(type, l, isPulled){
@@ -1494,11 +1542,12 @@ function flowCard(type, l, isPulled){
       ${prompt?'<button class="flowpromptbtn" type="button">프롬포트 복사</button>':''}
       <button class="flowdone ${done?'done':''}" style="${done?'background:var(--inactive-soft);color:var(--inactive)':''}">${done?'완료됨':'완료'}</button>
     </div>
-    <div class="flowbody" style="display:${expandedFlowCards.has(flowKey)?'block':'none'}"></div>
+    <div class="flowbody${expandedFlowCards.has(flowKey)?' open':''}" style="display:${expandedFlowCards.has(flowKey)?'block':'none'}"></div>
   </div>`);
   const body = item.querySelector('.flowbody');
   steps.forEach((label2, i)=>{
     const row = el(`<div class="substep"><span class="schk ${sc[i]?'done':''}">${sc[i]?'✓':''}</span><span class="slabel ${sc[i]?'done':''}">${esc(label2)}</span></div>`);
+    row.style.animationDelay=`${i*45}ms`;
     row.querySelector('.schk').onclick=(e)=>{
       e.stopPropagation();
       sc[i] = !sc[i];
@@ -1514,10 +1563,24 @@ function flowCard(type, l, isPulled){
   if(steps.length){
     item.querySelector('.flowhead').addEventListener('click', (e)=>{
       if(e.target.closest('.flowdone,.unpullbtn,.flowpromptbtn')) return;
-      const expanded=body.style.display!=='none';
-      body.style.display=expanded?'none':'block';
-      if(expanded) expandedFlowCards.delete(flowKey);
-      else expandedFlowCards.add(flowKey);
+      const expanded=body.style.display!=='none' && !body.classList.contains('closing');
+      clearTimeout(body.closeTimer);
+      if(expanded){
+        body.classList.remove('open');
+        body.classList.add('closing');
+        [...body.children].forEach((row,i)=>{ row.style.animationDelay=`${(body.children.length-1-i)*45}ms`; });
+        body.closeTimer=setTimeout(()=>{
+          body.style.display='none';
+          body.classList.remove('closing');
+        },280+body.children.length*45);
+        expandedFlowCards.delete(flowKey);
+      }else{
+        body.style.display='block';
+        body.classList.remove('closing');
+        body.classList.add('open');
+        [...body.children].forEach((row,i)=>{ row.style.animationDelay=`${i*45}ms`; });
+        expandedFlowCards.add(flowKey);
+      }
     });
   }
   item.querySelector('.flowdone').onclick=(e)=>{
@@ -1775,6 +1838,7 @@ function renderToday(){
   const prq=previewReviewQueue(); const prbox=document.getElementById('preRQ'); prbox.innerHTML='';
   prbox.appendChild(el('<p class="hint"></p>'));
   prq.length? prq.forEach(o=>prbox.appendChild(reviewPreviewCard(o))) : prbox.appendChild(el('<div class="empty">미리 할 복습 없음</div>'));
+  bindPreviewDetailMotion();
 }
 function slotChip(l, slot){
   const cls = slot.done ? 'done' : (slot.due==null ? 'na' : (slot.due===S.cur ? 'due' : 'inactive'));
