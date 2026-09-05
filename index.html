@@ -7,94 +7,133 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
   :root{
-    --bg:#F5F7FA; --surface:#FFFFFF; --surface2:#EEF1F5; --ink:#1C2430; --muted:#7C8798; --faint:#A7AFBD;
-    --line:#E2E6ED;
+    /* ---- 원래의 블루 팔레트 ---- */
+    --bg:#F5F7FA; --surface:#FFFFFF; --surface2:#EEF1F5;
+    --ink:#1C2430; --muted:#6B7787; --faint:#8E99A8;
+    --line:#E2E6ED; --track:#E2E6ED;
+
     --accent:#2F6FED; --accent-soft:#EAF0FE;
+    /* 연한 배경 위에 얹는 '파란 글자' 전용 — 버튼 배경색 그대로 쓰면 대비가 모자란다 */
+    --accent-ink:#215BCC;
     --idle:#1C2430;
     --progress:#2F6FED; --progress-soft:#EAF0FE;
-    --done:#2F6FED; --done-soft:#97b0fc;
+    --done:#2F6FED;     --done-soft:#97B0FC;
     --inactive:#565F6E; --inactive-soft:#D8DCE4;
-    --warn:#002057; --warn-soft:#FBDDEA;
+    --warn:#002057;     --warn-soft:#FFF9D6;
+
+    /* 넓은 면적 채움(글자 없음) */
+    --fill-done:#2F6FED; --fill-progress:#7BA3F5; --fill-warn:#002057;
+
     --disp:'Pretendard',-apple-system,'Segoe UI','Noto Sans KR',sans-serif;
     --sans:'Pretendard',-apple-system,'Segoe UI','Noto Sans KR',sans-serif;
+    --num:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,'Times New Roman',serif;
+    --ease:cubic-bezier(.22,1,.36,1);
+    --ease-back:cubic-bezier(.34,1.5,.64,1);
+    --t-fast:150ms; --t-mid:240ms; --t-slow:420ms;
+    --sh-1:0 1px 2px rgba(28,36,48,.05), 0 2px 8px rgba(28,36,48,.05);
+    --sh-2:0 1px 2px rgba(28,36,48,.055), 0 6px 20px rgba(28,36,48,.07);
+    --sh-3:0 2px 6px rgba(28,36,48,.075), 0 14px 34px rgba(28,36,48,.10);
+    --sh-pop:0 18px 50px rgba(51,51,51,.16);
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased;padding:20px 16px 70px}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased;padding:20px 16px 70px;position:relative;min-height:100vh}
+  /* 배경 아트: 라벤더/크림 blob을 화면 가장자리에 은은하게 깔아 여백에 표정을 준다 */
+  body::before{
+    content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:
+      radial-gradient(44vw 38vw at 84% -8%, rgba(47,111,237,.13), transparent 62%),
+      radial-gradient(38vw 32vw at -10% 6%, rgba(47,111,237,.09), transparent 60%),
+      radial-gradient(48vw 40vw at 110% 86%, rgba(151,176,252,.20), transparent 62%),
+      radial-gradient(36vw 32vw at -8% 104%, rgba(47,111,237,.10), transparent 60%);
+  }
   .wrap{max-width:1080px;margin:0 auto}
 
   .blocktabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
   .blocktab{padding:8px 15px;border-radius:9px;border:1px solid var(--line);background:var(--surface);font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted)}
   .blocktab.on{background:var(--accent);border-color:var(--accent);color:#fff}
   .blocktab.add{background:var(--surface);border:1px dashed var(--faint);color:var(--muted)}
-  .blocktab.add:hover{color:var(--accent);border-color:var(--accent)}
+  .blocktab.add:hover{color:var(--accent-ink);border-color:var(--accent-ink)}
   .blocktabgrp{display:inline-flex;align-items:center;gap:2px}
   .tabdel{width:18px;height:18px;border:none;border-radius:50%;background:transparent;color:var(--faint);font-size:12px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
   .tabdel:hover{background:var(--warn-soft);color:var(--warn)}
   .tabedit{width:34px;height:24px;border:none;border-radius:7px;background:transparent;color:var(--faint);font-size:11px;line-height:1;white-space:nowrap;cursor:pointer;padding:0 5px}
-  .tabedit:hover{background:var(--accent-soft);color:var(--accent)}
+  .tabedit:hover{background:var(--accent-soft);color:var(--accent-ink)}
 
   header{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;padding:6px 2px 18px}
   .brand{display:flex;align-items:center;gap:12px}
   .brand .dot{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:18px;line-height:1;flex-shrink:0;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
-  .brand .dot:hover{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+  .brand .dot:hover{background:var(--accent-soft);border-color:var(--accent-ink);color:var(--accent-ink)}
   .emoji-picker-wrap{position:relative;flex-shrink:0}
   .emoji-picker{position:absolute;top:40px;left:0;z-index:20;display:none;grid-template-columns:repeat(6,32px);gap:5px;max-height:70vh;overflow-y:auto;padding:9px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 22px rgba(28,36,48,.14)}
   .emoji-picker.on{display:grid}
   .emoji-choice{width:32px;height:32px;border:1px solid transparent;border-radius:7px;background:transparent;font-size:19px;line-height:1;cursor:pointer;padding:0}
-  .emoji-choice:hover{background:var(--accent-soft);border-color:var(--accent)}
-  .brand h1{font-family:var(--disp);font-weight:800;font-size:18px;letter-spacing:-0.3px;margin:0;color:var(--ink)}
+  .emoji-choice:hover{background:var(--accent-soft);border-color:var(--accent-ink)}
+  .brand h1{font-family:var(--sans);font-weight:800;font-size:18px;letter-spacing:-0.3px;margin:0;color:var(--ink)}
   .brand p{margin:2px 0 0;font-size:12px;color:var(--muted)}
   .ctrls{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end}
   .stepper{display:flex;align-items:center;gap:6px}
   .stepper button{width:26px;height:26px;border-radius:7px;border:1px solid var(--line);cursor:pointer;font-size:15px;color:var(--muted);background:var(--surface)}
-  .stepper button:hover{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+  .stepper button:hover{background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent-ink)}
   .readout{text-align:center;min-width:70px}
   .readout .n{font-size:10px;font-weight:700;color:var(--faint)}
-  .readout .d{font-size:14px;font-weight:800;color:var(--ink)}
+  .readout .d{font-family:var(--sans);font-size:15px;font-weight:700;color:var(--ink)}
   .capl{font-size:10px;font-weight:700;color:var(--faint);margin-bottom:3px}
 
   .gaugebar{
     position:relative;overflow:hidden;
     display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:6px 0 16px;padding:16px 20px;border-radius:12px;
-    background:var(--surface); border:1px solid var(--line);
+    background:linear-gradient(118deg,var(--surface) 0%,var(--surface) 52%,var(--accent-soft) 100%);
+    border:1px solid var(--line); box-shadow:var(--sh-3);
   }
   .gaugebar svg{flex-shrink:0}
-  .gaugebar .msg{font-family:var(--disp);font-weight:800;font-size:14px;color:var(--ink);flex:1;min-width:180px;line-height:1.5}
-  .gaugebar .dnum{font-family:var(--disp);font-weight:800;font-size:24px;color:var(--ink)}
+  .gaugebar .msg{font-family:var(--sans);font-weight:800;font-size:14px;color:var(--ink);flex:1;min-width:180px;line-height:1.5}
+  .gaugebar .dnum{font-family:var(--sans);font-weight:700;font-size:27px;letter-spacing:.4px;color:var(--ink)}
   .gaugebar .msg small{display:block;font-family:var(--sans);font-weight:600;font-size:12px;color:var(--muted);margin-top:3px}
   .clover{position:absolute;font-size:15px;top:-18px;animation:fall 3.2s linear infinite}
   @keyframes fall{ to{ transform:translateY(80px) rotate(200deg); opacity:0; } }
 
-  .tabs{display:flex;gap:6px;margin:4px 0 14px;flex-wrap:wrap}
-  .tab{padding:9px 15px;border-radius:9px;border:1px solid transparent;background:var(--surface2);font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted)}
+  .tabs{display:flex;gap:6px;margin:4px 0 14px;flex-wrap:wrap;position:relative}
+  .tab{padding:9px 15px;border-radius:10px;border:1px solid transparent;background:transparent;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted);position:relative;z-index:1;transition:color var(--t-mid) var(--ease)}
+  .tab:hover{color:var(--ink)}
   .tab.on{background:var(--ink);color:#fff}
+  .tabs.inkon .tab.on{background:transparent}
+  /* 활성 탭을 따라 미끄러지는 잉크 필 — 탭 전환에 공간 이동감을 준다 */
+  .tabink{position:absolute;top:0;left:0;z-index:0;border-radius:10px;background:var(--ink);pointer-events:none;opacity:0;
+    transition:transform var(--t-mid) var(--ease),width var(--t-mid) var(--ease),height var(--t-mid) var(--ease),opacity var(--t-fast) linear}
+  .tabink.ready{opacity:1}
   .panelset{display:none}
   .panelset.on{display:block}
 
   .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin:14px 0}
-  .stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .stat{background:var(--surface);border:1px solid transparent;border-radius:14px;padding:12px 14px;box-shadow:var(--sh-1);transition:transform var(--t-mid) var(--ease),box-shadow var(--t-mid) var(--ease)}
+  .stat:hover{transform:translateY(-2px);box-shadow:var(--sh-2)}
   .stat .k{font-size:10.5px;color:var(--muted)}
-  .stat .v{font-family:var(--disp);font-size:19px;font-weight:800;margin-top:4px;color:var(--ink)}
+  .stat .v{font-family:var(--sans);font-size:21px;font-weight:700;margin-top:4px;color:var(--ink)}
 
   .stagegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
   @media(max-width:720px){.stagegrid{grid-template-columns:1fr}}
-  .stagecol{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;border-left:4px solid var(--line)}
-  .stagecol:nth-child(1){border-left-color:var(--progress)}
-  .stagecol:nth-child(2){border-left-color:var(--done)}
-  .stagecol:nth-child(3){border-left-color:var(--inactive)}
-  .stagecol h2{font-family:var(--disp);font-weight:800;font-size:13px;margin:0 0 2px;display:flex;align-items:center;gap:6px;color:var(--ink)}
+  .stagecol{background:var(--surface);border-radius:16px;padding:14px;border-left:4px solid var(--line);box-shadow:var(--sh-1);transition:transform var(--t-mid) var(--ease),box-shadow var(--t-mid) var(--ease)}
+  .stagecol:hover{transform:translateY(-2px);box-shadow:var(--sh-2)}
+  .stagecol:nth-child(1){border-left-color:var(--accent)}
+  .stagecol:nth-child(2){border-left-color:var(--done-soft)}
+  .stagecol:nth-child(3){border-left-color:var(--line)}
+  .stagecol h2{font-family:var(--sans);font-weight:800;font-size:13px;margin:0 0 2px;display:flex;align-items:center;gap:6px;color:var(--ink)}
   .stagecol .n{font-size:10.5px;background:var(--bg);color:var(--muted);border-radius:20px;padding:1px 8px;font-weight:700}
   .stagecol .desc{font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45}
-  .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
-  .panel h2{font-family:var(--disp);font-weight:800;font-size:13px;margin:0 0 3px;color:var(--ink)}
+  .panel{background:var(--surface);border:1px solid transparent;border-radius:16px;padding:15px 16px;box-shadow:var(--sh-2)}
+  .panel h2{font-family:var(--sans);font-weight:800;font-size:13px;margin:0 0 3px;color:var(--ink)}
+  /* 형광펜으로 그은 듯한 헤딩 — 포인트 컬러를 정보 방해 없이 노출 */
+  .panel > h2, .lh h2, .eeve h2{display:inline-block;padding:0 4px 1px;
+    background:linear-gradient(to top, var(--accent-soft) 0 7px, transparent 7px 100%)}
   .panel .hint{font-size:11px;color:var(--muted);margin:0 0 9px}
-  .card{border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:var(--surface);margin-bottom:8px}
+  .card{border:1px solid transparent;border-radius:12px;padding:10px 11px;background:var(--surface);margin-bottom:8px;box-shadow:var(--sh-1);transition:transform var(--t-mid) var(--ease),box-shadow var(--t-mid) var(--ease)}
+  .card:hover{transform:translateY(-1px);box-shadow:var(--sh-2)}
   .card .top{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:3px}
   .code{font-size:10.5px;font-weight:700;color:var(--muted)}
   .badge{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px}
   .badge.lab{background:var(--bg);color:var(--muted)}
   .badge.carry{background:var(--warn-soft);color:var(--warn)}
-  .badge.due{background:var(--progress-soft);color:var(--progress)}
+  .badge.due{background:var(--progress-soft);color:var(--accent-ink)}
   .badge.assign{background:var(--warn-soft);color:var(--warn)}
   .badge.late{background:var(--warn-soft);color:var(--warn)}
   .card .t{font-size:13px;font-weight:800}
@@ -107,9 +146,9 @@
   details.pre{margin-top:6px}
   details.pre summary{cursor:pointer;font-size:12px;font-weight:700;color:var(--muted)}
 
-  .listbox{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-top:18px;overflow:hidden}
+  .listbox{background:var(--surface);border:1px solid transparent;border-radius:16px;margin-top:18px;overflow:hidden;box-shadow:var(--sh-2)}
   .lh{padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
-  .lh h2{margin:0;font-size:13px;font-family:var(--disp);font-weight:800}
+  .lh h2{margin:0;font-size:13px;font-family:var(--sans);font-weight:800}
   .reset{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:9px;padding:7px 13px;font-size:11.5px;font-weight:700;cursor:pointer}
   .reset:hover{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-soft)}
   .daygrp{border-top:1px solid var(--line)}
@@ -122,7 +161,7 @@
   .chips{display:flex;gap:4px}
   .chip{display:flex;flex-direction:column;align-items:center;gap:1px;width:28px}
   .chip button, .chip span.sq{width:19px;height:19px;border-radius:6px;border:none;cursor:pointer;background:var(--inactive-soft);font-size:8.5px;display:flex;align-items:center;justify-content:center;padding:0;color:var(--inactive)}
-  .chip button.done{background:var(--done);color:var(--ink)}
+  .chip button.done{background:var(--done);color:#fff}
   .chip button.due{background:var(--progress);color:#fff}
   .chip button.overdue{background:var(--warn);color:#fff}
   .chip span.sq.na{background:repeating-linear-gradient(45deg,var(--line) 0 2px,var(--surface) 2px 4px);cursor:default}
@@ -140,17 +179,18 @@
 
   .plib{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media(max-width:720px){.plib{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}}
-  .pcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 15px;position:relative}
-  .pcard .ptitle{font-family:var(--disp);font-weight:800;font-size:13px;margin-bottom:2px;color:var(--ink)}
+  .pcard{background:var(--surface);border:1px solid transparent;border-radius:16px;padding:15px 16px;position:relative;box-shadow:var(--sh-1);transition:transform var(--t-mid) var(--ease),box-shadow var(--t-mid) var(--ease)}
+  .pcard:hover{transform:translateY(-2px);box-shadow:var(--sh-2)}
+  .pcard .ptitle{font-family:var(--sans);font-weight:800;font-size:13px;margin-bottom:2px;color:var(--ink)}
   .pcard .pwhen{font-size:10.5px;color:var(--muted);margin-bottom:8px}
   .pcard .ptext{font-size:11px;color:var(--muted);white-space:pre-wrap;line-height:1.55}
-  .copybtn{margin-top:9px;border:none;color:var(--accent);background:var(--accent-soft);border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer}
+  .copybtn{margin-top:9px;border:none;color:var(--accent-ink);background:var(--accent-soft);border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer}
   .copybtn.copied{background:var(--accent);color:#fff}
   .pcard .pactions,.pcard .pedit-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-  .pcard .pmod{color:var(--accent);font-weight:700}
+  .pcard .pmod{color:var(--accent-ink);font-weight:700}
   .peditbtn,.pcancelbtn,.presetbtn,.psavedefaultbtn{margin-top:9px;border:none;color:var(--ink);background:var(--surface2);border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer}
   .presetbtn{color:var(--warn);background:var(--warn-soft)}
-  .psavedefaultbtn{color:var(--accent);background:var(--accent-soft)}
+  .psavedefaultbtn{color:var(--accent-ink);background:var(--accent-soft)}
   .pedit-input{width:100%;min-height:130px;resize:vertical;border:1px solid var(--accent);border-radius:9px;padding:9px 10px;font:11px/1.55 var(--sans);color:var(--ink);background:var(--surface);margin-top:2px}
   .instruction-sub{margin-bottom:16px}
   .instruction-sub:last-of-type{margin-bottom:0}
@@ -168,14 +208,17 @@
   .review-input{width:100%;min-height:100px;resize:vertical;border:1px solid var(--line);border-radius:9px;padding:9px 10px;font:11.5px/1.55 var(--sans);color:var(--ink);background:var(--surface)}
   .instruction-preview{margin-top:10px;max-height:300px;overflow:auto;padding:10px;background:var(--surface2);border-radius:9px;font-size:10.5px;color:var(--muted);white-space:pre-wrap}
 
-  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 18px;border-radius:9px;font-size:12px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
-  .toast.show{opacity:1}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 18px;border-radius:11px;font-size:12px;font-weight:700;opacity:0;pointer-events:none;box-shadow:var(--sh-3);transition:opacity var(--t-mid) var(--ease),transform var(--t-slow) var(--ease-back);z-index:60}
+  .toast{transform:translateX(-50%) translateY(14px)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .pull-refresh{position:fixed;top:0;left:50%;z-index:70;transform:translate(-50%,-100%);padding:7px 14px;border-radius:0 0 10px 10px;background:var(--ink);color:#fff;font-size:11px;font-weight:700;opacity:0;transition:transform .15s,opacity .15s;pointer-events:none}
   .pull-refresh.ready{transform:translate(-50%,0);opacity:1}
 
-  .mask{position:fixed;inset:0;background:rgba(28,36,48,.35);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .mask{position:fixed;inset:0;background:rgba(28,36,48,.32);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .mask.on{animation:maskIn var(--t-mid) var(--ease)}
+  .mask.on .modal{animation:popIn 280ms var(--ease-back)}
   .mask.on{display:flex}
-  .modal{background:var(--surface);border-radius:14px;max-width:360px;width:100%;padding:20px;max-height:88vh;overflow:auto;border:1px solid var(--line)}
+  .modal{background:var(--surface);border-radius:18px;max-width:360px;width:100%;padding:22px;max-height:88vh;overflow:auto;border:1px solid transparent;box-shadow:var(--sh-pop)}
   .modal.wide{max-width:420px}
   .modal h3{margin:0 0 6px;font-size:15px;font-family:var(--disp);font-weight:800;letter-spacing:-0.3px}
   .modal p{margin:0;font-size:12px;color:var(--muted);white-space:pre-line;line-height:1.55}
@@ -197,7 +240,7 @@
   .planrow.past{opacity:.5}
   .pd{font-size:11px;font-weight:800;color:var(--ink);line-height:1.3}
   .pdate{font-size:10px;font-weight:600;color:var(--muted)}
-  .pbarwrap{position:relative;height:14px;background:var(--surface2);border-radius:7px}
+  .pbarwrap{position:relative;height:14px;background:var(--track);border-radius:7px}
   .pbar{height:100%;border-radius:7px;transition:width .2s}
   .pcapline{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.35}
   .pcount{font-size:10.5px;color:var(--muted);white-space:nowrap;text-align:right}
@@ -208,30 +251,33 @@
   .typecosts label{display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:var(--ink)}
   .tcinput{width:54px;font-size:10.5px;border:1px solid var(--line);border-radius:6px;padding:3px 5px;font-family:var(--sans)}
   .pbar2{position:relative;height:100%;display:flex;border-radius:7px;overflow:hidden}
-  .pbarseg{height:100%}
+  /* 채움 안쪽 윤곽선 — 크림 톤처럼 밝은 색이 와도 막대의 끝이 어디인지 항상 읽힌다 */
+  .pbarseg{height:100%;box-shadow:inset 0 0 0 1px rgba(28,36,48,.16)}
+  .pbar{box-shadow:inset 0 0 0 1px rgba(28,36,48,.16)}
+  .battery-fill{box-shadow:inset 0 0 0 1px rgba(28,36,48,.32)}
   .plantags{display:flex;flex-direction:column;gap:3px;margin-top:6px}
   .plantaggrp{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
   .plantaggrp .glbl{font-size:9px;font-weight:700;color:var(--faint);min-width:24px}
   .plantag{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px}
-  .plantag.new{background:var(--progress-soft);color:var(--progress)}
+  .plantag.new{background:var(--progress-soft);color:var(--accent-ink)}
   .plantag.r1{background:var(--done-soft);color:var(--ink)}
   .plantag.r2{background:var(--inactive-soft);color:var(--inactive)}
   .plantag.assign{background:var(--warn-soft);color:var(--warn)}
   .plantag.done{opacity:.5}
 
   .battery-wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  .battery{position:relative;width:72px;height:32px;border:2px solid var(--line);border-radius:7px;padding:3px;flex-shrink:0;background:var(--surface2)}
+  .battery{position:relative;width:72px;height:32px;border:2px solid var(--line);border-radius:9px;padding:3px;flex-shrink:0;background:var(--track);overflow:hidden}
   .battery::after{content:'';position:absolute;right:-7px;top:10px;width:5px;height:12px;background:var(--line);border-radius:0 3px 3px 0}
-  .battery-fill{height:100%;border-radius:3px;transition:width .3s ease}
-  .battery-pct{font-family:var(--disp);font-weight:800;font-size:21px;letter-spacing:-0.3px}
+  .battery-fill{height:100%;border-radius:3px;transition:width 760ms var(--ease),background var(--t-mid) linear}
+  .battery-pct{font-family:var(--sans);font-weight:700;font-size:23px;letter-spacing:.2px}
 
-  .onboard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+  .onboard{background:var(--surface);border:1px solid transparent;border-radius:16px;padding:15px 16px;margin-bottom:14px;box-shadow:var(--sh-2)}
   .onboard summary{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;font-weight:800;font-size:13px;font-family:var(--disp);list-style:none;color:var(--ink)}
   .onboard summary::-webkit-details-marker{display:none}
   .onboard-close{border:none;background:transparent;color:var(--muted);font-size:16px;line-height:1;cursor:pointer;padding:0 2px}
   .onboard-close:hover{color:var(--ink)}
   .onboard-reopen{border:1px dashed var(--faint);border-radius:9px;padding:7px 11px;background:var(--surface);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;margin-bottom:14px}
-  .onboard-reopen:hover{border-color:var(--accent);color:var(--accent)}
+  .onboard-reopen:hover{border-color:var(--accent-ink);color:var(--accent-ink)}
   .oitem{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-top:1px solid var(--line)}
   .oitem:first-of-type{border-top:none;padding-top:12px}
   .ochk{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
@@ -241,22 +287,23 @@
   .olabel.later{color:var(--muted);font-style:italic}
   .olater-badge{font-size:9.5px;font-weight:700;color:var(--inactive);background:var(--inactive-soft);padding:1px 7px;border-radius:20px;margin-left:6px}
   .olaterbtn{border:none;background:transparent;color:var(--faint);font-size:10.5px;font-weight:700;cursor:pointer;text-decoration:underline;flex-shrink:0}
-  .opromptbtn{border:none;background:var(--accent-soft);color:var(--accent);font-size:10px;font-weight:700;cursor:pointer;border-radius:7px;padding:3px 8px;flex-shrink:0}
+  .opromptbtn{border:none;background:var(--accent-soft);color:var(--accent-ink);font-size:10px;font-weight:700;cursor:pointer;border-radius:7px;padding:3px 8px;flex-shrink:0}
   .opromptbox{margin:6px 0 0 26px;padding:9px 11px;background:var(--surface2);border-radius:9px;font-size:10.5px;color:var(--muted);white-space:pre-wrap}
   .opromptedit{border:none;background:var(--surface2);color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;border-radius:7px;padding:3px 8px;flex-shrink:0}
-  .omod{color:var(--accent);font-weight:700;font-size:10px;margin-left:4px}
+  .omod{color:var(--accent-ink);font-weight:700;font-size:10px;margin-left:4px}
   .opromptedittext{margin:6px 0 0 26px;width:calc(100% - 26px);min-height:160px;resize:vertical;border:1px solid var(--accent);border-radius:9px;padding:9px 10px;font:10.5px/1.55 var(--sans);color:var(--ink);background:var(--surface)}
   .opromptsavebar{margin:6px 0 0 26px;display:flex;gap:6px}
   .opromptsavebtn{border:none;background:var(--accent);color:#fff;font-size:10px;font-weight:700;cursor:pointer;border-radius:7px;padding:5px 10px}
   .opromptcancelbtn,.opromptresetbtn,.opromptsavedefaultbtn{border:none;background:var(--surface2);color:var(--ink);font-size:10px;font-weight:700;cursor:pointer;border-radius:7px;padding:5px 10px}
   .opromptresetbtn{color:var(--warn);background:var(--warn-soft)}
-  .opromptsavedefaultbtn{color:var(--accent);background:var(--accent-soft)}
+  .opromptsavedefaultbtn{color:var(--accent-ink);background:var(--accent-soft)}
 
   .dayflow{display:flex;flex-direction:column;gap:10px;margin:16px 0}
-  .flowitem{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .flowitem{background:var(--surface);border:1px solid transparent;border-radius:14px;overflow:hidden;box-shadow:var(--sh-1);transition:transform var(--t-mid) var(--ease),box-shadow var(--t-mid) var(--ease)}
+  .flowitem:hover{transform:translateY(-2px);box-shadow:var(--sh-2)}
   .flowhead{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer}
   .flowbadge{font-size:10px;font-weight:800;padding:3px 9px;border-radius:8px;flex-shrink:0}
-  .flowbadge.new{background:var(--progress-soft);color:var(--progress)}
+  .flowbadge.new{background:var(--progress-soft);color:var(--accent-ink)}
   .flowbadge.r1{background:var(--done-soft);color:var(--ink)}
   .flowbadge.r2{background:var(--inactive-soft);color:var(--inactive)}
   .flowbadge.assign{background:var(--warn-soft);color:var(--warn)}
@@ -265,10 +312,12 @@
   .flowdone{border:none;border-radius:9px;padding:7px 13px;font-size:11.5px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;flex-shrink:0}
   .unpullbtn{border:none;border-radius:9px;padding:7px 11px;font-size:11px;font-weight:700;cursor:pointer;background:var(--surface2);color:var(--muted);flex-shrink:0}
   .manualdelbtn{border:none;border-radius:9px;padding:7px 10px;font-size:11px;font-weight:700;cursor:pointer;background:var(--warn-soft);color:var(--warn);flex-shrink:0}
-  .pulledtag{color:var(--accent);font-weight:700}
+  .pulledtag{color:var(--accent-ink);font-weight:700}
   .flowdone.done{color:var(--ink)}
+  .flowpromptbtn{border:none;border-radius:7px;padding:5px 8px;font-size:10px;font-weight:700;cursor:pointer;background:var(--accent-soft);color:var(--accent-ink);flex-shrink:0}
+  .flowpromptbtn.copied{background:var(--accent);color:#fff}
   .add-plan-btn{align-self:flex-start;border:1px dashed var(--faint);border-radius:9px;padding:8px 12px;background:var(--surface);color:var(--muted);font-size:11.5px;font-weight:700;cursor:pointer}
-  .add-plan-btn:hover{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  .add-plan-btn:hover{border-color:var(--accent-ink);background:var(--accent-soft);color:var(--accent-ink)}
   .flowbody{display:none;padding:2px 14px 12px 14px;border-top:1px solid var(--line)}
   .substep{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:11.5px}
   .substep .schk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--line);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;background:var(--surface)}
@@ -276,16 +325,71 @@
   .substep .slabel{flex:1}
   .substep .slabel.done{color:var(--faint)}
 
-  .eeve{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .eeve{background:var(--surface);border:1px solid transparent;border-radius:16px;padding:16px;box-shadow:var(--sh-2)}
   .eeve h2{font-family:var(--disp);font-weight:800;font-size:14px;margin:0 0 8px}
-  .compareCard{border-left:4px solid var(--warn);background:#FFF4C2;border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:11.5px}
+  .compareCard{border-left:4px solid var(--warn);background:var(--warn-soft);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:11.5px}
   .compareCard-head{display:flex;align-items:flex-start;gap:8px}
   .compareCard-head b{flex:1}
   .compareCard-close{border:none;background:transparent;color:var(--muted);font-size:16px;line-height:1;cursor:pointer;padding:0 2px}
   .compareCard-close:hover{color:var(--ink)}
 
-  .emptystate{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:36px 20px;text-align:center}
+  .emptystate{background:var(--surface);border:1px solid transparent;border-radius:18px;padding:40px 20px;text-align:center;box-shadow:var(--sh-2)}
   .emptystate button{margin-top:12px;border:none;border-radius:9px;padding:10px 18px;font-size:12.5px;font-weight:700;background:var(--accent);color:#fff;cursor:pointer}
+
+  /* ============ 모션 시스템 ============
+     원칙: 마이크로 인터랙션 150~240ms, 등장 280~420ms.
+     이징은 ease-out-quint(--ease) 통일, "완료" 계열만 overshoot(--ease-back)로 보상감을 몰아준다. */
+  @keyframes panelIn{from{opacity:0}to{opacity:1}}
+  @keyframes rowIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @keyframes popIn{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes maskIn{from{opacity:0}to{opacity:1}}
+  @keyframes markFloat{
+    0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}
+    22%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% - 46px)) scale(.75)}
+  }
+
+  /* 탭 전환 시 패널이 아래에서 올라오며 페이드인 (렌더마다 반복되지 않도록 .on 부여 시점에만 발화) */
+  .panelset.on{display:block;animation:panelIn var(--t-slow) var(--ease)}
+  /* 행 단위 stagger — 탭을 새로 열 때만 .anim이 붙었다 떨어진다 */
+  .panelset.anim .flowitem,
+  .panelset.anim .planrow,
+  .panelset.anim .daygrp,
+  .panelset.anim .pcard,
+  .panelset.anim .stagecol{animation:rowIn 400ms var(--ease) both}
+  .panelset.anim .flowitem:nth-child(1),.panelset.anim .planrow:nth-child(1),.panelset.anim .daygrp:nth-child(1),.panelset.anim .pcard:nth-child(1),.panelset.anim .stagecol:nth-child(1){animation-delay:0ms}
+  .panelset.anim .flowitem:nth-child(2),.panelset.anim .planrow:nth-child(2),.panelset.anim .daygrp:nth-child(2),.panelset.anim .pcard:nth-child(2),.panelset.anim .stagecol:nth-child(2){animation-delay:35ms}
+  .panelset.anim .flowitem:nth-child(3),.panelset.anim .planrow:nth-child(3),.panelset.anim .daygrp:nth-child(3),.panelset.anim .pcard:nth-child(3),.panelset.anim .stagecol:nth-child(3){animation-delay:70ms}
+  .panelset.anim .flowitem:nth-child(4),.panelset.anim .planrow:nth-child(4),.panelset.anim .daygrp:nth-child(4),.panelset.anim .pcard:nth-child(4){animation-delay:105ms}
+  .panelset.anim .flowitem:nth-child(5),.panelset.anim .planrow:nth-child(5),.panelset.anim .daygrp:nth-child(5),.panelset.anim .pcard:nth-child(5){animation-delay:140ms}
+  .panelset.anim .flowitem:nth-child(6),.panelset.anim .planrow:nth-child(6),.panelset.anim .daygrp:nth-child(6),.panelset.anim .pcard:nth-child(6){animation-delay:175ms}
+  .panelset.anim .flowitem:nth-child(7),.panelset.anim .planrow:nth-child(7),.panelset.anim .daygrp:nth-child(7),.panelset.anim .pcard:nth-child(7){animation-delay:205ms}
+  .panelset.anim .flowitem:nth-child(n+8),.panelset.anim .planrow:nth-child(n+8),.panelset.anim .daygrp:nth-child(n+8),.panelset.anim .pcard:nth-child(n+8){animation-delay:235ms}
+
+  /* 버튼 촉각 피드백 — 모든 버튼에 눌림감을 통일 부여 */
+  button,summary{transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease),
+    border-color var(--t-fast) var(--ease),transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),opacity var(--t-fast) var(--ease)}
+  button:active{transform:scale(.96)}
+  .go:hover,.flowdone:hover,.addlec button:hover,.emptystate button:hover,.primary:hover{box-shadow:0 4px 14px rgba(47,111,237,.30)}
+  .blocktab,.chip button,.ochk,.schk{transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
+  .chip button:active,.ochk:active,.schk:active{transform:scale(.86)}
+  .row,.oitem,.substep{transition:background var(--t-fast) var(--ease)}
+  .row:hover,.oitem:hover{background:rgba(47,111,237,.05)}
+  .planrow{transition:border-color var(--t-fast) var(--ease),background var(--t-fast) var(--ease),transform var(--t-mid) var(--ease)}
+  .planrow:hover{transform:translateX(2px)}
+  .flowhead:hover .flowtitle{color:var(--accent-ink)}
+  .flowtitle{transition:color var(--t-fast) var(--ease)}
+
+  /* 키보드 포커스 링 — 포인트 컬러를 접근성 용도로도 재사용 */
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+
+  /* 완료 시 피어오르는 마크 — 기존 클로버 낙하 모티프를 "위로 떠오르는" 방향으로 확장 */
+  .mark{position:fixed;z-index:80;pointer-events:none;width:7px;height:7px;border-radius:50%;
+    animation:markFloat 900ms var(--ease) forwards}
+
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  }
 </style>
 
 <div class="wrap">
@@ -328,6 +432,7 @@
     <div id="onboardBox"></div>
 
     <div class="tabs">
+      <span class="tabink" id="tabInk" aria-hidden="true"></span>
       <button class="tab on" data-tab="today">오늘</button>
       <button class="tab" data-tab="plan">학습 계획</button>
       <button class="tab" data-tab="list">전체 강의</button>
@@ -1079,6 +1184,34 @@ function comparisonCandidates(){
 function overdueEnc(){ return LEC.filter(l=>l.day<S.cur && S.lec[l.id].enc==null && !S.lec[l.id].excluded).length; }
 /* ===== 렌더 유틸 ===== */
 function el(h){ const t=document.createElement('template'); t.innerHTML=h.trim(); return t.content.firstChild; }
+/* ===== 완료 마크 =====
+   체크 순간 클릭 지점에서 라벤더·크림 점이 피어오른다. render()가 DOM을 다시 그려도
+   body에 직접 붙이므로 지워지지 않고, 완료 행위에만 모션 보상을 몰아준다. */
+const MARK_COLORS=['#2F6FED','#97B0FC','#6E96F2','#C3D4FD','#4C82F0'];
+function popMarks(x,y){
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  for(let i=0;i<5;i++){
+    const m=document.createElement('span');
+    m.className='mark';
+    m.style.left=x+'px'; m.style.top=y+'px';
+    m.style.background=MARK_COLORS[i%MARK_COLORS.length];
+    m.style.setProperty('--dx', (Math.random()*46-23).toFixed(1)+'px');
+    m.style.animationDelay=(i*45)+'ms';
+    m.style.width=m.style.height=(5+Math.random()*4).toFixed(1)+'px';
+    document.body.appendChild(m);
+    setTimeout(()=>m.remove(), 1200+i*45);
+  }
+}
+/* 캡처 단계에서 잡아야 핸들러가 상태를 바꾸기 전의 "아직 미완료" 클래스를 볼 수 있다 */
+document.addEventListener('click', e=>{
+  const t=e.target.closest('.schk, .ochk, .flowdone, .go');
+  if(!t || t.classList.contains('done')) return;
+  const txt=(t.textContent||'').trim();
+  if(t.classList.contains('go') && !txt.includes('완료')) return;   // "오늘로 당기기" 같은 이동 버튼 제외
+  if(txt.includes('완료됨')) return;                                 // 이미 완료된 항목
+  const r=t.getBoundingClientRect();
+  popMarks(r.left+r.width/2, r.top+r.height/2);
+}, true);
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
 function renderBlockTabs(){
@@ -1137,6 +1270,7 @@ function renderHeader(){
   document.getElementById('en').textContent=`Day${e.day}`;
   document.getElementById('ed').textContent=`${e.date}(${e.dow})`;
 }
+let _lastFrac = 0;
 function renderBanner(){
   const rem = S.examDay - S.cur;
   const refMax = Math.max(S.examDay,1);
@@ -1144,17 +1278,22 @@ function renderBanner(){
   const cx=42, cy=42, R=34, C=2*Math.PI*R;
   const dash = C*frac, gap = C-dash;
 
-  let ringColor, statusColor, statusLabel;
+  let ringColor, statusLabel;
+  let statusColor;
   if(rem<=0){ ringColor='var(--warn)'; statusColor='var(--warn)'; statusLabel='시험 당일'; }
   else if(rem<=1){ ringColor='var(--warn)'; statusColor='var(--warn)'; statusLabel='내일'; }
   else if(frac<0.34){ ringColor='var(--warn)'; statusColor='var(--warn)'; statusLabel='임박'; }
-  else if(frac<0.67){ ringColor='var(--progress)'; statusColor='var(--progress)'; statusLabel='진행 중'; }
+  else if(frac<0.67){ ringColor='var(--progress)'; statusColor='var(--accent-ink)'; statusLabel='진행 중'; }
   else{ ringColor='var(--inactive)'; statusColor='var(--inactive)'; statusLabel='여유'; }
 
+  /* 링은 항상 "직전에 보여주던 값"에서 출발해 현재 값으로 이어진다. 처음 열 때는 0에서
+     차오르고, 이후에는 값이 바뀔 때만 실제로 움직이므로 렌더마다 튀지 않는다. */
+  const pd = C*_lastFrac, pg = C-pd;
   const svg = `<svg viewBox="0 0 84 84" width="72" height="72">
     <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--surface2)" stroke-width="9"/>
-    <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${ringColor}" stroke-width="9" stroke-linecap="round"
-      stroke-dasharray="${dash.toFixed(1)} ${gap.toFixed(1)}" transform="rotate(-90 ${cx} ${cy})"/>
+    <circle class="gring" cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${ringColor}" stroke-width="9" stroke-linecap="round"
+      transform="rotate(-90 ${cx} ${cy})"
+      style="stroke-dasharray:${pd.toFixed(1)} ${pg.toFixed(1)};transition:stroke-dasharray 760ms var(--ease),stroke 240ms linear"/>
   </svg>`;
 
   let dnum, sub;
@@ -1172,7 +1311,11 @@ function renderBanner(){
       b.appendChild(c);
     }
   }
+  const ring=b.querySelector('.gring');
+  if(ring) requestAnimationFrame(()=>{ ring.style.strokeDasharray=`${dash.toFixed(1)} ${gap.toFixed(1)}`; });
+  _lastFrac = frac;
 }
+let _lastPct = 0;
 function renderLoadPanel(){
   const blocked = S.cur>usableDays();
   const total = lockedTodayTotalCost();
@@ -1180,9 +1323,12 @@ function renderLoadPanel(){
   const used = Math.max(0, total-remaining);
   const pct = total>0 ? (used/total*100) : 100;
   let color, bg, statusText;
-  if(pct>=100){ color='var(--done)'; bg='var(--done-soft)'; statusText='완료'; }
-  else if(pct>=1){ color='var(--progress)'; bg='var(--progress-soft)'; statusText='진행 중'; }
-  else { color='var(--inactive)'; bg='var(--inactive-soft)'; statusText='시작 전'; }
+  /* color = 배지 글자색(진한 톤), fill = 막대 채움색(중간 톤). 둘을 분리해야
+     작은 글자는 또렷하고 넓은 막대는 차분하게 유지된다. */
+  let fill;
+  if(pct>=100){ color='var(--accent-ink)'; fill='var(--done)'; bg='var(--done-soft)'; statusText='완료'; }
+  else if(pct>=1){ color='var(--accent-ink)'; fill='var(--fill-progress)'; bg='var(--progress-soft)'; statusText='진행 중'; }
+  else { color='var(--muted)'; fill='var(--inactive-soft)'; bg='var(--inactive-soft)'; statusText='시작 전'; }
   let hint;
   if(blocked) hint = ``;
   else if(total<1e-9) hint = `오늘은 배정된 학습이 없습니다.`;
@@ -1192,16 +1338,37 @@ function renderLoadPanel(){
     <h2>오늘의 진도</h2>
     <p class="hint"></p>
     <div class="battery-wrap" style="margin-top:10px">
-      <div class="battery"><div class="battery-fill" style="width:${Math.min(100,pct)}%;background:${color}"></div></div>
+      <div class="battery"><div class="battery-fill" id="battFill" style="width:${_lastPct}%;background:linear-gradient(90deg, color-mix(in srgb, ${fill} 55%, #fff), ${fill})"></div></div>
       <div>
         <div style="display:flex;align-items:baseline;gap:8px">
-          <span class="battery-pct">${Math.round(pct)}%</span>
+          <span class="battery-pct" id="battPct">${Math.round(_lastPct)}%</span>
           <span class="badge" style="background:${bg};color:${color}">${statusText}</span>
         </div>
         <div style="font-size:10.5px;color:var(--muted);margin-top:2px">${used.toFixed(2)} / ${total.toFixed(2)} (오늘 크레딧)</div>
       </div>
     </div>
     <p class="hint" style="margin-top:10px">${esc(hint)}</p>`;
+  /* 막대와 숫자를 같은 곡선으로 함께 움직여, 진도가 오른 만큼 "차오르는" 순간을 만든다 */
+  const target = Math.min(100, pct), from = _lastPct;
+  const bf=document.getElementById('battFill');
+  if(bf) requestAnimationFrame(()=>{ bf.style.width = target+'%'; });
+  countUp(document.getElementById('battPct'), from, target, 760);
+  _lastPct = target;
+}
+/* 760ms 동안 from→to를 --ease와 같은 곡선으로 훑어 표시한다 */
+function countUp(node, from, to, dur){
+  if(!node) return;
+  if(Math.abs(to-from) < 0.5 || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)){
+    node.textContent = Math.round(to)+'%'; return;
+  }
+  const t0=performance.now();
+  const step=(now)=>{
+    const k=Math.min(1,(now-t0)/dur);
+    const e=1-Math.pow(1-k,5);
+    node.textContent = Math.round(from+(to-from)*e)+'%';
+    if(k<1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
 }
 /* ===== 학습 계획 (전체 블록 일일 예측) =====
    이미 신규 학습된 강의는 실제 확정된 회독일을 그대로 쓰고, 아직 안 배운 강의는
@@ -1278,6 +1445,7 @@ function flowCard(type, l, isPulled){
   const steps = isAssign ? (Array.isArray(l.checklist)?l.checklist:[]) : SUB_STEPS[type];
   const sc = st.subCheck[type] || (st.subCheck[type]={});
   const label = isAssign?'과제':(type==='new'?'신규':(type==='r1'?'1차':'2차'));
+  const prompt = {new:PROMPTS().find(p=>p.id==='p1'), r1:PROMPTS().find(p=>p.id==='p3'), r2:PROMPTS().find(p=>p.id==='p2')}[type];
   const done = (type==='new'||isAssign) ? st.enc!=null : !!st.r[type==='r1'?1:2];
   const flowKey=`${App.active}:${type}:${l.id}`;
   const doneCount = steps.filter((_,i)=>sc[i]).length;
@@ -1287,6 +1455,7 @@ function flowCard(type, l, isPulled){
       <span class="flowbadge ${type}">${label}</span>
       <span class="flowtitle">${titleText}<span class="flowmeta">${steps.length? `${doneCount}/${steps.length} 체크됨` : (isAssign?`크레딧 ${l.credit||1}`:'')}${isPulled?' · <span class="pulledtag">미리 당겨옴</span>':''}</span></span>
       ${isPulled?'<button class="unpullbtn" title="오늘로 당긴 것을 취소하고 원래대로 되돌립니다">당김 취소</button>':''}
+      ${prompt?'<button class="flowpromptbtn" type="button">프롬포트 복사</button>':''}
       <button class="flowdone ${done?'done':''}" style="${done?'background:var(--inactive-soft);color:var(--inactive)':''}">${done?'완료됨':'완료'}</button>
     </div>
     <div class="flowbody" style="display:${expandedFlowCards.has(flowKey)?'block':'none'}"></div>
@@ -1301,9 +1470,14 @@ function flowCard(type, l, isPulled){
     };
     body.appendChild(row);
   });
+  const promptBtn=item.querySelector('.flowpromptbtn');
+  if(promptBtn) promptBtn.onclick=e=>{
+    e.stopPropagation();
+    copyText(promptOverrideText(prompt.id,prompt.x), promptBtn);
+  };
   if(steps.length){
     item.querySelector('.flowhead').addEventListener('click', (e)=>{
-      if(e.target.closest('.flowdone,.unpullbtn')) return;
+      if(e.target.closest('.flowdone,.unpullbtn,.flowpromptbtn')) return;
       const expanded=body.style.display!=='none';
       body.style.display=expanded?'none':'block';
       if(expanded) expandedFlowCards.delete(flowKey);
@@ -1339,7 +1513,7 @@ function manualPlanCard(plan){
   const done=!!plan.done;
   const item=el(`<div class="flowitem">
     <div class="flowhead">
-      <span class="flowbadge" style="background:var(--accent-soft);color:var(--accent)">${esc(plan.badge)}</span>
+      <span class="flowbadge" style="background:var(--accent-soft);color:var(--accent-ink)">${esc(plan.badge)}</span>
       <span class="flowtitle">${esc(plan.title)}<span class="flowmeta">${checks.filter(Boolean).length}/${steps.length} 체크됨</span></span>
       <button class="manualdelbtn" title="추가한 계획 삭제">삭제</button>
       <button class="flowdone ${done?'done':''}" style="${done?'background:var(--inactive-soft);color:var(--inactive)':''}">${done?'완료됨':'완료'}</button>
@@ -1376,7 +1550,7 @@ function ankiFlowCard(){
   const done = !!(S.ankiCheck && S.ankiCheck[S.cur]);
   const item = el(`<div class="flowitem">
     <div class="flowhead">
-      <span class="flowbadge" style="background:var(--accent-soft);color:var(--accent)">Anki</span>
+      <span class="flowbadge" style="background:var(--accent-soft);color:var(--accent-ink)">Anki</span>
       <span class="flowtitle">오늘 Anki 복습</span>
       <button class="flowdone ${done?'done':''}" style="${done?'background:var(--inactive-soft);color:var(--inactive)':''}">${done?'완료됨':'완료'}</button>
     </div>
@@ -1470,7 +1644,7 @@ function renderOnboarding(){
     const row = el(`<div class="oitem">
       <span class="ochk ${done?'done':''}">${done?'✓':''}</span>
       <span class="olabel ${done?'done':''} ${later?'later':''}">${esc(it.label)}${later?'<span class="olater-badge">나중에</span>':''}${overridden?'<span class="omod">수정됨</span>':''}</span>
-      ${(it.prompt||it.action)?'<button class="opromptbtn">복사</button>':''}
+      ${(it.prompt||it.action)?'<button class="opromptbtn">프롬포트 복사</button>':''}
       ${editable?'<button class="opromptedit">수정</button>':''}
     </div>`);
     row.querySelector('.ochk').onclick=()=>{ S.onboarding[it.key] = done? false : true; saveApp(); render(); };
@@ -1479,10 +1653,7 @@ function renderOnboarding(){
     const pBtn = row.querySelector('.opromptbtn');
     if(pBtn) pBtn.onclick=()=>{
       if(it.action==='openPrompts'){
-        document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
-        document.querySelectorAll('.panelset').forEach(x=>x.classList.remove('on'));
-        document.querySelector('.tab[data-tab="prompts"]').classList.add('on');
-        document.getElementById('tab-prompts').classList.add('on');
+        activateTab('prompts');
         const instructionToggle=document.querySelector('#tab-prompts .instruction-toggle');
         if(instructionToggle && instructionToggle.textContent==='지침 열기') instructionToggle.click();
         return;
@@ -1490,7 +1661,7 @@ function renderOnboarding(){
       const existing = wrap.querySelector('.opromptbox');
       if(existing){
         existing.remove();
-        pBtn.textContent='복사';
+        pBtn.textContent='프롬포트 복사';
         pBtn.classList.remove('copied');
         return;
       }
@@ -1502,7 +1673,7 @@ function renderOnboarding(){
       const existingEdit = wrap.querySelector('.opromptedittext');
       if(existingEdit){ existingEdit.remove(); wrap.querySelector('.opromptsavebar')?.remove(); return; }
       wrap.querySelector('.opromptbox')?.remove();
-      if(pBtn){ pBtn.textContent='복사'; pBtn.classList.remove('copied'); }
+      if(pBtn){ pBtn.textContent='프롬포트 복사'; pBtn.classList.remove('copied'); }
       const ta = el(`<textarea class="opromptedittext">${esc(profReviewPromptTemplate())}</textarea>`);
       const bar = el(`<div class="opromptsavebar">
         <button class="opromptsavebtn">저장</button>
@@ -1621,7 +1792,7 @@ function renderPlan(){
       const l=byId(it.lecId); const kind = it.type==='assign'?'과제':(it.type==='new'?'신규':(it.type==='r1'?'1차':'2차'));
       return `${l.code||l.title}(${kind})`;
     }).join(', ');
-    warnEl.innerHTML = `<p class="hint" style="color:var(--warn);font-weight:700">⚠ 남은 시험기간 안에 다 못 채운 항목이 ${SCHEDULE.unscheduled.length}개 있습니다. (${esc(names)}${SCHEDULE.unscheduled.length>6?' 외':''}). 하루 목표 크레딧을 올리거나 시험범위를 조정해야합니다.</p>`;
+    warnEl.innerHTML = `<p class="hint" style="color:var(--ink);font-weight:700">⚠ 남은 시험기간 안에 다 못 채운 항목이 ${SCHEDULE.unscheduled.length}개 있습니다. (${esc(names)}${SCHEDULE.unscheduled.length>6?' 외':''}). 하루 목표 크레딧을 올리거나 시험범위를 조정해야합니다.</p>`;
     warnEl.style.display='';
   } else { warnEl.style.display='none'; warnEl.innerHTML=''; }
 
@@ -1646,8 +1817,8 @@ function renderPlan(){
       const remPct=Math.min(100-donePct, remaining/scale*100);
       const capPct=Math.min(100, cap/scale*100);
       barHtml = `<div class="pbarwrap"><div class="pbar2">
-        <div class="pbarseg" style="width:${donePct}%;background:var(--done)"></div>
-        <div class="pbarseg" style="width:${remPct}%;background:var(--progress)"></div>
+        <div class="pbarseg" style="width:${donePct}%;background:var(--fill-done)"></div>
+        <div class="pbarseg" style="width:${remPct}%;background:var(--fill-progress)"></div>
       </div><div class="pcapline" style="left:${capPct}%"></div></div>`;
       const items = S.todayLock.items;
       n=items.filter(it=>it.type==='new').length; r1=items.filter(it=>it.type==='r1').length; r2=items.filter(it=>it.type==='r2').length; assign=items.filter(it=>it.type==='assign').length;
@@ -1662,7 +1833,8 @@ function renderPlan(){
       const load = items.reduce((a,it)=>a+it.cost,0);
       const loadPct=Math.min(100, load/scale*100);
       const capPct=Math.min(100, cap/scale*100);
-      let color = blocked? 'var(--inactive-soft)' : (load>cap+1e-9?'var(--warn)':'var(--progress)');
+      /* 막대는 중간 톤으로 — 과부하만 채도를 올려 눈에 걸리게 한다 */
+      let color = blocked? 'var(--inactive-soft)' : (load>cap+1e-9?'var(--fill-warn)':'var(--fill-progress)');
       if(load<1e-9 && !blocked) color='var(--inactive-soft)';
       barHtml = `<div class="pbarwrap"><div class="pbar" style="width:${loadPct}%;background:${color}"></div><div class="pcapline" style="left:${capPct}%"></div></div>`;
       n=items.filter(it=>it.type==='new').length; r1=items.filter(it=>it.type==='r1').length; r2=items.filter(it=>it.type==='r2').length; assign=items.filter(it=>it.type==='assign').length;
@@ -1938,7 +2110,7 @@ function renderPrompts(){
       <div class="ptext">${esc(current)}</div>
       <textarea class="pedit-input" style="display:none">${esc(current)}</textarea>
       <div class="pactions">
-        <button class="copybtn">복사</button>
+        <button class="copybtn">프롬포트 복사</button>
         <button class="peditbtn">수정</button>
       </div>
       <div class="pedit-actions" style="display:none">
@@ -1994,6 +2166,7 @@ function render(){
   if(!has) return;
   SCHEDULE = computeSchedule();
   renderHeader(); renderBanner(); renderLoadPanel(); renderToday(); renderPlan(); renderList(); renderPrompts();
+  if(typeof moveTabInk==='function') requestAnimationFrame(moveTabInk);
 }
 
 /* ===== 복사 & 토스트 ===== */
@@ -2007,9 +2180,9 @@ async function copyText(text, btn){
     const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
     ta.select(); try{ document.execCommand('copy'); }catch(e2){} document.body.removeChild(ta);
   }
-  btn.textContent='복사됨'; btn.classList.add('copied');
+  btn.textContent='프롬포트 복사됨'; btn.classList.add('copied');
   showToast('클립보드에 복사됨');
-  setTimeout(()=>{ btn.textContent='복사'; btn.classList.remove('copied'); }, 1400);
+  setTimeout(()=>{ btn.textContent='프롬포트 복사'; btn.classList.remove('copied'); }, 1400);
 }
 
 /* ===== 확인 모달 ===== */
@@ -2252,18 +2425,46 @@ document.addEventListener('click', e=>{
     }, '초기화'); return; }
   saveApp(); render();
 });
+/* ===== 탭 잉크 필 =====
+   활성 탭의 위치·크기를 그대로 따라가는 단일 인디케이터. 탭마다 배경을 칠하는 대신
+   하나의 필이 미끄러지므로 "어디서 어디로 옮겼는지"가 모션으로 남는다. */
+function moveTabInk(){
+  const wrap=document.querySelector('.tabs'); if(!wrap) return;
+  const ink=document.getElementById('tabInk'); const on=wrap.querySelector('.tab.on');
+  if(!ink||!on) return;
+  ink.style.width=on.offsetWidth+'px';
+  ink.style.height=on.offsetHeight+'px';
+  ink.style.transform=`translate(${on.offsetLeft}px, ${on.offsetTop}px)`;
+  if(!ink.classList.contains('ready')){
+    requestAnimationFrame(()=>{ ink.classList.add('ready'); wrap.classList.add('inkon'); });
+  }
+}
+/* 새로 열린 패널에만 stagger를 걸고 곧바로 회수한다. 렌더 때마다 재생되면 산만해지므로
+   .anim은 탭 전환 시점에서만 잠깐 붙였다 뗀다. */
+function playPanelStagger(panel){
+  if(!panel) return;
+  panel.classList.remove('anim'); void panel.offsetWidth; panel.classList.add('anim');
+  setTimeout(()=>panel.classList.remove('anim'), 900);
+}
+function activateTab(name){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.panelset').forEach(x=>x.classList.remove('on'));
+  const btn=document.querySelector(`.tab[data-tab="${name}"]`);
+  const panel=document.getElementById('tab-'+name);
+  if(btn) btn.classList.add('on');
+  if(panel) panel.classList.add('on');
+  moveTabInk();
+  playPanelStagger(panel);
+}
 document.querySelectorAll('.tab').forEach(tb=>{
-  tb.onclick=()=>{
-    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
-    document.querySelectorAll('.panelset').forEach(x=>x.classList.remove('on'));
-    tb.classList.add('on');
-    document.getElementById('tab-'+tb.dataset.tab).classList.add('on');
-  };
+  tb.onclick=()=> activateTab(tb.dataset.tab);
 });
+window.addEventListener('resize', moveTabInk);
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') refreshApp(); });
 (async ()=>{
   await loadApp();
   render();
+  requestAnimationFrame(()=>{ moveTabInk(); playPanelStagger(document.querySelector('.panelset.on')); });
   startRealtimeSync();
   setupPullToRefresh();
 })();
