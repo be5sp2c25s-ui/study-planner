@@ -254,7 +254,7 @@
   /* 채움 안쪽 윤곽선 — 크림 톤처럼 밝은 색이 와도 막대의 끝이 어디인지 항상 읽힌다 */
   .pbarseg{height:100%;box-shadow:inset 0 0 0 1px rgba(28,36,48,.16)}
   .pbar{box-shadow:inset 0 0 0 1px rgba(28,36,48,.16)}
-  .battery-fill{box-shadow:inset 0 0 0 1px rgba(28,36,48,.32)}
+  .battery-fill{box-shadow:none}
   .plantags{display:flex;flex-direction:column;gap:3px;margin-top:6px}
   .plantaggrp{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
   .plantaggrp .glbl{font-size:9px;font-weight:700;color:var(--faint);min-width:24px}
@@ -266,8 +266,8 @@
   .plantag.done{opacity:.5}
 
   .battery-wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  .battery{position:relative;width:72px;height:32px;border:2px solid var(--line);border-radius:9px;padding:3px;flex-shrink:0;background:var(--track);overflow:hidden}
-  .battery::after{content:'';position:absolute;right:-7px;top:10px;width:5px;height:12px;background:var(--line);border-radius:0 3px 3px 0}
+  .battery{position:relative;width:72px;height:32px;border:none;border-radius:9px;padding:5px 4px;flex-shrink:0;background:var(--track);overflow:hidden}
+  .battery::after{display:none}
   .battery-fill{height:100%;border-radius:3px;transition:width 760ms var(--ease),background var(--t-mid) linear}
   .battery-pct{font-family:var(--sans);font-weight:700;font-size:23px;letter-spacing:.2px}
 
