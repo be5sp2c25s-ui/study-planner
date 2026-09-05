@@ -266,9 +266,9 @@
   .plantag.done{opacity:.5}
 
   .battery-wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  .battery{position:relative;width:72px;height:32px;border:none;border-radius:9px;padding:5px 4px;flex-shrink:0;background:var(--track);overflow:hidden}
+  .battery{position:relative;width:72px;height:42px;border:none;border-radius:11px;padding:5px 4px;flex-shrink:0;background:var(--track);overflow:hidden}
   .battery::after{display:none}
-  .battery-fill{height:100%;border-radius:3px;transition:width 760ms var(--ease),background var(--t-mid) linear}
+  .battery-fill{position:relative;height:100%;border-radius:5px;overflow:hidden;transition:width 760ms var(--ease),background var(--t-mid) linear;will-change:clip-path}
   .battery-pct{font-family:var(--sans);font-weight:700;font-size:23px;letter-spacing:.2px}
 
   .onboard{background:var(--surface);border:1px solid transparent;border-radius:16px;padding:15px 16px;margin-bottom:14px;box-shadow:var(--sh-2)}
@@ -1316,6 +1316,7 @@ function renderBanner(){
   _lastFrac = frac;
 }
 let _lastPct = 0;
+let batteryWaveFrame=0;
 function renderLoadPanel(){
   const blocked = S.cur>usableDays();
   const total = lockedTodayTotalCost();
@@ -1353,7 +1354,42 @@ function renderLoadPanel(){
   const bf=document.getElementById('battFill');
   if(bf) requestAnimationFrame(()=>{ bf.style.width = target+'%'; });
   countUp(document.getElementById('battPct'), from, target, 760);
+  bindBatteryInteraction();
   _lastPct = target;
+}
+function bindBatteryInteraction(){
+  const battery=document.querySelector('.battery');
+  const fill=battery?.querySelector('.battery-fill');
+  if(!battery || !fill) return;
+  cancelAnimationFrame(batteryWaveFrame);
+  const dents=Array(13).fill(0);
+  const resetDent=()=>{ dents.fill(0); };
+  battery.addEventListener('pointermove',(event)=>{
+    const fillRect=fill.getBoundingClientRect();
+    const distanceToWaterStart=Math.abs(event.clientX-fillRect.right);
+    const proximity=Math.max(0,Math.min(1,1-distanceToWaterStart/24));
+    const y=(event.clientY-fillRect.top)/fillRect.height;
+    const strength=proximity*4;
+    for(let i=0;i<=12;i++){
+      const pointY=i/12;
+      const falloff=Math.exp(-Math.pow((pointY-y)/.25,2));
+      dents[i]=strength*falloff;
+    }
+  });
+  battery.addEventListener('pointerleave',resetDent);
+  const animateWave=(now)=>{
+    const phase=(now/2600)*Math.PI*2;
+    const edge=[];
+    for(let i=0;i<=12;i++){
+      const y=i/12*100;
+      const wave=90+11*Math.sin(phase+i/12*Math.PI);
+      const x=Math.max(58,Math.min(100,wave-dents[i]));
+      edge.push(`${x.toFixed(1)}% ${y.toFixed(1)}%`);
+    }
+    fill.style.clipPath=`polygon(0 0,${edge.join(',')},0 100%)`;
+    batteryWaveFrame=requestAnimationFrame(animateWave);
+  };
+  batteryWaveFrame=requestAnimationFrame(animateWave);
 }
 /* 760ms 동안 from→to를 --ease와 같은 곡선으로 훑어 표시한다 */
 function countUp(node, from, to, dur){
