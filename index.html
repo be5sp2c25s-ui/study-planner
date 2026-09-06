@@ -255,7 +255,8 @@
   .primary{background:var(--accent)!important;color:#fff!important}
 
   .planlist{display:flex;flex-direction:column;gap:6px;margin-top:10px}
-  .planrow{display:grid;grid-template-columns:64px 1fr 150px;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
+  .planrow{display:grid;grid-template-columns:64px minmax(0,1fr) 150px;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
+  .planrow > *{min-width:0}
   .planrow.cur{border-color:var(--accent);background:var(--accent-soft)}
   .planrow.past{opacity:.5}
   .pd{font-size:11px;font-weight:800;color:var(--ink);line-height:1.3}
@@ -264,6 +265,13 @@
   .pbar{height:100%;border-radius:7px;transition:width .2s}
   .pcapline{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.35}
   .pcount{font-size:10.5px;color:var(--muted);white-space:nowrap;text-align:right}
+  /* 모바일: 고정 150px 우측 칸이 남는 폭을 밀어내 행이 어긋난다 → 아래로 내려 한 줄로 편다 */
+  @media(max-width:720px){
+    .planrow{grid-template-columns:54px minmax(0,1fr);row-gap:7px;padding:9px 11px}
+    .planrow .pcount{grid-column:1/-1;text-align:left;white-space:normal;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+    .capinput{margin-left:0}
+    .pd{line-height:1.35}
+  }
   .pnote{font-size:9.5px;color:var(--muted);font-weight:700;grid-column:1/-1;margin-top:-2px}
   .capinput{width:56px;font-size:10.5px;border:1px solid var(--line);border-radius:6px;padding:3px 5px;margin-left:6px;font-family:var(--sans)}
   /* 직접 손댄 날은 자동 계산값과 구분되게 표시한다 — 안 그러면 어느 날을 조정해뒀는지
@@ -325,8 +333,8 @@
   details.onboard.motion-closing > .onboard-list > div{animation:flowStepOut 230ms var(--ease) both}
 
   /* 블록별 색 계열 스와치 */
-  .themebar{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
-  .themedot{width:15px;height:15px;padding:0;border-radius:50%;border:1px solid rgba(28,36,48,.12);cursor:pointer;
+  .themebar{display:flex;gap:9px;margin-top:9px;flex-wrap:wrap}
+  .themedot{width:12px;height:12px;padding:0;border-radius:50%;border:none;cursor:pointer;
     transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
   .themedot:hover{transform:scale(1.2)}
   .themedot.on{box-shadow:0 0 0 2px var(--surface),0 0 0 3px rgba(28,36,48,.45)}
@@ -368,6 +376,26 @@
   .flowdone.done{color:var(--ink)}
   .flowpromptbtn{border:none;border-radius:7px;padding:5px 8px;font-size:10px;font-weight:700;cursor:pointer;background:var(--accent-soft);color:var(--accent-ink);flex-shrink:0}
   .flowpromptbtn.copied{background:var(--accent);color:#fff}
+  .ppcount{display:inline-block;min-width:13px;padding:0 3px;border-radius:20px;background:var(--accent);color:#fff;font-size:9px;line-height:13px;text-align:center;margin-left:2px}
+  /* 단계에 묶인 프롬프트가 여러 개일 때 카드 안에서 펼쳐지는 선택 목록 */
+  .promptpick{display:none;max-height:0;overflow:hidden;padding:4px 10px 9px;border-top:1px solid var(--line)}
+  .promptpick.open{max-height:600px}
+  .promptpick.opening{animation:flowDetailIn 280ms var(--ease) both}
+  .promptpick.opening .ppitem{animation:flowStepIn 300ms var(--ease) both}
+  .promptpick.closing{animation:flowDetailOut 280ms var(--ease) both}
+  .promptpick.closing .ppitem{animation:flowStepOut 230ms var(--ease) both}
+  .ppitem{display:flex;width:100%;gap:8px;align-items:baseline;border:none;background:transparent;text-align:left;
+    padding:7px 8px;border-radius:8px;cursor:pointer;font-family:var(--sans)}
+  .ppitem:hover{background:var(--accent-soft)}
+  .ppnum{font-size:10px;font-weight:700;color:var(--faint);min-width:12px;flex-shrink:0}
+  .ppname{font-size:11.5px;font-weight:700;color:var(--ink);flex:1}
+  .cpedit{display:flex;flex-direction:column;gap:6px;margin-top:9px}
+  .cprow{display:flex;gap:6px;flex-wrap:wrap}
+  .cpname,.cpcat{border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:12px;font-family:var(--sans);background:var(--surface);color:var(--ink)}
+  .cpname{flex:1;min-width:150px}
+  .cpaddbtn{margin-top:9px;border:none;border-radius:9px;padding:8px 15px;font-size:11.5px;font-weight:700;background:var(--accent);color:#fff;cursor:pointer}
+  .badge.cat{background:var(--accent-soft);color:var(--accent-ink)}
+  .cphint{font-size:10.5px;color:var(--faint);margin-top:6px}
   .add-plan-btn{align-self:flex-start;border:1px dashed var(--faint);border-radius:9px;padding:8px 12px;background:var(--surface);color:var(--muted);font-size:11.5px;font-weight:700;cursor:pointer}
   .add-plan-btn:hover{border-color:var(--accent-ink);background:var(--accent-soft);color:var(--accent-ink)}
   .flowbody{display:none;max-height:0;overflow:hidden;padding:2px 14px 12px 14px;border-top:1px solid var(--line)}
@@ -705,7 +733,7 @@ function renderThemeSwatches(block){
   const cur=themeOf(block);
   Object.keys(THEMES).forEach(key=>{
     const t=THEMES[key];
-    const dot=el(`<button type="button" class="themedot ${key===cur?'on':''}" title="${t.name} 계열" aria-label="${t.name} 계열" aria-pressed="${key===cur}" style="background:linear-gradient(135deg, ${t.soft} 0%, ${t.doneSoft} 48%, ${t.fill} 100%)"></button>`);
+    const dot=el(`<button type="button" class="themedot ${key===cur?'on':''}" title="${t.name} 계열" aria-label="${t.name} 계열" aria-pressed="${key===cur}" style="background:${t.fill}"></button>`);
     dot.onclick=()=>{ block.theme=key; applyTheme(block); saveApp(); render(); };
     bar.appendChild(dot);
   });
@@ -724,6 +752,8 @@ function normalizeApp(app){
   if(!app.compareDismissed || typeof app.compareDismissed!=='object') app.compareDismissed={};
   if(!app.onboardingDismissed || typeof app.onboardingDismissed!=='object') app.onboardingDismissed={};
   if(typeof app.rev!=='number') app.rev=0; // 옛 저장분 호환용 기본값
+  if(!app.subSteps || typeof app.subSteps!=='object') app.subSteps={};
+  if(!Array.isArray(app.customPrompts)) app.customPrompts=[];
   app.blocks.forEach(b=>{ if(!b || !THEMES[b.theme]) { if(b) b.theme='blue'; } }); // 색 계열 기본값
   return app;
 }
@@ -872,6 +902,12 @@ const SUB_STEPS = {
   r1: ['족보 해설에 2025년 족보 추가','2025 족보 해설 옮기기','족보 풀이','족보 오답','족보 해설 보완', '정리본에 출제 요소 표시'],
   r2: ['정리본 1회독 (Highlights)','Anki 제작'],
 };
+/* 프롬프트 탭에서 직접 고친 체크리스트가 있으면 그걸 쓰고, 없으면 위 기본값을 쓴다.
+   체크 기록(subCheck)은 배열 인덱스로 저장되므로, 항목 순서를 바꾸면 체크 위치도 함께 밀린다. */
+function subSteps(type){
+  const v = App.subSteps && App.subSteps[type];
+  return Array.isArray(v) && v.length ? v : (SUB_STEPS[type] || []);
+}
 /* ===== 새 블록 온보딩 체크리스트 ===== */
 
 const PROF_REVIEW_PROMPT_TEMPLATE = String.raw`[선배 후기 첨부]
@@ -1254,6 +1290,19 @@ function PROMPTS(){ return [
   {id:'p4', t:'PROMPT 4 · 예습 vs 실제 필기 비교', w:'예습해둔 강의의 실제 수업일에 필기 받으면', x:COMPARE_PROMPT},
   {id:'p5', t:'PROMPT 5 · 시험 전날 축약 정리본', w:'모든 정리본 완성 후, 시험 며칠 전', x:FINAL_SUMMARY_PROMPT},
 ];}
+/* 프롬프트는 단계(신규/1차/2차)에 묶인다. 오늘 할 일 카드의 프롬포트 버튼은
+   그 단계에 묶인 기본 프롬프트 + 내가 추가한 프롬프트를 한 목록으로 펼쳐 보여준다. */
+const PROMPT_CATS=[{key:'new',label:'신규'},{key:'r1',label:'1차'},{key:'r2',label:'2차'},{key:'none',label:'관련없음'}];
+const BUILTIN_PROMPT_CAT={p1:'new', p3:'r1', p2:'r2', p4:'none', p5:'none'};
+function catLabel(key){ const c=PROMPT_CATS.find(x=>x.key===key); return c? c.label : '관련없음'; }
+function customPrompts(){ if(!Array.isArray(App.customPrompts)) App.customPrompts=[]; return App.customPrompts; }
+function shortPromptName(t){ return String(t).replace(/^PROMPT\s*\d+\s*[·.]\s*/,''); }
+function promptsForStage(type){
+  const list=[];
+  PROMPTS().forEach(p=>{ if(BUILTIN_PROMPT_CAT[p.id]===type) list.push({name:shortPromptName(p.t), text:promptOverrideText(p.id,p.x)}); });
+  customPrompts().forEach(cp=>{ if(cp.cat===type) list.push({name:cp.name || '이름 없는 프롬프트', text:cp.text || ''}); });
+  return list;
+}
 /* 프롬프트 수정본 저장/조회 — App.promptOverrides(임시 수정) / App.promptDefaults(내 기본값으로 승격)에 id별로 보관
    effective = 임시 수정 있으면 그것, 없으면 내 기본값, 없으면 하드코딩 원본 */
 function promptBaseText(id, fallback){
@@ -1693,10 +1742,10 @@ function flowCard(type, l, isPulled){
   if(!st.subCheck) st.subCheck={new:{},r1:{},r2:{},assign:{}};
   if(!st.subCheck.assign) st.subCheck.assign={};
   const isAssign = type==='assign';
-  const steps = isAssign ? (Array.isArray(l.checklist)?l.checklist:[]) : SUB_STEPS[type];
+  const steps = isAssign ? (Array.isArray(l.checklist)?l.checklist:[]) : subSteps(type);
   const sc = st.subCheck[type] || (st.subCheck[type]={});
   const label = isAssign?'과제':(type==='new'?'신규':(type==='r1'?'1차':'2차'));
-  const prompt = {new:PROMPTS().find(p=>p.id==='p1'), r1:PROMPTS().find(p=>p.id==='p3'), r2:PROMPTS().find(p=>p.id==='p2')}[type];
+  const promptList = isAssign ? [] : promptsForStage(type);
   const done = (type==='new'||isAssign) ? st.enc!=null : !!st.r[type==='r1'?1:2];
   const flowKey=`${App.active}:${type}:${l.id}`;
   const doneCount = steps.filter((_,i)=>sc[i]).length;
@@ -1706,9 +1755,10 @@ function flowCard(type, l, isPulled){
       <span class="flowbadge ${type}">${label}</span>
       <span class="flowtitle">${titleText}<span class="flowmeta">${steps.length? `${doneCount}/${steps.length} 체크됨` : (isAssign?`크레딧 ${l.credit||1}`:'')}${isPulled?' · <span class="pulledtag">미리 당겨옴</span>':''}</span></span>
       ${isPulled?'<button class="unpullbtn" title="오늘로 당긴 것을 취소하고 원래대로 되돌립니다">당김 취소</button>':''}
-      ${prompt?'<button class="flowpromptbtn" type="button">프롬포트 복사</button>':''}
+      ${promptList.length?`<button class="flowpromptbtn" type="button">프롬포트 복사${promptList.length>1?` <span class="ppcount">${promptList.length}</span>`:''}</button>`:''}
       <button class="flowdone ${done?'done':''}" style="${done?'background:var(--inactive-soft);color:var(--inactive)':''}">${done?'완료됨':'완료'}</button>
     </div>
+    <div class="promptpick" style="display:none"></div>
     <div class="flowbody${expandedFlowCards.has(flowKey)?' open':''}" style="display:${expandedFlowCards.has(flowKey)?'block':'none'}"></div>
   </div>`);
   const body = item.querySelector('.flowbody');
@@ -1723,10 +1773,42 @@ function flowCard(type, l, isPulled){
     body.appendChild(row);
   });
   const promptBtn=item.querySelector('.flowpromptbtn');
-  if(promptBtn) promptBtn.onclick=e=>{
-    e.stopPropagation();
-    copyText(promptOverrideText(prompt.id,prompt.x), promptBtn);
-  };
+  const pick=item.querySelector('.promptpick');
+  if(promptBtn && promptList.length===1){
+    promptBtn.onclick=e=>{ e.stopPropagation(); copyText(promptList[0].text, promptBtn); };
+  } else if(promptBtn){
+    /* 이 단계에 묶인 프롬프트가 여러 개면 목록으로 펼쳐, 이름을 보고 고르게 한다 */
+    promptList.forEach((pp,i)=>{
+      const r=el(`<button class="ppitem" type="button"><span class="ppnum">${i+1}.</span><span class="ppname">${esc(pp.name)}</span></button>`);
+      r.onclick=ev=>{
+        ev.stopPropagation();
+        const label=promptBtn.innerHTML;
+        copyText(pp.text, promptBtn);
+        closePick();
+        setTimeout(()=>{ promptBtn.innerHTML=label; }, 1500); // copyText가 되돌려 놓는 라벨에 개수 배지를 다시 붙인다
+      };
+      pick.appendChild(r);
+    });
+    const closePick=()=>{
+      if(pick.style.display==='none') return;
+      clearTimeout(pick.closeTimer);
+      pick.classList.remove('open','opening');
+      pick.classList.add('closing');
+      [...pick.children].forEach((r,i)=>{ r.style.animationDelay=`${(pick.children.length-1-i)*40}ms`; });
+      pick.closeTimer=setTimeout(()=>{ pick.style.display='none'; pick.classList.remove('closing'); }, 280+pick.children.length*40);
+    };
+    promptBtn.onclick=e=>{
+      e.stopPropagation();
+      const open = pick.style.display!=='none' && !pick.classList.contains('closing');
+      if(open){ closePick(); return; }
+      clearTimeout(pick.closeTimer);
+      pick.style.display='block';
+      pick.classList.remove('closing');
+      pick.classList.add('open','opening');
+      [...pick.children].forEach((r,i)=>{ r.style.animationDelay=`${i*40}ms`; });
+      setTimeout(()=>pick.classList.remove('opening'), 330);
+    };
+  }
   if(steps.length){
     item.querySelector('.flowhead').addEventListener('click', (e)=>{
       if(e.target.closest('.flowdone,.unpullbtn,.flowpromptbtn')) return;
@@ -2423,12 +2505,60 @@ function renderPrompts(){
   };
 
   box.appendChild(instructionCard);
+
+  /* 단계별 상세 체크리스트 편집 — 오늘 할 일 카드를 펼쳤을 때 나오는 항목들 */
+  const stepCard = el(`<div class="pcard instruction-card">
+    <div class="ptitle">단계별 상세 체크리스트</div>
+    <div class="pwhen">오늘 할 일 카드를 펼치면 나오는 항목 · 한 줄에 하나씩</div>
+  </div>`);
+  ['new','r1','r2'].forEach(type=>{
+    const cur=subSteps(type);
+    const edited=Array.isArray(App.subSteps && App.subSteps[type]) && App.subSteps[type].length>0;
+    const sub=el(`<div class="instruction-sub">
+      <span class="sublabel">${catLabel(type)}${edited?' · <span class="pmod">수정됨</span>':''}</span>
+      <div class="subview">${esc(cur.join('\n'))}</div>
+      <textarea class="pedit-input" style="display:none">${esc(cur.join('\n'))}</textarea>
+      <div class="pactions"><button class="peditbtn" type="button">수정</button></div>
+      <div class="pedit-actions" style="display:none">
+        <button class="psavebtn copybtn" type="button">저장</button>
+        <button class="pcancelbtn" type="button">취소</button>
+        ${edited?'<button class="presetbtn" type="button">기본값으로</button>':''}
+      </div>
+    </div>`);
+    const view=sub.querySelector('.subview'), ta=sub.querySelector('.pedit-input');
+    const va=sub.querySelector('.pactions'), ea=sub.querySelector('.pedit-actions');
+    sub.querySelector('.peditbtn').onclick=()=>{
+      view.style.display='none'; va.style.display='none';
+      ta.style.display=''; ea.style.display=''; ta.focus();
+    };
+    sub.querySelector('.pcancelbtn').onclick=()=>{
+      ta.value=subSteps(type).join('\n');
+      view.style.display=''; va.style.display='';
+      ta.style.display='none'; ea.style.display='none';
+    };
+    sub.querySelector('.psavebtn').onclick=()=>{
+      const arr=ta.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+      if(!App.subSteps) App.subSteps={};
+      if(!arr.length || arr.join('\n')===(SUB_STEPS[type]||[]).join('\n')) delete App.subSteps[type];
+      else App.subSteps[type]=arr;
+      saveApp(); render(); showToast(`${catLabel(type)} 체크리스트를 저장했습니다.`);
+    };
+    const rb=sub.querySelector('.presetbtn');
+    if(rb) rb.onclick=()=>{
+      if(App.subSteps) delete App.subSteps[type];
+      saveApp(); render(); showToast('기본 체크리스트로 되돌렸습니다.');
+    };
+    stepCard.appendChild(sub);
+  });
+  stepCard.appendChild(el('<div class="cphint">항목 순서를 바꾸면 이미 체크해둔 표시도 같은 순서로 따라 이동합니다.</div>'));
+  box.appendChild(stepCard);
+
   PROMPTS().forEach(p=>{
     const current = promptOverrideText(p.id, p.x);
     const overridden = current !== p.x;
     const c = el(`<div class="pcard">
       <div class="ptitle">${esc(p.t)}</div>
-      <div class="pwhen">${esc(p.w)}${overridden?' · <span class="pmod">수정됨</span>':''}</div>
+      <div class="pwhen"><span class="badge cat">${catLabel(BUILTIN_PROMPT_CAT[p.id])}</span> ${esc(p.w)}${overridden?' · <span class="pmod">수정됨</span>':''}</div>
       <div class="ptext">${esc(current)}</div>
       <textarea class="pedit-input" style="display:none">${esc(current)}</textarea>
       <div class="pactions">
@@ -2479,6 +2609,80 @@ function renderPrompts(){
     };
     box.appendChild(c);
   });
+
+  const catOptions=(sel)=> PROMPT_CATS.map(c=>`<option value="${c.key}" ${c.key===sel?'selected':''}>${c.label}</option>`).join('');
+
+  /* 내가 추가한 프롬프트 */
+  customPrompts().forEach(cp=>{
+    const c = el(`<div class="pcard">
+      <div class="ptitle">${esc(cp.name || '이름 없는 프롬프트')}</div>
+      <div class="pwhen"><span class="badge cat">${catLabel(cp.cat)}</span> 내가 추가한 프롬프트</div>
+      <div class="ptext">${esc(cp.text || '')}</div>
+      <div class="cpedit" style="display:none">
+        <div class="cprow">
+          <input class="cpname" type="text" value="${esc(cp.name || '')}" placeholder="이름 (예: 족보 해설 보완)">
+          <select class="cpcat">${catOptions(cp.cat)}</select>
+        </div>
+        <textarea class="pedit-input" style="display:block;margin-top:0">${esc(cp.text || '')}</textarea>
+      </div>
+      <div class="pactions">
+        <button class="copybtn" type="button">프롬포트 복사</button>
+        <button class="peditbtn" type="button">수정</button>
+        <button class="presetbtn cpdelbtn" type="button">삭제</button>
+      </div>
+      <div class="pedit-actions" style="display:none">
+        <button class="psavebtn copybtn" type="button">저장</button>
+        <button class="pcancelbtn" type="button">취소</button>
+      </div>
+    </div>`);
+    const tv=c.querySelector('.ptext'), form=c.querySelector('.cpedit');
+    const va=c.querySelector('.pactions'), ea=c.querySelector('.pedit-actions');
+    va.querySelector('.copybtn').onclick=e=>copyText(cp.text || '', e.target);
+    c.querySelector('.peditbtn').onclick=()=>{
+      tv.style.display='none'; va.style.display='none';
+      form.style.display=''; ea.style.display='';
+      form.querySelector('.cpname').focus();
+    };
+    c.querySelector('.pcancelbtn').onclick=()=>{
+      tv.style.display=''; va.style.display='';
+      form.style.display='none'; ea.style.display='none';
+    };
+    c.querySelector('.psavebtn').onclick=()=>{
+      cp.name=form.querySelector('.cpname').value.trim() || cp.name;
+      cp.cat=form.querySelector('.cpcat').value;
+      cp.text=form.querySelector('.pedit-input').value;
+      saveApp(); render(); showToast('프롬프트를 저장했습니다.');
+    };
+    c.querySelector('.cpdelbtn').onclick=()=>{
+      askConfirm(`"${cp.name || '이름 없는 프롬프트'}" 프롬프트를 삭제하시겠습니까?`, '이 프롬프트는 되돌릴 수 없습니다.', ()=>{
+        App.customPrompts = customPrompts().filter(x=>x.id!==cp.id);
+        saveApp(); render(); showToast('프롬프트를 삭제했습니다.');
+      }, '삭제');
+    };
+    box.appendChild(c);
+  });
+
+  /* 새 프롬프트 추가 */
+  const addCard = el(`<div class="pcard instruction-card">
+    <div class="ptitle">+ 프롬프트 추가</div>
+    <div class="pwhen">이름과 단계를 정해두면 오늘 할 일 카드의 프롬포트 버튼에 함께 뜹니다</div>
+    <div class="cpedit">
+      <div class="cprow">
+        <input class="cpname" type="text" placeholder="이름 (예: 족보 해설 보완)">
+        <select class="cpcat">${catOptions('none')}</select>
+      </div>
+      <textarea class="pedit-input" placeholder="프롬프트 내용을 붙여넣어 주세요."></textarea>
+    </div>
+    <div class="pactions"><button class="cpaddbtn" type="button">추가</button></div>
+  </div>`);
+  addCard.querySelector('.cpaddbtn').onclick=()=>{
+    const name=addCard.querySelector('.cpname').value.trim();
+    const text=addCard.querySelector('.pedit-input').value.trim();
+    if(!name || !text){ showToast('이름과 내용을 모두 입력해주세요.'); return; }
+    customPrompts().push({id:'cp'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), name, cat:addCard.querySelector('.cpcat').value, text});
+    saveApp(); render(); showToast('프롬프트를 추가했습니다.');
+  };
+  box.appendChild(addCard);
 }
 function render(){
   renderBlockTabs();
