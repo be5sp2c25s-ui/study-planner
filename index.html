@@ -23,6 +23,8 @@
 
     /* 넓은 면적 채움(글자 없음) */
     --fill-done:#2F6FED; --fill-progress:#7BA3F5; --fill-warn:#002057;
+    /* 반투명 배경/그림자용 — 블록 색 계열이 바뀌면 JS가 이 두 값을 같이 갈아끼운다 */
+    --accent-rgb:47,111,237; --donesoft-rgb:151,176,252;
 
     --disp:'Pretendard',-apple-system,'Segoe UI','Noto Sans KR',sans-serif;
     --sans:'Pretendard',-apple-system,'Segoe UI','Noto Sans KR',sans-serif;
@@ -41,10 +43,10 @@
   body::before{
     content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
     background:
-      radial-gradient(44vw 38vw at 84% -8%, rgba(47,111,237,.13), transparent 62%),
-      radial-gradient(38vw 32vw at -10% 6%, rgba(47,111,237,.09), transparent 60%),
-      radial-gradient(48vw 40vw at 110% 86%, rgba(151,176,252,.20), transparent 62%),
-      radial-gradient(36vw 32vw at -8% 104%, rgba(47,111,237,.10), transparent 60%);
+      radial-gradient(44vw 38vw at 84% -8%, rgba(var(--accent-rgb),.13), transparent 62%),
+      radial-gradient(38vw 32vw at -10% 6%, rgba(var(--accent-rgb),.09), transparent 60%),
+      radial-gradient(48vw 40vw at 110% 86%, rgba(var(--donesoft-rgb),.20), transparent 62%),
+      radial-gradient(36vw 32vw at -8% 104%, rgba(var(--accent-rgb),.10), transparent 60%);
   }
   .wrap{max-width:1080px;margin:0 auto}
 
@@ -281,17 +283,28 @@
   .plantags{display:flex;flex-direction:column;gap:3px;margin-top:6px}
   .plantaggrp{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
   .plantaggrp .glbl{font-size:9px;font-weight:700;color:var(--faint);min-width:24px}
-  .plantag{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px}
-  .plantag.new{background:var(--progress-soft);color:var(--accent-ink)}
-  .plantag.r1{background:var(--done-soft);color:var(--ink)}
-  .plantag.r2{background:var(--inactive-soft);color:var(--inactive)}
-  .plantag.assign{background:var(--warn-soft);color:var(--warn)}
-  .plantag.done{opacity:.5}
+  /* 강의 목록은 배지 낱개 나열 대신 칸막이로 나눈 한 줄 띠 —
+     개수가 늘어도 테두리·여백이 같이 늘어나지 않아 시각적 소음이 안 쌓인다. */
+  .planstrip{display:inline-flex;flex-wrap:wrap;max-width:100%;border-radius:7px;overflow:hidden}
+  .plancell{font-size:9.5px;font-weight:700;line-height:1.7;padding:1px 7px;border-right:1px solid rgba(28,36,48,.13)}
+  .plancell:last-child{border-right:none}
+  .planstrip.new{background:var(--progress-soft)}
+  .planstrip.new .plancell{color:var(--accent-ink)}
+  .planstrip.r1{background:var(--done-soft)}
+  .planstrip.r1 .plancell{color:var(--ink)}
+  .planstrip.r2{background:var(--inactive-soft)}
+  .planstrip.r2 .plancell{color:var(--inactive)}
+  .planstrip.assign{background:var(--warn-soft)}
+  .planstrip.assign .plancell{color:var(--warn)}
+  /* 완료한 강의만 채워진 칸으로 — 띠가 왼쪽부터 차오르는 것처럼 읽힌다 */
+  .planstrip .plancell.done{background:var(--done);color:#fff;border-right-color:rgba(255,255,255,.3)}
 
   .battery-wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
   .battery{position:relative;width:72px;height:42px;border:none;border-radius:11px;padding:5px 4px;flex-shrink:0;background:var(--track);overflow:hidden}
   .battery::after{display:none}
-  .battery-fill{position:relative;height:100%;border-radius:5px;overflow:hidden;transition:width 760ms var(--ease),background var(--t-mid) linear;will-change:clip-path}
+  /* 채움 요소는 항상 전체 폭. 수위와 물결은 전부 clip-path로 그린다 —
+     그래야 "출렁임의 최대치"가 아니라 "수면의 기준선"이 곧 퍼센트가 된다. */
+  .battery-fill{position:relative;width:100%;height:100%;border-radius:5px;overflow:hidden;background-repeat:no-repeat;background-position:left center;will-change:clip-path}
   .battery-pct{font-family:var(--sans);font-weight:700;font-size:23px;letter-spacing:.2px}
 
   .onboard{background:var(--surface);border:1px solid transparent;border-radius:16px;padding:15px 16px;margin-bottom:14px;box-shadow:var(--sh-2)}
@@ -301,6 +314,22 @@
   .onboard-close:hover{color:var(--ink)}
   .onboard-reopen{border:1px dashed var(--faint);border-radius:9px;padding:7px 11px;background:var(--surface);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;margin-bottom:14px}
   .onboard-reopen:hover{border-color:var(--accent-ink);color:var(--accent-ink)}
+  /* 블록 사전 준비 펼침 모션 — '오늘 학습 계획'의 상세 체크리스트와 같은 곡선/타이밍 */
+  details.onboard > .onboard-list{max-height:0;overflow:hidden;opacity:0;transform:translateY(-5px)}
+  details.onboard[open] > .onboard-list{max-height:none;overflow:visible;opacity:1;transform:none}
+  details.onboard.motion-open > .onboard-list,
+  details.onboard.motion-closing > .onboard-list{overflow:hidden}
+  details.onboard.motion-open > .onboard-list{animation:previewBoxIn 300ms var(--ease) both}
+  details.onboard.motion-open > .onboard-list > div{animation:flowStepIn 300ms var(--ease) both}
+  details.onboard.motion-closing > .onboard-list{animation:previewBoxOut 280ms var(--ease) both}
+  details.onboard.motion-closing > .onboard-list > div{animation:flowStepOut 230ms var(--ease) both}
+
+  /* 블록별 색 계열 스와치 */
+  .themebar{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+  .themedot{width:15px;height:15px;padding:0;border-radius:50%;border:1px solid rgba(28,36,48,.12);cursor:pointer;
+    transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+  .themedot:hover{transform:scale(1.2)}
+  .themedot.on{box-shadow:0 0 0 2px var(--surface),0 0 0 3px rgba(28,36,48,.45)}
   .oitem{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-top:1px solid var(--line)}
   .oitem:first-of-type{border-top:none;padding-top:12px}
   .ochk{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
@@ -404,11 +433,11 @@
   button,summary{transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease),
     border-color var(--t-fast) var(--ease),transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),opacity var(--t-fast) var(--ease)}
   button:active{transform:scale(.96)}
-  .go:hover,.flowdone:hover,.addlec button:hover,.emptystate button:hover,.primary:hover{box-shadow:0 4px 14px rgba(47,111,237,.30)}
+  .go:hover,.flowdone:hover,.addlec button:hover,.emptystate button:hover,.primary:hover{box-shadow:0 4px 14px rgba(var(--accent-rgb),.30)}
   .blocktab,.chip button,.ochk,.schk{transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
   .chip button:active,.ochk:active,.schk:active{transform:scale(.86)}
   .row,.oitem,.substep{transition:background var(--t-fast) var(--ease)}
-  .row:hover,.oitem:hover{background:rgba(47,111,237,.05)}
+  .row:hover,.oitem:hover{background:rgba(var(--accent-rgb),.05)}
   .planrow{transition:border-color var(--t-fast) var(--ease),background var(--t-fast) var(--ease),transform var(--t-mid) var(--ease)}
   .planrow:hover{transform:translateX(2px)}
   .flowhead:hover .flowtitle{color:var(--accent-ink)}
@@ -445,6 +474,7 @@
         <div>
           <h1 id="blockTitle"></h1>
           <p>Task Manager & Study Planner</p>
+          <div class="themebar" id="themeBar" role="group" aria-label="블록 색 계열"></div>
         </div>
       </div>
       <div class="ctrls">
@@ -637,6 +667,49 @@ const store = window.storage ? window.storage : (fbDb ? {
   async set(k,v){ mem[k]=v; return {value:v}; },
 });
 let App = {blocks:[], active:null, promptOverrides:{}, promptDefaults:{}, customInstructionOverride:'', customInstructionDefault:'', compareDismissed:{}, onboardingDismissed:{}, rev:0};
+/* ===== 블록별 색 계열 =====
+   한 계열은 (accent 중간톤 / soft 아주 옅은 배경 / ink 글자용 진한 톤 / doneSoft·fill 넓은 면적용)
+   으로 구성된다. 글자가 얹히는 accent·ink는 흰 글자 대비를 확보한 톤으로만 고른다. */
+const THEMES={
+  blue:   {name:'블루',     accent:'#2F6FED', soft:'#EAF0FE', ink:'#215BCC', doneSoft:'#97B0FC', fill:'#7BA3F5', warn:'#002057', warnSoft:'#FFF9D6', rgb:'47,111,237',  softRgb:'151,176,252'},
+  green:  {name:'그린',     accent:'#2A8F63', soft:'#E7F6EE', ink:'#1E6E4B', doneSoft:'#A0D8BE', fill:'#7CC9A2', warn:'#06341F', warnSoft:'#FFF9D6', rgb:'42,143,99',   softRgb:'160,216,190'},
+  yellow: {name:'옐로우',   accent:'#A87D07', soft:'#FBF3D9', ink:'#7E5D04', doneSoft:'#EBD292', fill:'#E3C264', warn:'#4A2A00', warnSoft:'#FBE3DA', rgb:'168,125,7',   softRgb:'235,210,146'},
+  coral:  {name:'코랄',     accent:'#D4527A', soft:'#FDECF1', ink:'#A93A5C', doneSoft:'#F3B4C7', fill:'#EE9BB4', warn:'#4A0E22', warnSoft:'#FFF9D6', rgb:'212,82,122',  softRgb:'243,180,199'},
+  lavender:{name:'라벤더',  accent:'#7B6BE0', soft:'#F0EDFE', ink:'#5B4BC2', doneSoft:'#C4BBF4', fill:'#A99DEE', warn:'#221055', warnSoft:'#FFF9D6', rgb:'123,107,224', softRgb:'196,187,244'},
+  mint:   {name:'민트',     accent:'#22868E', soft:'#E3F5F6', ink:'#196B72', doneSoft:'#A0D6DA', fill:'#79CBD1', warn:'#04333A', warnSoft:'#FFF9D6', rgb:'34,134,142',  softRgb:'160,214,218'},
+  orange: {name:'오렌지',   accent:'#C96A25', soft:'#FDEEE2', ink:'#A2521A', doneSoft:'#F2C29B', fill:'#EDA972', warn:'#40200A', warnSoft:'#FFF9D6', rgb:'201,106,37',  softRgb:'242,194,155'},
+  slate:  {name:'슬레이트', accent:'#5A6B82', soft:'#ECEFF4', ink:'#445468', doneSoft:'#B8C3D2', fill:'#97A5B8', warn:'#101C2B', warnSoft:'#FFF9D6', rgb:'90,107,130',  softRgb:'184,195,210'}
+};
+function themeOf(block){ return (block && THEMES[block.theme]) ? block.theme : 'blue'; }
+function applyTheme(block){
+  const t=THEMES[themeOf(block)];
+  const r=document.documentElement.style;
+  r.setProperty('--accent',t.accent);
+  r.setProperty('--accent-soft',t.soft);
+  r.setProperty('--accent-ink',t.ink);
+  r.setProperty('--progress',t.accent);
+  r.setProperty('--progress-soft',t.soft);
+  r.setProperty('--done',t.accent);
+  r.setProperty('--done-soft',t.doneSoft);
+  r.setProperty('--fill-done',t.accent);
+  r.setProperty('--fill-progress',t.fill);
+  r.setProperty('--fill-warn',t.warn);
+  r.setProperty('--warn',t.warn);
+  r.setProperty('--warn-soft',t.warnSoft);
+  r.setProperty('--accent-rgb',t.rgb);
+  r.setProperty('--donesoft-rgb',t.softRgb);
+}
+function renderThemeSwatches(block){
+  const bar=document.getElementById('themeBar'); if(!bar) return;
+  bar.innerHTML='';
+  const cur=themeOf(block);
+  Object.keys(THEMES).forEach(key=>{
+    const t=THEMES[key];
+    const dot=el(`<button type="button" class="themedot ${key===cur?'on':''}" title="${t.name} 계열" aria-label="${t.name} 계열" aria-pressed="${key===cur}" style="background:linear-gradient(135deg, ${t.soft} 0%, ${t.doneSoft} 48%, ${t.fill} 100%)"></button>`);
+    dot.onclick=()=>{ block.theme=key; applyTheme(block); saveApp(); render(); };
+    bar.appendChild(dot);
+  });
+}
 let S=null, LEC=[], SCHOOL_DAYS=[], MAXDAY=0;
 let undoSnapshot=null;
 const expandedFlowCards=new Set();
@@ -651,6 +724,7 @@ function normalizeApp(app){
   if(!app.compareDismissed || typeof app.compareDismissed!=='object') app.compareDismissed={};
   if(!app.onboardingDismissed || typeof app.onboardingDismissed!=='object') app.onboardingDismissed={};
   if(typeof app.rev!=='number') app.rev=0; // 옛 저장분 호환용 기본값
+  app.blocks.forEach(b=>{ if(!b || !THEMES[b.theme]) { if(b) b.theme='blue'; } }); // 색 계열 기본값
   return app;
 }
 
@@ -690,6 +764,7 @@ function freshLecState(){
 function activateBlock(id){
   const b=App.blocks.find(x=>x.id===id); if(!b) return;
   App.active=id; SCHOOL_DAYS=b.schoolDays; LEC=b.lec; MAXDAY=SCHOOL_DAYS.length; S=b.state;
+  applyTheme(b);
 }
 async function loadApp(){
   try{ const r=await store.get(GKEY); const p=JSON.parse(r.value); if(p&&Array.isArray(p.blocks)) App=p; }catch(e){ App={blocks:[],active:null,promptOverrides:{},promptDefaults:{},customInstructionOverride:'',customInstructionDefault:'',compareDismissed:{},onboardingDismissed:{}}; }
@@ -1264,14 +1339,18 @@ function el(h){ const t=document.createElement('template'); t.innerHTML=h.trim()
 /* ===== 완료 마크 =====
    체크 순간 클릭 지점에서 라벤더·크림 점이 피어오른다. render()가 DOM을 다시 그려도
    body에 직접 붙이므로 지워지지 않고, 완료 행위에만 모션 보상을 몰아준다. */
-const MARK_COLORS=['#2F6FED','#97B0FC','#6E96F2','#C3D4FD','#4C82F0'];
+function markColors(){
+  const t=THEMES[themeOf(App.blocks.find(b=>b.id===App.active))] || THEMES.blue;
+  return [t.accent,t.doneSoft,t.fill,t.soft,t.ink];
+}
 function popMarks(x,y){
   if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cols=markColors();
   for(let i=0;i<5;i++){
     const m=document.createElement('span');
     m.className='mark';
     m.style.left=x+'px'; m.style.top=y+'px';
-    m.style.background=MARK_COLORS[i%MARK_COLORS.length];
+    m.style.background=cols[i%cols.length];
     m.style.setProperty('--dx', (Math.random()*46-23).toFixed(1)+'px');
     m.style.animationDelay=(i*45)+'ms';
     m.style.width=m.style.height=(5+Math.random()*4).toFixed(1)+'px';
@@ -1323,6 +1402,8 @@ function deleteBlock(id){
 function renderHeader(){
   const block=App.blocks.find(b=>b.id===App.active);
   const d=dInfo(S.cur), e=dInfo(S.examDay);
+  applyTheme(block);
+  renderThemeSwatches(block);
   document.getElementById('blockTitle').textContent = block.name;
   const emojiButton=document.getElementById('blockEmoji');
   const emojiPicker=document.getElementById('emojiPicker');
@@ -1392,8 +1473,15 @@ function renderBanner(){
   if(ring) requestAnimationFrame(()=>{ ring.style.strokeDasharray=`${dash.toFixed(1)} ${gap.toFixed(1)}`; });
   _lastFrac = frac;
 }
-let _lastPct = 0;
-let batteryWaveFrame=0;
+/* ===== 배터리 =====
+   battLevel(현재 수위) = 표시 퍼센트. 물결은 이 기준선 위아래로만 흔들리고,
+   진폭은 0%/100%에 가까워질수록 0으로 줄어든다 → 100%면 물결 없이 정확히 꽉 차고,
+   어떤 순간에도 100%를 넘어 보이지 않는다. 값이 움직일 때만 slosh(출렁임)를 실어준다. */
+let battLevel=0, battTarget=0, battSlosh=0, batteryWaveFrame=0, battLastT=0;
+function battShown(){
+  if(battTarget>=99.99) return battLevel>=99.4 ? 100 : Math.floor(battLevel);
+  return Math.min(99, Math.round(battLevel));
+}
 function renderLoadPanel(){
   const blocked = S.cur>usableDays();
   const total = lockedTodayTotalCost();
@@ -1416,57 +1504,78 @@ function renderLoadPanel(){
     <h2>오늘의 진도</h2>
     <p class="hint"></p>
     <div class="battery-wrap" style="margin-top:10px">
-      <div class="battery"><div class="battery-fill" id="battFill" style="width:${_lastPct}%;background:linear-gradient(90deg, color-mix(in srgb, ${fill} 55%, #fff), ${fill})"></div></div>
+      <div class="battery"><div class="battery-fill" id="battFill" style="background:linear-gradient(90deg, color-mix(in srgb, ${fill} 55%, #fff), ${fill});background-size:${Math.max(6,battLevel).toFixed(1)}% 100%"></div></div>
       <div>
         <div style="display:flex;align-items:baseline;gap:8px">
-          <span class="battery-pct" id="battPct">${Math.round(_lastPct)}%</span>
+          <span class="battery-pct" id="battPct">${battShown()}%</span>
           <span class="badge" style="background:${bg};color:${color}">${statusText}</span>
         </div>
         <div style="font-size:10.5px;color:var(--muted);margin-top:2px">${used.toFixed(2)} / ${total.toFixed(2)} (오늘 크레딧)</div>
       </div>
     </div>
     <p class="hint" style="margin-top:10px">${esc(hint)}</p>`;
-  /* 막대와 숫자를 같은 곡선으로 함께 움직여, 진도가 오른 만큼 "차오르는" 순간을 만든다 */
-  const target = Math.min(100, pct), from = _lastPct;
-  const bf=document.getElementById('battFill');
-  if(bf) requestAnimationFrame(()=>{ bf.style.width = target+'%'; });
-  countUp(document.getElementById('battPct'), from, target, 760);
+  /* 목표 수위가 바뀐 순간에만 출렁임을 실어, 진도가 오른 만큼 "찰랑이며 차오르게" 한다 */
+  const target = Math.max(0, Math.min(100, pct));
+  const delta = Math.abs(target-battTarget);
+  if(delta>0.3) battSlosh = Math.min(1, battSlosh + 0.28 + Math.min(0.62, delta/26));
+  battTarget = target;
   bindBatteryInteraction();
-  _lastPct = target;
 }
 function bindBatteryInteraction(){
   const battery=document.querySelector('.battery');
   const fill=battery?.querySelector('#battFill');
+  const pctNode=document.getElementById('battPct');
   if(!battery || !fill) return;
   cancelAnimationFrame(batteryWaveFrame);
-  const dents=Array(13).fill(0);
-  const resetDent=()=>{ dents.fill(0); };
+  const N=14;
+  const dent=new Array(N+1).fill(0), dentTarget=new Array(N+1).fill(0);
+  const paint=(level, pts)=>{
+    fill.style.clipPath = pts
+      ? `polygon(0 0,${pts.join(',')},0 100%)`
+      : `polygon(0 0,${level}% 0,${level}% 100%,0 100%)`;
+    fill.style.backgroundSize = Math.max(6,level).toFixed(1)+'% 100%';
+    if(pctNode) pctNode.textContent = battShown()+'%';
+  };
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    battLevel=battTarget; battSlosh=0; paint(battLevel, null); return;
+  }
+  /* 손가락/커서가 수면 근처를 지나가면 그 높이에서 물이 눌린다 */
   battery.addEventListener('pointermove',(event)=>{
-    const fillRect=fill.getBoundingClientRect();
-    const distanceToWaterStart=Math.abs(event.clientX-fillRect.right);
-    const proximity=Math.max(0,Math.min(1,1-distanceToWaterStart/24));
-    const y=(event.clientY-fillRect.top)/fillRect.height;
-    const strength=proximity*4;
-    for(let i=0;i<=12;i++){
-      const pointY=i/12;
-      const falloff=Math.exp(-Math.pow((pointY-y)/.25,2));
-      dents[i]=strength*falloff;
+    const r=fill.getBoundingClientRect();
+    const surfaceX=r.left + r.width*(battLevel/100);
+    const prox=Math.max(0,Math.min(1,1-Math.abs(event.clientX-surfaceX)/26));
+    const y=(event.clientY-r.top)/r.height;
+    for(let i=0;i<=N;i++){
+      const p=i/N;
+      dentTarget[i]=prox*4.2*Math.exp(-Math.pow((p-y)/0.26,2));
     }
+    if(prox>0.05) battSlosh=Math.min(1, battSlosh+prox*0.015);
   });
-  battery.addEventListener('pointerleave',resetDent);
+  battery.addEventListener('pointerleave',()=>dentTarget.fill(0));
+  battLastT=0;
   const animateWave=(now)=>{
-    const phase=(now/2600)*Math.PI*2;
-    const edge=[];
-    for(let i=0;i<=12;i++){
-      const y=i/12*100;
-      const wave=90
-        +6.5*Math.sin(phase+i/12*Math.PI)
-        +1.7*Math.sin((now/4100)*Math.PI*2+i/12*Math.PI*1.4+0.8)
-        +0.8*Math.sin((now/1700)*Math.PI*2-i/12*Math.PI*.7);
-      const x=Math.max(58,Math.min(100,wave-dents[i]));
-      edge.push(`${x.toFixed(1)}% ${y.toFixed(1)}%`);
+    const dt = battLastT ? Math.min(0.05,(now-battLastT)/1000) : 0.016;
+    battLastT=now;
+    battLevel += (battTarget-battLevel)*Math.min(1, dt*4.6);
+    if(Math.abs(battTarget-battLevel)<0.05) battLevel=battTarget;
+    battSlosh *= Math.exp(-dt*1.45);
+    if(battSlosh<0.002) battSlosh=0;
+    /* 여유 공간(0%/100%까지의 거리)이 곧 허용 진폭 — 넘칠 수가 없다 */
+    const room=Math.min(battLevel, 100-battLevel);
+    const amp=Math.min((2.1+6.4*battSlosh)*Math.min(1, room/8), room*0.92);
+    const a=now/1900*Math.PI*2, b=now/3100*Math.PI*2, c=now/1150*Math.PI*2;
+    const pts=[];
+    for(let i=0;i<=N;i++){
+      const p=i/N;
+      /* 주기가 서로 안 맞는 세 파형을 겹쳐 반복 없이 일렁이게 한다 */
+      const w = 0.58*Math.sin(a+p*2.4)
+              + 0.27*Math.sin(b-p*1.6+1.1)
+              + 0.15*Math.sin(c+p*4.1+0.4);
+      dent[i] += (dentTarget[i]-dent[i])*Math.min(1, dt*9);
+      const x=Math.max(0, Math.min(100, battLevel + amp*w - dent[i]));
+      pts.push(`${x.toFixed(2)}% ${(p*100).toFixed(1)}%`);
     }
-    fill.style.clipPath=`polygon(0 0,${edge.join(',')},0 100%)`;
+    paint(battLevel, pts);
     batteryWaveFrame=requestAnimationFrame(animateWave);
   };
   batteryWaveFrame=requestAnimationFrame(animateWave);
@@ -1777,6 +1886,34 @@ function renderExamEve(box){
     list.appendChild(row);
   });
 }
+/* 블록 사전 준비: 네이티브 <details> 토글을 가로채,
+   '오늘 학습 계획'의 상세 체크리스트와 같은 방식으로 펼치고 접는다. */
+function bindOnboardMotion(onboard){
+  const summary=onboard.querySelector('summary');
+  const list=onboard.querySelector('.onboard-list');
+  if(!summary || !list) return;
+  summary.addEventListener('click', e=>{
+    if(e.target.closest('.onboard-close')) return;
+    e.preventDefault();
+    const rows=[...list.children];
+    const opening = !onboard.open || onboard.classList.contains('motion-closing');
+    clearTimeout(onboard.closeTimer);
+    if(opening){
+      onboard.open=true;
+      onboard.classList.remove('motion-closing');
+      onboard.classList.add('motion-open');
+      rows.forEach((row,i)=>{ row.style.animationDelay=`${i*35}ms`; });
+    }else{
+      onboard.classList.remove('motion-open');
+      onboard.classList.add('motion-closing');
+      rows.forEach((row,i)=>{ row.style.animationDelay=`${(rows.length-1-i)*35}ms`; });
+      onboard.closeTimer=setTimeout(()=>{
+        onboard.open=false;
+        onboard.classList.remove('motion-closing');
+      }, 280+rows.length*35);
+    }
+  });
+}
 function renderOnboarding(){
   const box=document.getElementById('onboardBox'); if(!box) return;
   if(!S.onboarding) S.onboarding={};
@@ -1795,10 +1932,11 @@ function renderOnboarding(){
   const doneCount = ONBOARD_ITEMS.filter(it=> S.onboarding[it.key]===true).length;
   box.innerHTML = `<details class="onboard" ${wasOpen?'open':''}>
     <summary><span>블록 사전 준비 (${doneCount}/${ONBOARD_ITEMS.length})</span><button class="onboard-close" type="button" title="영역 닫기" aria-label="블록 사전 준비 닫기">×</button></summary>
-    <div id="onboardList" style="margin-top:8px"></div>
+    <div id="onboardList" class="onboard-list" style="margin-top:8px"></div>
   </details>`;
   const onboard=box.querySelector('.onboard');
   onboard.addEventListener('toggle',()=>{ onboardingOpen=onboard.open; });
+  bindOnboardMotion(onboard);
   box.querySelector('.onboard-close').onclick=e=>{
     e.preventDefault();
     e.stopPropagation();
@@ -1947,12 +2085,13 @@ function tagGroupsHtml(items, isDoneFn){
   let html='';
   ['assign','new','r1','r2'].forEach(type=>{
     if(!groups[type].length) return;
-    const tags = groups[type].map(it=>{
+    const cells = groups[type].map(it=>{
       const l=byId(it.lecId); if(!l) return '';
       const done = isDoneFn ? isDoneFn(it) : false;
-      return `<span class="plantag ${type} ${done?'done':''}">${esc(l.code || l.title)}</span>`;
+      const tip = `${esc(l.title||'')}${done?' · 완료':''}`;
+      return `<span class="plancell ${done?'done':''}" title="${tip}">${esc(l.code || l.title)}</span>`;
     }).join('');
-    html += `<div class="plantaggrp"><span class="glbl">${labels[type]}</span>${tags}</div>`;
+    html += `<div class="plantaggrp"><span class="glbl">${labels[type]}</span><span class="planstrip ${type}">${cells}</span></div>`;
   });
   return html? `<div class="plantags">${html}</div>` : '';
 }
