@@ -1754,12 +1754,40 @@ function battShown(){
   if(battTarget>=99.99) return battLevel>=99.4 ? 100 : Math.floor(battLevel);
   return Math.min(99, Math.round(battLevel));
 }
+/* 시험 전날 진도 = 그날 카드(전날 체크리스트 + 직접 추가한 계획) 중 완료한 비율.
+   그날은 크레딧을 배정하지 않으므로 크레딧 기준 배터리가 의미가 없다. */
+function examEveProgress(){
+  if(!S.examEve) S.examEve={};
+  const items = examEveItems();
+  const plans = (S.manualPlans && S.manualPlans[S.cur]) || [];
+  return {
+    total: items.length + plans.length,
+    done: items.filter((_,i)=>!!S.examEve[i]).length + plans.filter(p=>p.done).length,
+  };
+}
 function renderLoadPanel(){
-  const blocked = S.cur>usableDays();
-  const total = lockedTodayTotalCost();
-  const remaining = lockedTodayRemainingCost();
-  const used = Math.max(0, total-remaining);
-  const pct = total>0 ? (used/total*100) : 100;
+  const isExamEve = (S.examDay-1)>=1 && S.cur===S.examDay-1;
+  const blocked = !isExamEve && S.cur>usableDays();
+  let total, used, pct, meterText, hint;
+  if(isExamEve){
+    const prog = examEveProgress();
+    total = prog.total; used = prog.done;
+    pct = total>0 ? (used/total*100) : 100;
+    meterText = `${used} / ${total} (오늘 체크리스트)`;
+    if(total===0) hint = `오늘 체크할 항목이 없습니다.`;
+    else if(used>=total) hint = `시험 전날 체크리스트 ${total}개를 모두 끝냈습니다.`;
+    else hint = `시험 전날 체크리스트 ${total}개 중 ${used}개를 끝냈습니다. ${total-used}개 남았습니다.`;
+  } else {
+    total = lockedTodayTotalCost();
+    const remaining = lockedTodayRemainingCost();
+    used = Math.max(0, total-remaining);
+    pct = total>0 ? (used/total*100) : 100;
+    meterText = `${used.toFixed(2)} / ${total.toFixed(2)} (오늘 크레딧)`;
+    if(blocked) hint = ``;
+    else if(total<1e-9) hint = `오늘은 배정된 학습이 없습니다.`;
+    else if(remaining<1e-9) hint = `오늘 정해진 ${total.toFixed(2)} 크레딧을 모두 완료했습니다.`;
+    else hint = `오늘 배정된 크레딧은 ${total.toFixed(2)}입니다. 현재 ${Math.round(pct)}% 완료했으며, ${remaining.toFixed(2)} 크레딧이 남았습니다.`;
+  }
   let color, bg, statusText;
   /* color = 배지 글자색(진한 톤), fill = 막대 채움색(중간 톤). 둘을 분리해야
      작은 글자는 또렷하고 넓은 막대는 차분하게 유지된다. */
@@ -1767,11 +1795,6 @@ function renderLoadPanel(){
   if(pct>=100){ color='var(--accent-ink)'; fill='var(--done)'; bg='var(--done-soft)'; statusText='완료'; }
   else if(pct>=1){ color='var(--accent-ink)'; fill='var(--fill-progress)'; bg='var(--progress-soft)'; statusText='진행 중'; }
   else { color='var(--muted)'; fill='var(--inactive-soft)'; bg='var(--inactive-soft)'; statusText='시작 전'; }
-  let hint;
-  if(blocked) hint = ``;
-  else if(total<1e-9) hint = `오늘은 배정된 학습이 없습니다.`;
-  else if(remaining<1e-9) hint = `오늘 정해진 ${total.toFixed(2)} 크레딧을 모두 완료했습니다.`;
-  else hint = `오늘 배정된 크레딧은 ${total.toFixed(2)}입니다. 현재 ${Math.round(pct)}% 완료했으며, ${remaining.toFixed(2)} 크레딧이 남았습니다.`;
   document.getElementById('loadPanel').innerHTML = `
     <h2>오늘의 진도</h2>
     <p class="hint"></p>
@@ -1782,7 +1805,7 @@ function renderLoadPanel(){
           <span class="battery-pct" id="battPct">${battShown()}%</span>
           <span class="badge" style="background:${bg};color:${color}">${statusText}</span>
         </div>
-        <div style="font-size:10.5px;color:var(--muted);margin-top:2px">${used.toFixed(2)} / ${total.toFixed(2)} (오늘 크레딧)</div>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:2px">${meterText}</div>
       </div>
     </div>
     <p class="hint" style="margin-top:10px">${esc(hint)}</p>`;
@@ -2159,31 +2182,44 @@ function renderDayFlow(box, isExamDay){
   if(!items.length && !manualPlans.length) box.insertBefore(el('<div class="empty">오늘 배정된 신규·복습 없음</div>'),box.children[1]);
   box.querySelector('.add-plan-btn').onclick=openManualPlanModal;
 }
+/* 시험 전날 체크리스트 한 항목 = 카드 하나 (강의 카드와 같은 모양·같은 완료 버튼) */
+function examEveCard(label, index){
+  if(!S.examEve) S.examEve={};
+  const done = !!S.examEve[index];
+  const item = el(`<div class="flowitem">
+    <div class="flowhead">
+      <span class="flowbadge" style="background:var(--warn-soft);color:var(--warn)">전날</span>
+      <span class="flowtitle">${esc(label)}</span>
+      <button class="flowdone ${done?'done':''}" style="${done?'background:var(--inactive-soft);color:var(--inactive)':''}">${done?'완료됨':'완료'}</button>
+    </div>
+  </div>`);
+  item.querySelector('.flowdone').onclick=()=>{
+    S.examEve[index]=!S.examEve[index];
+    saveApp(); render();
+  };
+  return item;
+}
 function renderExamEve(box){
   if(!S.examEve) S.examEve={};
   if(!S.manualPlans) S.manualPlans={};
   const manualPlans = S.manualPlans[S.cur] || (S.manualPlans[S.cur]=[]);
   box.innerHTML = `<div class="eeve">
     <h2>시험 D-1</h2>
-    <p class="hint">오늘은 크레딧을 배정하지 않습니다.</p>
+    <p class="hint">오늘은 크레딧을 배정하지 않습니다. 아래 항목을 끝낸 비율이 오늘의 진도가 됩니다.</p>
     <details style="margin:10px 0"><summary style="cursor:pointer;font-size:11.5px;font-weight:700;color:var(--muted)">시험 전날 축약 정리본 프롬프트</summary><div class="opromptbox" style="margin-left:0">${esc(promptOverrideText('p5', FINAL_SUMMARY_PROMPT))}</div></details>
-    <div id="eeveList"></div>
     <div class="dayflow" id="eeveFlow" style="margin:14px 0 0"></div>
   </div>`;
   bindDetailsFold(box.querySelector('.eeve details'));
-  const list = box.querySelector('#eeveList');
-  examEveItems().forEach((label,i)=>{
-    const done = !!S.examEve[i];
-    const row = el(`<div class="oitem"><span class="ochk ${done?'done':''}">${done?'✓':''}</span><span class="olabel ${done?'done':''}">${esc(label)}</span></div>`);
-    row.querySelector('.ochk').onclick=()=>{ S.examEve[i]=!S.examEve[i]; saveApp(); render(); };
-    list.appendChild(row);
-  });
-  /* 전날에도 직접 할 일을 붙일 수 있게 — 마지막 날 루틴은 사람마다 다르다 */
+  /* 전날에도 직접 할 일을 붙일 수 있게 — 마지막 날 루틴은 사람마다 다르다.
+     매일 반복 항목은 그날엔 띄우지 않는다(시험 전날 루틴만 남긴다). */
+  const items = examEveItems();
   const flow = box.querySelector('#eeveFlow');
   flow.appendChild(el('<button class="add-plan-btn" type="button">+ 오늘 계획 추가</button>'));
+  items.forEach((label,i)=>{ if(!S.examEve[i]) flow.appendChild(examEveCard(label,i)); });
   manualPlans.filter(plan=>!plan.done).forEach(plan=> flow.appendChild(manualPlanCard(plan)));
-  dailyItems().forEach((label,i)=> flow.appendChild(dailyFlowCard(label,i)));
+  items.forEach((label,i)=>{ if(S.examEve[i]) flow.appendChild(examEveCard(label,i)); });
   manualPlans.filter(plan=>plan.done).forEach(plan=> flow.appendChild(manualPlanCard(plan)));
+  if(!items.length && !manualPlans.length) flow.appendChild(el('<div class="empty">오늘 체크할 항목이 없습니다</div>'));
   flow.querySelector('.add-plan-btn').onclick=openManualPlanModal;
 }
 /* 블록 사전 준비: 네이티브 <details> 토글을 가로채,
