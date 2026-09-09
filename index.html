@@ -255,7 +255,7 @@
   .primary{background:var(--accent)!important;color:#fff!important}
 
   .planlist{display:flex;flex-direction:column;gap:6px;margin-top:10px}
-  .planrow{display:grid;grid-template-columns:64px minmax(0,1fr) 150px;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
+  .planrow{display:grid;grid-template-columns:64px minmax(0,1fr) 168px;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
   .planrow > *{min-width:0}
   .planrow.cur{border-color:var(--accent);background:var(--accent-soft)}
   .planrow.past{opacity:.5}
@@ -264,20 +264,31 @@
   .pbarwrap{position:relative;height:14px;background:var(--track);border-radius:7px}
   .pbar{height:100%;border-radius:7px;transition:width .2s}
   .pcapline{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.35}
-  .pcount{font-size:10.5px;color:var(--muted);white-space:nowrap;text-align:right}
+  /* 오른쪽 칸: 위쪽에 개수 배지, 아래쪽(우하단)에 크레딧 조정 */
+  .pside{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;gap:9px;align-self:stretch}
+  .pcount{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px;font-size:10.5px;color:var(--muted)}
+  .pcnt{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:20px;background:var(--surface2);line-height:1.55}
+  .pcnt i{font-style:normal;font-size:9.5px;font-weight:700;color:var(--faint);letter-spacing:.2px}
+  .pcnt b{font-size:11px;font-weight:800;color:var(--ink)}
+  .pcnt.zero{opacity:.42}
+  .pcnt.assign{background:var(--warn-soft)}
+  .pcnt.assign b{color:var(--warn)}
+  .capbox{display:flex;align-items:center;gap:5px;margin-top:auto}
+  .caplbl{font-size:9.5px;font-weight:700;color:var(--faint)}
   /* 모바일: 고정 150px 우측 칸이 남는 폭을 밀어내 행이 어긋난다 → 아래로 내려 한 줄로 편다 */
   @media(max-width:720px){
     .planrow{grid-template-columns:54px minmax(0,1fr);row-gap:7px;padding:9px 11px}
-    .planrow .pcount{grid-column:1/-1;text-align:left;white-space:normal;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
-    .capinput{margin-left:0}
+    .planrow .pside{grid-column:1/-1;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;width:100%}
+    .planrow .pcount{justify-content:flex-start}
+    .capbox{margin-top:0}
     .pd{line-height:1.35}
   }
   .pnote{font-size:9.5px;color:var(--muted);font-weight:700;grid-column:1/-1;margin-top:-2px}
-  .capinput{width:56px;font-size:10.5px;border:1px solid var(--line);border-radius:6px;padding:3px 5px;margin-left:6px;font-family:var(--sans)}
+  .capinput{width:56px;font-size:10.5px;border:1px solid var(--line);border-radius:6px;padding:3px 5px;margin-left:0;font-family:var(--sans)}
   /* 직접 손댄 날은 자동 계산값과 구분되게 표시한다 — 안 그러면 어느 날을 조정해뒀는지
      알 수 없어서, 계획이 이상해도 원인을 못 찾는다. */
   .capinput.overridden{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink);font-weight:700}
-  .capreset{margin-left:4px;border:none;background:none;color:var(--muted);cursor:pointer;font-size:11px;padding:2px 3px;line-height:1}
+  .capreset{margin-left:0;border:none;background:none;color:var(--muted);cursor:pointer;font-size:11px;padding:2px 3px;line-height:1}
   .capreset:hover{color:var(--ink)}
   .typecosts{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px;padding:8px 10px;background:var(--surface2);border-radius:9px}
   .typecosts .tclbl{font-size:10.5px;font-weight:700;color:var(--muted)}
@@ -331,6 +342,21 @@
   details.onboard.motion-open > .onboard-list > div{animation:flowStepIn 300ms var(--ease) both}
   details.onboard.motion-closing > .onboard-list{animation:previewBoxOut 280ms var(--ease) both}
   details.onboard.motion-closing > .onboard-list > div{animation:flowStepOut 230ms var(--ease) both}
+
+  /* ===== 공통 접힘/펼침 모션 =====
+     '블록 사전 준비'와 같은 곡선·타이밍을, 접히는 모든 영역(지침·체크리스트 편집·
+     프롬프트 상자·계획 카드 등)에 그대로 재사용한다. */
+  .fold-anim-in{animation:previewBoxIn 300ms var(--ease) both;overflow:hidden}
+  .fold-anim-in > *{animation:flowStepIn 300ms var(--ease) both}
+  .fold-anim-out{animation:previewBoxOut 280ms var(--ease) both;overflow:hidden}
+  .fold-anim-out > *{animation:flowStepOut 230ms var(--ease) both}
+  /* 네이티브 <details>용 — summary를 뺀 본문에 같은 모션을 건다 */
+  details.foldable > :not(summary){max-height:0;overflow:hidden;opacity:0;transform:translateY(-5px)}
+  details.foldable[open] > :not(summary){max-height:none;overflow:visible;opacity:1;transform:none}
+  details.foldable.motion-open > :not(summary){animation:previewBoxIn 300ms var(--ease) both;overflow:hidden}
+  details.foldable.motion-closing > :not(summary){animation:previewBoxOut 280ms var(--ease) both;overflow:hidden}
+  /* 수정칸이 나타날 때의 짧은 페이드 */
+  .fadein{animation:flowStepIn 260ms var(--ease) both}
 
   /* 블록별 색 계열 스와치 */
   .themebar{display:flex;gap:9px;margin-top:9px;flex-wrap:wrap}
@@ -573,7 +599,7 @@
           <select id="alType"><option value="강의">강의</option><option value="실습">실습</option><option value="과제">과제</option></select>
           <select id="alDay"></select>
           <input type="number" id="alCredit" placeholder="크레딧(예상 소요)" step="0.25" min="0" style="width:120px;display:none">
-          <textarea id="alChecklist" placeholder="체크리스트 (한 줄에 하나씩, 선택)" style="display:none;width:100%;min-height:56px;margin-top:2px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:11.5px;font-family:var(--sans);background:var(--surface);resize:vertical"></textarea>
+          <textarea id="alChecklist" placeholder="체크리스트 (Enter로 항목 추가, 선택)" style="display:none;width:100%;min-height:56px;margin-top:2px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:11.5px;font-family:var(--sans);background:var(--surface);resize:vertical"></textarea>
           <button id="alAdd">+ 강의 추가</button>
         </div>
       </div>
@@ -611,7 +637,7 @@
   <p style="margin-bottom:12px">오늘 탭에 직접 할 일을 추가해주세요.</p>
   <div class="form-row"><label>배지</label><input type="text" id="mpBadge" placeholder="예: 족보, 복습, 과제"></div>
   <div class="form-row"><label>제목</label><input type="text" id="mpTitle" placeholder="오늘 할 일 제목"></div>
-  <div class="form-row"><label>세부 항목</label><textarea id="mpSteps" class="review-input" placeholder="한 줄에 하나씩 입력해주세요."></textarea></div>
+  <div class="form-row"><label>세부 항목</label><textarea id="mpSteps" class="review-input" placeholder="한 줄에 하나씩 · Enter를 치면 다음 줄 말머리가 자동으로 붙습니다"></textarea></div>
   <div class="nbstatus" id="mpStatus"></div>
   <div class="acts">
     <button class="no" id="mpCancel">취소</button>
@@ -742,6 +768,7 @@ let S=null, LEC=[], SCHOOL_DAYS=[], MAXDAY=0;
 let undoSnapshot=null;
 const expandedFlowCards=new Set();
 let onboardingOpen=false;
+let checklistCardOpen=false;
 
 function normalizeApp(app){
   if(!app || !Array.isArray(app.blocks)) return app;
@@ -754,6 +781,20 @@ function normalizeApp(app){
   if(typeof app.rev!=='number') app.rev=0; // 옛 저장분 호환용 기본값
   if(!app.subSteps || typeof app.subSteps!=='object') app.subSteps={};
   if(!Array.isArray(app.customPrompts)) app.customPrompts=[];
+  /* 직접 고친 체크리스트들(사전 준비·전날 루틴·매일 반복). 없으면 기본값을 쓴다. */
+  if(app.onboardSteps!=null && !Array.isArray(app.onboardSteps)) delete app.onboardSteps;
+  if(app.examEveSteps!=null && !Array.isArray(app.examEveSteps)) delete app.examEveSteps;
+  if(app.dailySteps!=null && !Array.isArray(app.dailySteps)) delete app.dailySteps;
+  /* 매일 반복 항목이 여러 개가 될 수 있게 ankiCheck(단일 체크) → dailyCheck(항목별 체크)로 옮긴다 */
+  app.blocks.forEach(b=>{
+    const st=b && b.state; if(!st) return;
+    if(!st.dailyCheck || typeof st.dailyCheck!=='object'){
+      st.dailyCheck={};
+      if(st.ankiCheck && typeof st.ankiCheck==='object'){
+        Object.entries(st.ankiCheck).forEach(([day,v])=>{ if(v) st.dailyCheck[day]={0:true}; });
+      }
+    }
+  });
   app.blocks.forEach(b=>{ if(!b || !THEMES[b.theme]) { if(b) b.theme='blue'; } }); // 색 계열 기본값
   return app;
 }
@@ -786,7 +827,7 @@ document.addEventListener('keydown', e=>{
 
 function freshState(schoolDays, lec){
   const m={}; lec.forEach(l=> m[l.id]=freshLecState());
-  return {cur:1, examDay: schoolDays.length, capOverride:{}, todayLock:null, typeCost:{new:1,r1:0.5,r2:0.25}, onboarding:{}, examEve:{}, ankiCheck:{}, manualPlans:{}, pulledReviews:{}, lec:m};
+  return {cur:1, examDay: schoolDays.length, capOverride:{}, todayLock:null, typeCost:{new:1,r1:0.5,r2:0.25}, onboarding:{}, examEve:{}, ankiCheck:{}, dailyCheck:{}, manualPlans:{}, pulledReviews:{}, lec:m};
 }
 function freshLecState(){
   return {enc:null, r:{1:false,2:false}, rDay:{1:null,2:null}, subCheck:{new:{},r1:{},r2:{},assign:{}}, excluded:false};
@@ -908,6 +949,125 @@ function subSteps(type){
   const v = App.subSteps && App.subSteps[type];
   return Array.isArray(v) && v.length ? v : (SUB_STEPS[type] || []);
 }
+/* ===== 체크리스트 입력 =====
+   체크리스트를 쓰는 칸에서 Enter를 치면 줄글로 이어지지 않고 다음 줄에 말머리(☐)가
+   먼저 찍힌다. 저장할 때는 말머리를 떼고 순수한 문구만 배열로 보관한다. */
+const CHK_BULLET='☐ ';
+const CHK_BULLET_RE=/^[\s\u00a0]*(?:[☐☑✔✓•·▪‣∙\-*]+[\s\u00a0]*)+/;
+function parseChecklist(text){
+  return String(text||'').split(/\r?\n/).map(line=>line.replace(CHK_BULLET_RE,'').trim()).filter(Boolean);
+}
+function bulletize(lines){
+  const arr = Array.isArray(lines) ? lines : String(lines||'').split(/\r?\n/);
+  return arr.map(x=>String(x).replace(CHK_BULLET_RE,'').trim()).filter(Boolean).map(x=>CHK_BULLET+x).join('\n');
+}
+function insertAtCursor(ta, text){
+  const start=ta.selectionStart, end=ta.selectionEnd;
+  ta.value = ta.value.slice(0,start) + text + ta.value.slice(end);
+  const pos = start + text.length;
+  ta.setSelectionRange(pos,pos);
+  ta.dispatchEvent(new Event('input',{bubbles:true}));
+}
+function bindChecklistInput(ta){
+  if(!ta || ta._chkBound) return; ta._chkBound=true;
+  ta.addEventListener('focus', ()=>{
+    if(!ta.value){ ta.value=CHK_BULLET; ta.setSelectionRange(ta.value.length, ta.value.length); }
+  });
+  ta.addEventListener('keydown', e=>{
+    if(e.key!=='Enter' || e.shiftKey || e.isComposing || e.keyCode===229) return; // 한글 조합 중 Enter는 글자 확정용
+    e.preventDefault();
+    insertAtCursor(ta, '\n'+CHK_BULLET);
+  });
+}
+/* ===== 공통 접힘/펼침 =====
+   '블록 사전 준비'가 쓰던 곡선·타이밍(previewBox + 항목 stagger)을 어디서나 재사용한다. */
+function playFold(body, opening, after){
+  const rows=[...body.children];
+  clearTimeout(body._foldTimer);
+  body.classList.remove('fold-anim-in','fold-anim-out');
+  rows.forEach(r=>{ r.style.animationDelay=''; });
+  void body.offsetWidth; // 같은 애니메이션을 다시 걸기 위한 리플로우
+  const cls = opening ? 'fold-anim-in' : 'fold-anim-out';
+  body.classList.add(cls);
+  rows.forEach((r,i)=>{ r.style.animationDelay=`${(opening? i : rows.length-1-i)*35}ms`; });
+  body._foldTimer=setTimeout(()=>{ body.classList.remove(cls); if(after) after(); }, 320+rows.length*35);
+}
+function foldOpen(body, display){ body.style.display = display || 'block'; playFold(body, true); }
+function foldClose(body, after){
+  if(body.style.display==='none'){ if(after) after(); return; }
+  playFold(body, false, ()=>{ body.style.display='none'; if(after) after(); });
+}
+function foldToggle(body, display){
+  const open = body.style.display!=='none' && !body.classList.contains('fold-anim-out');
+  if(open) foldClose(body); else foldOpen(body, display);
+  return !open;
+}
+/* .flowbody(오늘 카드 본문)용 — 기존 open/opening/closing 클래스 체계를 그대로 쓴다 */
+function toggleFlowBody(body, onOpen, onClose){
+  const expanded = body.style.display!=='none' && !body.classList.contains('closing');
+  clearTimeout(body.closeTimer);
+  if(expanded){
+    body.classList.remove('open');
+    body.classList.add('closing');
+    [...body.children].forEach((row,i)=>{ row.style.animationDelay=`${(body.children.length-1-i)*45}ms`; });
+    body.closeTimer=setTimeout(()=>{ body.style.display='none'; body.classList.remove('closing'); }, 280+body.children.length*45);
+    if(onClose) onClose();
+  }else{
+    body.style.display='block';
+    body.classList.remove('closing');
+    body.classList.add('open','opening');
+    setTimeout(()=>body.classList.remove('opening'),320);
+    [...body.children].forEach((row,i)=>{ row.style.animationDelay=`${i*45}ms`; });
+    if(onOpen) onOpen();
+  }
+}
+/* 네이티브 <details>를 같은 모션으로 여닫는다 */
+function bindDetailsFold(details, ignoreSelector){
+  if(!details || details._foldBound) return; details._foldBound=true;
+  details.classList.add('foldable');
+  const summary=details.querySelector('summary');
+  const body=[...details.children].find(c=>c.tagName!=='SUMMARY');
+  if(!summary || !body) return;
+  summary.addEventListener('click', e=>{
+    if(ignoreSelector && e.target.closest(ignoreSelector)) return;
+    e.preventDefault();
+    const rows=[...body.children];
+    const opening = !details.open || details.classList.contains('motion-closing');
+    clearTimeout(details.closeTimer);
+    if(opening){
+      details.open=true;
+      details.classList.remove('motion-closing');
+      details.classList.add('motion-open');
+      rows.forEach((r,i)=>{ r.style.animationDelay=`${i*35}ms`; });
+    }else{
+      details.classList.remove('motion-open');
+      details.classList.add('motion-closing');
+      rows.forEach((r,i)=>{ r.style.animationDelay=`${(rows.length-1-i)*35}ms`; });
+      details.closeTimer=setTimeout(()=>{
+        details.open=false;
+        details.classList.remove('motion-closing');
+      }, 300+rows.length*35);
+    }
+  });
+}
+/* 수정칸 열고 닫기 — 나타날 때 짧은 페이드를 준다 */
+function showEditBox(view, viewActions, editInput, editActions){
+  view.style.display='none'; if(viewActions) viewActions.style.display='none';
+  editInput.style.display=''; if(editActions) editActions.style.display='';
+  [editInput, editActions].forEach(node=>{
+    if(!node) return;
+    node.classList.remove('fadein'); void node.offsetWidth; node.classList.add('fadein');
+  });
+  editInput.focus();
+}
+function hideEditBox(view, viewActions, editInput, editActions){
+  view.style.display=''; if(viewActions) viewActions.style.display='';
+  editInput.style.display='none'; if(editActions) editActions.style.display='none';
+  [view, viewActions].forEach(node=>{
+    if(!node) return;
+    node.classList.remove('fadein'); void node.offsetWidth; node.classList.add('fadein');
+  });
+}
 /* ===== 새 블록 온보딩 체크리스트 ===== */
 
 const PROF_REVIEW_PROMPT_TEMPLATE = String.raw`[선배 후기 첨부]
@@ -956,9 +1116,72 @@ const ONBOARD_ITEMS = [
   {key:'pasteInstructions', label:'Custom Instruction 붙여넣기', action:'openPrompts'},
   {key:'uploadKnowledge', label:'Project Knowledge 업로드'},
 ];
+function defaultOnboardLabels(){ return ONBOARD_ITEMS.map(it=>it.label); }
+/* 라벨 문자열에서 만든 안정적인 체크 키 — 문구가 그대로면 체크 기록도 유지된다 */
+function labelKey(label){
+  let h=0;
+  for(let i=0;i<label.length;i++){ h=(h*31 + label.charCodeAt(i))|0; }
+  return 'c'+(h>>>0).toString(36);
+}
+/* 프롬프트 탭에서 직접 고친 사전 준비 목록이 있으면 그걸 쓴다.
+   문구가 기본 항목과 똑같으면 그 항목의 프롬프트·동작 버튼을 그대로 물려받는다. */
+function onboardItems(){
+  const custom = App.onboardSteps;
+  if(!Array.isArray(custom) || !custom.length) return ONBOARD_ITEMS;
+  return custom.map(label=>{
+    const builtin = ONBOARD_ITEMS.find(it=> it.label===label);
+    return builtin || {key:labelKey(label), label};
+  });
+}
 
 /* ===== 시험 전날 전용 루틴 (크레딧 분배 대상 아님) ===== */
 const EXAM_EVE_ITEMS = ['Anki 타임 (전체 복습)','족보 전체 풀이','족보에서 많이 틀린 부분 복습','가능하면 정리본 전체 1회독'];
+function examEveItems(){
+  const v=App.examEveSteps;
+  return Array.isArray(v) && v.length ? v : EXAM_EVE_ITEMS;
+}
+/* ===== 매일 반복 항목 (날짜마다 새로 체크하는 고정 루틴) ===== */
+const DAILY_ITEMS = ['오늘 Anki 복습'];
+function dailyItems(){
+  const v=App.dailySteps;
+  return Array.isArray(v) && v.length ? v : DAILY_ITEMS;
+}
+/* ===== 프롬프트 탭에서 한 번에 고치는 체크리스트들 ===== */
+function saveListOverride(field, arr, def){
+  if(!arr.length || arr.join('\n')===def.join('\n')) delete App[field];
+  else App[field]=arr;
+}
+function checklistSections(){
+  const stage = t => ({
+    label: catLabel(t)+' 카드',
+    cur: ()=> subSteps(t),
+    edited: ()=> Array.isArray(App.subSteps && App.subSteps[t]) && App.subSteps[t].length>0,
+    save: arr=>{
+      if(!App.subSteps) App.subSteps={};
+      if(!arr.length || arr.join('\n')===(SUB_STEPS[t]||[]).join('\n')) delete App.subSteps[t];
+      else App.subSteps[t]=arr;
+    },
+    reset: ()=>{ if(App.subSteps) delete App.subSteps[t]; }
+  });
+  return [
+    stage('new'), stage('r1'), stage('r2'),
+    {label:'블록 사전 준비', hint:'기본 항목의 문구를 바꾸면 그 줄에 붙어 있던 프롬프트 버튼은 사라집니다.',
+     cur:()=> onboardItems().map(it=>it.label),
+     edited:()=> Array.isArray(App.onboardSteps) && App.onboardSteps.length>0,
+     save: arr=> saveListOverride('onboardSteps', arr, defaultOnboardLabels()),
+     reset: ()=>{ delete App.onboardSteps; }},
+    {label:'시험 전날 루틴',
+     cur:()=> examEveItems(),
+     edited:()=> Array.isArray(App.examEveSteps) && App.examEveSteps.length>0,
+     save: arr=> saveListOverride('examEveSteps', arr, EXAM_EVE_ITEMS),
+     reset: ()=>{ delete App.examEveSteps; }},
+    {label:'매일 반복 항목', hint:'날짜마다 새로 체크하는 항목입니다. 오늘 탭에 매일 카드로 나옵니다.',
+     cur:()=> dailyItems(),
+     edited:()=> Array.isArray(App.dailySteps) && App.dailySteps.length>0,
+     save: arr=> saveListOverride('dailySteps', arr, DAILY_ITEMS),
+     reset: ()=>{ delete App.dailySteps; }},
+  ];
+}
 const FINAL_SUMMARY_PROMPT = `[이 블록의 모든 정리본 첨부]\n이 블록 전체 정리본을 하나로 압축한 시험 전날용 요약본을 만들어줘.\n- 전체 범주·위계가 한눈에 보이게 큰 그림부터 잡아줘\n- 강의별로 겹치는 내용은 합쳐서 최소 분량으로\n- 족보에 출제된 개념 위주로, 족보 스타일을 반영해서 이 정도까지 외워야 하는지 아닌지 면밀히 판별해줘\n[족보 + 족보 해설 + 선배 정리본 첨부]도 같이 참고해서 교차검증해줘.`;
 /* ===== 예습(전년도 필기) vs 실제(올해 필기) 비교 ===== */
 const COMPARE_PROMPT = `작년 필기로 미리 인코딩해둔 강의인데, 오늘 이번 연도 필기를 받았어. [이번 연도 필기 첨부] 작년 필기와 비교해서 달라진 점이나 새로 강조된 부분이 있으면 짚어주고, 있으면 정리본에 반영해줘.`;
@@ -1812,25 +2035,7 @@ function flowCard(type, l, isPulled){
   if(steps.length){
     item.querySelector('.flowhead').addEventListener('click', (e)=>{
       if(e.target.closest('.flowdone,.unpullbtn,.flowpromptbtn')) return;
-      const expanded=body.style.display!=='none' && !body.classList.contains('closing');
-      clearTimeout(body.closeTimer);
-      if(expanded){
-        body.classList.remove('open');
-        body.classList.add('closing');
-        [...body.children].forEach((row,i)=>{ row.style.animationDelay=`${(body.children.length-1-i)*45}ms`; });
-        body.closeTimer=setTimeout(()=>{
-          body.style.display='none';
-          body.classList.remove('closing');
-        },280+body.children.length*45);
-        expandedFlowCards.delete(flowKey);
-      }else{
-        body.style.display='block';
-        body.classList.remove('closing');
-        body.classList.add('open','opening');
-        setTimeout(()=>body.classList.remove('opening'),320);
-        [...body.children].forEach((row,i)=>{ row.style.animationDelay=`${i*45}ms`; });
-        expandedFlowCards.add(flowKey);
-      }
+      toggleFlowBody(body, ()=>expandedFlowCards.add(flowKey), ()=>expandedFlowCards.delete(flowKey));
     });
   }
   item.querySelector('.flowdone').onclick=(e)=>{
@@ -1881,9 +2086,9 @@ function manualPlanCard(plan){
     body.appendChild(row);
   });
   item.querySelector('.flowhead').onclick=e=>{
-    if(e.target.closest('.flowdone')) return;
-    const expanded=body.style.display!=='none'; body.style.display=expanded?'none':'block';
-    if(expanded) expandedFlowCards.delete(flowKey); else expandedFlowCards.add(flowKey);
+    if(e.target.closest('.flowdone,.manualdelbtn')) return;
+    if(!steps.length) return;
+    toggleFlowBody(body, ()=>expandedFlowCards.add(flowKey), ()=>expandedFlowCards.delete(flowKey));
   };
   item.querySelector('.flowdone').onclick=e=>{
     e.stopPropagation(); plan.done=!plan.done; saveApp(); render();
@@ -1898,18 +2103,20 @@ function manualPlanCard(plan){
   };
   return item;
 }
-function ankiFlowCard(){
-  const done = !!(S.ankiCheck && S.ankiCheck[S.cur]);
+/* 매일 반복 항목 — 날짜마다 새로 체크한다. 목록은 프롬프트 탭에서 직접 고칠 수 있다. */
+function dailyFlowCard(label, index){
+  if(!S.dailyCheck) S.dailyCheck={};
+  const map = S.dailyCheck[S.cur] || (S.dailyCheck[S.cur]={});
+  const done = !!map[index];
   const item = el(`<div class="flowitem">
     <div class="flowhead">
-      <span class="flowbadge" style="background:var(--accent-soft);color:var(--accent-ink)">Anki</span>
-      <span class="flowtitle">오늘 Anki 복습</span>
+      <span class="flowbadge" style="background:var(--accent-soft);color:var(--accent-ink)">매일</span>
+      <span class="flowtitle">${esc(label)}</span>
       <button class="flowdone ${done?'done':''}" style="${done?'background:var(--inactive-soft);color:var(--inactive)':''}">${done?'완료됨':'완료'}</button>
     </div>
   </div>`);
   item.querySelector('.flowdone').onclick=()=>{
-    if(!S.ankiCheck) S.ankiCheck={};
-    S.ankiCheck[S.cur] = !S.ankiCheck[S.cur];
+    map[index] = !map[index];
     saveApp(); render();
   };
   return item;
@@ -1946,7 +2153,7 @@ function renderDayFlow(box, isExamDay){
   const isDone = it => (it.type==='new'||it.type==='assign') ? S.lec[it.lecId].enc!=null : !!S.lec[it.lecId].r[it.type==='r1'?1:2];
   items.filter(it=>!isDone(it)).forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId), it.pulled)));
   manualPlans.filter(plan=>!plan.done).forEach(plan=> box.appendChild(manualPlanCard(plan)));
-  box.appendChild(ankiFlowCard());
+  dailyItems().forEach((label,i)=> box.appendChild(dailyFlowCard(label,i)));
   items.filter(isDone).forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId), it.pulled)));
   manualPlans.filter(plan=>plan.done).forEach(plan=> box.appendChild(manualPlanCard(plan)));
   if(!items.length && !manualPlans.length) box.insertBefore(el('<div class="empty">오늘 배정된 신규·복습 없음</div>'),box.children[1]);
@@ -1954,19 +2161,30 @@ function renderDayFlow(box, isExamDay){
 }
 function renderExamEve(box){
   if(!S.examEve) S.examEve={};
+  if(!S.manualPlans) S.manualPlans={};
+  const manualPlans = S.manualPlans[S.cur] || (S.manualPlans[S.cur]=[]);
   box.innerHTML = `<div class="eeve">
     <h2>시험 D-1</h2>
     <p class="hint">오늘은 크레딧을 배정하지 않습니다.</p>
     <details style="margin:10px 0"><summary style="cursor:pointer;font-size:11.5px;font-weight:700;color:var(--muted)">시험 전날 축약 정리본 프롬프트</summary><div class="opromptbox" style="margin-left:0">${esc(promptOverrideText('p5', FINAL_SUMMARY_PROMPT))}</div></details>
     <div id="eeveList"></div>
+    <div class="dayflow" id="eeveFlow" style="margin:14px 0 0"></div>
   </div>`;
+  bindDetailsFold(box.querySelector('.eeve details'));
   const list = box.querySelector('#eeveList');
-  EXAM_EVE_ITEMS.forEach((label,i)=>{
+  examEveItems().forEach((label,i)=>{
     const done = !!S.examEve[i];
     const row = el(`<div class="oitem"><span class="ochk ${done?'done':''}">${done?'✓':''}</span><span class="olabel ${done?'done':''}">${esc(label)}</span></div>`);
     row.querySelector('.ochk').onclick=()=>{ S.examEve[i]=!S.examEve[i]; saveApp(); render(); };
     list.appendChild(row);
   });
+  /* 전날에도 직접 할 일을 붙일 수 있게 — 마지막 날 루틴은 사람마다 다르다 */
+  const flow = box.querySelector('#eeveFlow');
+  flow.appendChild(el('<button class="add-plan-btn" type="button">+ 오늘 계획 추가</button>'));
+  manualPlans.filter(plan=>!plan.done).forEach(plan=> flow.appendChild(manualPlanCard(plan)));
+  dailyItems().forEach((label,i)=> flow.appendChild(dailyFlowCard(label,i)));
+  manualPlans.filter(plan=>plan.done).forEach(plan=> flow.appendChild(manualPlanCard(plan)));
+  flow.querySelector('.add-plan-btn').onclick=openManualPlanModal;
 }
 /* 블록 사전 준비: 네이티브 <details> 토글을 가로채,
    '오늘 학습 계획'의 상세 체크리스트와 같은 방식으로 펼치고 접는다. */
@@ -2011,9 +2229,10 @@ function renderOnboarding(){
     return;
   }
   const wasOpen=onboardingOpen;
-  const doneCount = ONBOARD_ITEMS.filter(it=> S.onboarding[it.key]===true).length;
+  const items = onboardItems();
+  const doneCount = items.filter(it=> S.onboarding[it.key]===true).length;
   box.innerHTML = `<details class="onboard" ${wasOpen?'open':''}>
-    <summary><span>블록 사전 준비 (${doneCount}/${ONBOARD_ITEMS.length})</span><button class="onboard-close" type="button" title="영역 닫기" aria-label="블록 사전 준비 닫기">×</button></summary>
+    <summary><span>블록 사전 준비 (${doneCount}/${items.length})</span><button class="onboard-close" type="button" title="영역 닫기" aria-label="블록 사전 준비 닫기">×</button></summary>
     <div id="onboardList" class="onboard-list" style="margin-top:8px"></div>
   </details>`;
   const onboard=box.querySelector('.onboard');
@@ -2028,7 +2247,7 @@ function renderOnboarding(){
     render();
   };
   const list = box.querySelector('#onboardList');
-  ONBOARD_ITEMS.forEach(it=>{
+  items.forEach(it=>{
     const state = S.onboarding[it.key];
     const done = state===true, later = state==='later';
     const wrap = el(`<div></div>`);
@@ -2053,19 +2272,27 @@ function renderOnboarding(){
       }
       const existing = wrap.querySelector('.opromptbox');
       if(existing){
-        existing.remove();
+        foldClose(existing, ()=>existing.remove());
         pBtn.textContent='프롬포트 복사';
         pBtn.classList.remove('copied');
         return;
       }
-      wrap.appendChild(el(`<div class="opromptbox">${esc(it.prompt)}</div>`));
+      const boxEl = el(`<div class="opromptbox" style="display:none">${esc(it.prompt)}</div>`);
+      wrap.appendChild(boxEl);
+      foldOpen(boxEl);
       copyText(it.prompt, pBtn);
     };
     const eBtn = row.querySelector('.opromptedit');
     if(eBtn) eBtn.onclick=()=>{
       const existingEdit = wrap.querySelector('.opromptedittext');
-      if(existingEdit){ existingEdit.remove(); wrap.querySelector('.opromptsavebar')?.remove(); return; }
-      wrap.querySelector('.opromptbox')?.remove();
+      if(existingEdit){
+        const oldBar=wrap.querySelector('.opromptsavebar');
+        foldClose(existingEdit, ()=>existingEdit.remove());
+        if(oldBar) foldClose(oldBar, ()=>oldBar.remove());
+        return;
+      }
+      const openBox=wrap.querySelector('.opromptbox');
+      if(openBox) foldClose(openBox, ()=>openBox.remove());
       if(pBtn){ pBtn.textContent='프롬포트 복사'; pBtn.classList.remove('copied'); }
       const ta = el(`<textarea class="opromptedittext">${esc(profReviewPromptTemplate())}</textarea>`);
       const bar = el(`<div class="opromptsavebar">
@@ -2082,14 +2309,21 @@ function renderOnboarding(){
         savePromptAsDefault(it.key, ta.value, PROF_REVIEW_PROMPT_TEMPLATE);
         render(); showToast('지금 상태를 기본값으로 저장했습니다.');
       };
-      bar.querySelector('.opromptcancelbtn').onclick=()=>{ ta.remove(); bar.remove(); };
+      bar.querySelector('.opromptcancelbtn').onclick=()=>{
+        foldClose(ta, ()=>ta.remove());
+        foldClose(bar, ()=>bar.remove());
+      };
       const resetBtn=bar.querySelector('.opromptresetbtn');
       if(resetBtn) resetBtn.onclick=()=>{
         clearPromptOverride(it.key);
         render(); showToast('기본 프롬프트로 되돌렸습니다.');
       };
+      ta.style.display='none'; bar.style.display='none';
       wrap.appendChild(ta);
       wrap.appendChild(bar);
+      foldOpen(ta);
+      foldOpen(bar, 'flex');
+      ta.focus();
     };
     wrap.appendChild(row);
     list.appendChild(wrap);
@@ -2118,6 +2352,7 @@ function renderToday(){
     const names = cands.map(l=>esc(l.code)+'. '+esc(l.title)).join(', ');
     cbox.innerHTML = `<div class="compareCard"><div class="compareCard-head"><b>⚠ 오늘 실제 수업일인 강의 ${cands.length}개가 있습니다.</b><button class="compareCard-close" title="안내 닫기" aria-label="안내 닫기">×</button></div>이번 연도 필기를 받으신 후, 비교 프롬프트로 한 번 비교해 보시는 것을 권해드립니다.<br>${names}
     <details style="margin-top:6px"><summary style="cursor:pointer;font-size:10.5px;font-weight:700">비교 프롬프트 보기</summary><div class="opromptbox" style="margin-left:0">${esc(promptOverrideText('p4', COMPARE_PROMPT))}</div></details></div>`;
+    bindDetailsFold(cbox.querySelector('details'));
     cbox.querySelector('.compareCard-close').onclick=()=>{
       App.compareDismissed[compareDismissKey]=true;
       saveApp();
@@ -2238,6 +2473,11 @@ function renderPlan(){
 
     const isOverridden = !!(S.capOverride && S.capOverride[d]!=null);
     const capInput = blocked? '' : `<input type="number" step="0.25" min="0" class="capinput${isOverridden?' overridden':''}" data-day="${d}" value="${cap.toFixed(2)}" title="${isOverridden?'직접 조정한 값입니다':'자동 계산된 값입니다'}">${isOverridden?`<button class="capreset" type="button" title="자동 계산값으로 되돌리기">↺</button>`:''}`;
+    /* 개수는 낱개 배지로 띄워 간격을 벌리고, 크레딧 조정은 오른쪽 아래로 내린다 */
+    const countCells = [
+      assign? {k:'과제', v:assign, c:'assign'} : null,
+      {k:'신규', v:n, c:'new'}, {k:'1차', v:r1, c:'r1'}, {k:'2차', v:r2, c:'r2'},
+    ].filter(Boolean).map(x=>`<span class="pcnt ${x.c}${x.v?'':' zero'}"><i>${x.k}</i><b>${x.v}</b></span>`).join('');
     const row = el(`<div class="planrow ${cls}">
       <div class="pd">Day${d}<div class="pdate">${info.date}(${info.dow})</div></div>
       <div>
@@ -2245,7 +2485,10 @@ function renderPlan(){
         ${tagsHtml}
         ${blocked?`<div class="pnote">분배 제외${info.note?' · '+esc(info.note):''}</div>`:(info.note?`<div class="pnote">${esc(info.note)}</div>`:'')}
       </div>
-      <div class="pcount">${assign?`과제 ${assign}·`:''}신규 ${n}·1차 ${r1}·2차 ${r2}${capInput}</div>
+      <div class="pside">
+        <div class="pcount">${countCells}</div>
+        ${blocked?'':`<div class="capbox"><span class="caplbl">크레딧</span>${capInput}</div>`}
+      </div>
     </div>`);
     if(!blocked){
       row.querySelector('.capinput').addEventListener('change', e=>{
@@ -2377,10 +2620,7 @@ function buildAssignRow(l, st){
       body.appendChild(srow);
     });
     wrap.appendChild(body);
-    row.querySelector('.assign-checklist-toggle').onclick=()=>{
-      const open = body.style.display!=='none';
-      body.style.display = open?'none':'block';
-    };
+    row.querySelector('.assign-checklist-toggle').onclick=()=> toggleFlowBody(body);
   }
   return wrap;
 }
@@ -2447,10 +2687,19 @@ function renderPrompts(){
   const body=instructionCard.querySelector('.instruction-body');
   const preview=instructionCard.querySelector('.instruction-preview');
   const refreshPreview=()=>{ preview.textContent=customInstructions(); };
-  instructionCard.querySelector('.instruction-toggle').onclick=()=>{
-    const open=body.classList.toggle('on');
-    instructionCard.querySelector('.instruction-toggle').textContent=open?'지침 닫기':'지침 열기';
-    if(open) refreshPreview();
+  const instrToggle=instructionCard.querySelector('.instruction-toggle');
+  body.style.display = body.classList.contains('on') ? 'block' : 'none';
+  instrToggle.onclick=()=>{
+    const open=body.classList.contains('on');
+    if(open){
+      instrToggle.textContent='지침 열기';
+      foldClose(body, ()=>body.classList.remove('on'));
+    }else{
+      body.classList.add('on');
+      instrToggle.textContent='지침 닫기';
+      refreshPreview();
+      foldOpen(body);
+    }
   };
   instructionCard.querySelector('.copybtn').onclick=e=>copyText(customInstructions(),e.target);
 
@@ -2460,14 +2709,10 @@ function renderPrompts(){
   const rEdit=reviewsSub.querySelector('.pedit-input');
   const rViewActions=reviewsSub.querySelector('.pactions');
   const rEditActions=reviewsSub.querySelector('.pedit-actions');
-  reviewsSub.querySelector('.peditbtn').onclick=()=>{
-    rView.style.display='none'; rViewActions.style.display='none';
-    rEdit.style.display=''; rEditActions.style.display=''; rEdit.focus();
-  };
+  reviewsSub.querySelector('.peditbtn').onclick=()=> showEditBox(rView, rViewActions, rEdit, rEditActions);
   reviewsSub.querySelector('.pcancelbtn').onclick=()=>{
     rEdit.value = App.blocks.find(b=>b.id===App.active)?.profReviews || '';
-    rView.style.display=''; rViewActions.style.display='';
-    rEdit.style.display='none'; rEditActions.style.display='none';
+    hideEditBox(rView, rViewActions, rEdit, rEditActions);
   };
   reviewsSub.querySelector('.psavebtn').onclick=()=>{
     const b=App.blocks.find(x=>x.id===App.active); if(!b) return;
@@ -2481,14 +2726,10 @@ function renderPrompts(){
   const tEdit=tmplSub.querySelector('.pedit-input');
   const tViewActions=tmplSub.querySelector('.pactions');
   const tEditActions=tmplSub.querySelector('.pedit-actions');
-  tmplSub.querySelector('.peditbtn').onclick=()=>{
-    tView.style.display='none'; tViewActions.style.display='none';
-    tEdit.style.display=''; tEditActions.style.display=''; tEdit.focus();
-  };
+  tmplSub.querySelector('.peditbtn').onclick=()=> showEditBox(tView, tViewActions, tEdit, tEditActions);
   tmplSub.querySelector('.pcancelbtn').onclick=()=>{
     tEdit.value = customInstructionsTemplate();
-    tView.style.display=''; tViewActions.style.display='';
-    tEdit.style.display='none'; tEditActions.style.display='none';
+    hideEditBox(tView, tViewActions, tEdit, tEditActions);
   };
   tmplSub.querySelector('.psavebtn').onclick=()=>{
     setCustomInstructionOverride(tEdit.value);
@@ -2506,18 +2747,35 @@ function renderPrompts(){
 
   box.appendChild(instructionCard);
 
-  /* 단계별 상세 체크리스트 편집 — 오늘 할 일 카드를 펼쳤을 때 나오는 항목들 */
+  /* 상세 체크리스트 편집 — 오늘 할 일 카드·블록 사전 준비·시험 전날 루틴·매일 반복 항목 */
   const stepCard = el(`<div class="pcard instruction-card">
-    <div class="ptitle">단계별 상세 체크리스트</div>
-    <div class="pwhen">오늘 할 일 카드를 펼치면 나오는 항목 · 한 줄에 하나씩</div>
+    <div class="ptitle">상세 체크리스트</div>
+    <div class="pwhen">오늘 할 일 카드 · 블록 사전 준비 · 시험 전날 루틴 · 매일 반복 항목 · 한 줄에 하나씩</div>
+    <button class="instruction-toggle checklist-toggle" type="button">${checklistCardOpen?'체크리스트 닫기':'체크리스트 열기'}</button>
+    <div class="instruction-body checklist-body${checklistCardOpen?' on':''}" style="display:${checklistCardOpen?'block':'none'}"></div>
   </div>`);
-  ['new','r1','r2'].forEach(type=>{
-    const cur=subSteps(type);
-    const edited=Array.isArray(App.subSteps && App.subSteps[type]) && App.subSteps[type].length>0;
+  const stepBody=stepCard.querySelector('.checklist-body');
+  const stepToggle=stepCard.querySelector('.checklist-toggle');
+  stepToggle.onclick=()=>{
+    const open=stepBody.classList.contains('on');
+    if(open){
+      stepToggle.textContent='체크리스트 열기';
+      foldClose(stepBody, ()=>stepBody.classList.remove('on'));
+    }else{
+      stepBody.classList.add('on');
+      stepToggle.textContent='체크리스트 닫기';
+      foldOpen(stepBody);
+    }
+    checklistCardOpen=!open;
+  };
+  checklistSections().forEach(spec=>{
+    const cur=spec.cur();
+    const edited=spec.edited();
     const sub=el(`<div class="instruction-sub">
-      <span class="sublabel">${catLabel(type)}${edited?' · <span class="pmod">수정됨</span>':''}</span>
-      <div class="subview">${esc(cur.join('\n'))}</div>
-      <textarea class="pedit-input" style="display:none">${esc(cur.join('\n'))}</textarea>
+      <span class="sublabel">${esc(spec.label)}${edited?' · <span class="pmod">수정됨</span>':''}</span>
+      <div class="subview${cur.length?'':' placeholder'}">${cur.length? esc(bulletize(cur)) : '항목 없음'}</div>
+      <textarea class="pedit-input chklist-input" style="display:none">${esc(bulletize(cur))}</textarea>
+      ${spec.hint?`<div class="cphint">${esc(spec.hint)}</div>`:''}
       <div class="pactions"><button class="peditbtn" type="button">수정</button></div>
       <div class="pedit-actions" style="display:none">
         <button class="psavebtn copybtn" type="button">저장</button>
@@ -2527,30 +2785,24 @@ function renderPrompts(){
     </div>`);
     const view=sub.querySelector('.subview'), ta=sub.querySelector('.pedit-input');
     const va=sub.querySelector('.pactions'), ea=sub.querySelector('.pedit-actions');
-    sub.querySelector('.peditbtn').onclick=()=>{
-      view.style.display='none'; va.style.display='none';
-      ta.style.display=''; ea.style.display=''; ta.focus();
-    };
+    bindChecklistInput(ta);
+    sub.querySelector('.peditbtn').onclick=()=> showEditBox(view, va, ta, ea);
     sub.querySelector('.pcancelbtn').onclick=()=>{
-      ta.value=subSteps(type).join('\n');
-      view.style.display=''; va.style.display='';
-      ta.style.display='none'; ea.style.display='none';
+      ta.value=bulletize(spec.cur());
+      hideEditBox(view, va, ta, ea);
     };
     sub.querySelector('.psavebtn').onclick=()=>{
-      const arr=ta.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-      if(!App.subSteps) App.subSteps={};
-      if(!arr.length || arr.join('\n')===(SUB_STEPS[type]||[]).join('\n')) delete App.subSteps[type];
-      else App.subSteps[type]=arr;
-      saveApp(); render(); showToast(`${catLabel(type)} 체크리스트를 저장했습니다.`);
+      spec.save(parseChecklist(ta.value));
+      saveApp(); render(); showToast(`${spec.label} 체크리스트를 저장했습니다.`);
     };
     const rb=sub.querySelector('.presetbtn');
     if(rb) rb.onclick=()=>{
-      if(App.subSteps) delete App.subSteps[type];
+      spec.reset();
       saveApp(); render(); showToast('기본 체크리스트로 되돌렸습니다.');
     };
-    stepCard.appendChild(sub);
+    stepBody.appendChild(sub);
   });
-  stepCard.appendChild(el('<div class="cphint">항목 순서를 바꾸면 이미 체크해둔 표시도 같은 순서로 따라 이동합니다.</div>'));
+  stepBody.appendChild(el('<div class="cphint">Enter를 치면 다음 줄에 말머리(☐)가 자동으로 붙습니다. 항목 순서를 바꾸면 이미 체크해둔 표시도 같은 순서로 따라 이동합니다.</div>'));
   box.appendChild(stepCard);
 
   PROMPTS().forEach(p=>{
@@ -2577,19 +2829,10 @@ function renderPrompts(){
     const viewActions=c.querySelector('.pactions');
     const editActions=c.querySelector('.pedit-actions');
     c.querySelector('.copybtn').onclick=(e)=> copyText(promptOverrideText(p.id,p.x), e.target);
-    c.querySelector('.peditbtn').onclick=()=>{
-      ptextEl.style.display='none';
-      viewActions.style.display='none';
-      editInput.style.display='';
-      editActions.style.display='';
-      editInput.focus();
-    };
+    c.querySelector('.peditbtn').onclick=()=> showEditBox(ptextEl, viewActions, editInput, editActions);
     c.querySelector('.pcancelbtn').onclick=()=>{
       editInput.value=promptOverrideText(p.id,p.x);
-      ptextEl.style.display='';
-      viewActions.style.display='';
-      editInput.style.display='none';
-      editActions.style.display='none';
+      hideEditBox(ptextEl, viewActions, editInput, editActions);
     };
     c.querySelector('.psavebtn').onclick=()=>{
       setPromptOverride(p.id, editInput.value, p.x);
@@ -2639,14 +2882,10 @@ function renderPrompts(){
     const va=c.querySelector('.pactions'), ea=c.querySelector('.pedit-actions');
     va.querySelector('.copybtn').onclick=e=>copyText(cp.text || '', e.target);
     c.querySelector('.peditbtn').onclick=()=>{
-      tv.style.display='none'; va.style.display='none';
-      form.style.display=''; ea.style.display='';
+      showEditBox(tv, va, form, ea);
       form.querySelector('.cpname').focus();
     };
-    c.querySelector('.pcancelbtn').onclick=()=>{
-      tv.style.display=''; va.style.display='';
-      form.style.display='none'; ea.style.display='none';
-    };
+    c.querySelector('.pcancelbtn').onclick=()=> hideEditBox(tv, va, form, ea);
     c.querySelector('.psavebtn').onclick=()=>{
       cp.name=form.querySelector('.cpname').value.trim() || cp.name;
       cp.cat=form.querySelector('.cpcat').value;
@@ -2735,6 +2974,12 @@ function closeAddModal(){ nbMask.classList.remove('on'); }
 document.getElementById('nbCancel').onclick=closeAddModal;
 document.getElementById('emptyAddBtn').onclick=openAddModal;
 
+/* 체크리스트를 쓰는 칸들: Enter → 다음 줄 말머리(☐) */
+['alChecklist','elChecklist','mpSteps'].forEach(id=>{
+  const node=document.getElementById(id);
+  if(node) bindChecklistInput(node);
+});
+
 const mpMask=document.getElementById('mpMask');
 function openManualPlanModal(){
   document.getElementById('mpBadge').value='';
@@ -2748,7 +2993,7 @@ document.getElementById('mpCancel').onclick=closeManualPlanModal;
 document.getElementById('mpSubmit').onclick=()=>{
   const badge=document.getElementById('mpBadge').value.trim();
   const title=document.getElementById('mpTitle').value.trim();
-  const steps=document.getElementById('mpSteps').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  const steps=parseChecklist(document.getElementById('mpSteps').value);
   const statusEl=document.getElementById('mpStatus');
   if(!badge||!title){ statusEl.textContent='배지와 제목을 입력해주세요.'; return; }
   if(!S.manualPlans) S.manualPlans={};
@@ -2845,7 +3090,7 @@ function openEditLecModal(l){
   document.getElementById('elProf').value=l.prof||'';
   document.getElementById('elType').value=l.type==='실습'?'실습':'강의';
   document.getElementById('elCredit').value = l.credit!=null? l.credit : 1;
-  document.getElementById('elChecklist').value = Array.isArray(l.checklist) ? l.checklist.join('\n') : '';
+  document.getElementById('elChecklist').value = Array.isArray(l.checklist) ? bulletize(l.checklist) : '';
   const daySel=document.getElementById('elDay');
   daySel.innerHTML = SCHOOL_DAYS.map(d=>`<option value="${d.day}">Day${d.day} ${d.date}(${d.dow})</option>`).join('');
   daySel.value=l.day;
@@ -2863,7 +3108,7 @@ document.getElementById('elSave').onclick=()=>{
   if(isAssign){
     const credit=parseFloat(document.getElementById('elCredit').value);
     _editingLec.credit = (isNaN(credit)||credit<=0) ? 1 : credit;
-    _editingLec.checklist = document.getElementById('elChecklist').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+    _editingLec.checklist = parseChecklist(document.getElementById('elChecklist').value);
   } else {
     _editingLec.code = document.getElementById('elCode').value.trim() || _editingLec.code;
     _editingLec.prof = document.getElementById('elProf').value.trim() || '미정';
@@ -2896,7 +3141,7 @@ document.getElementById('alAdd').onclick=()=>{
   const newId = (LEC.reduce((m,l)=>Math.max(m,l.id),0))+1;
   if(type==='과제'){
     const credit=parseFloat(document.getElementById('alCredit').value);
-    const checklist=document.getElementById('alChecklist').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+    const checklist=parseChecklist(document.getElementById('alChecklist').value);
     LEC.push({id:newId, day, code:'', title, prof:'', type:'과제', credit:(isNaN(credit)||credit<=0)?1:credit, checklist});
     document.getElementById('alChecklist').value='';
     document.getElementById('alCredit').value='';
