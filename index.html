@@ -419,6 +419,27 @@
   .cprow{display:flex;gap:6px;flex-wrap:wrap}
   .cpname,.cpcat{border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:12px;font-family:var(--sans);background:var(--surface);color:var(--ink)}
   .cpname{flex:1;min-width:150px}
+  .cpwhen{border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:11.5px;font-family:var(--sans);background:var(--surface);color:var(--ink);width:100%}
+  .cprestorebtn{margin-top:9px;border:none;border-radius:9px;padding:8px 15px;font-size:11.5px;font-weight:700;background:var(--surface2);color:var(--ink);cursor:pointer}
+  .compare-copy{margin-top:2px}
+  /* ===== 시험 당일 · 블록 끝내기 ===== */
+  .finish-wrap{text-align:center;padding-bottom:16px}
+  .finish-btn{border:none;background:var(--accent);color:#fff;border-radius:12px;padding:11px 24px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:var(--sh-2);transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+  .finish-btn:hover{transform:translateY(-1px);box-shadow:var(--sh-3)}
+  .finish-hint{font-size:10.5px;color:var(--faint);margin-top:8px}
+  .finish-done{text-align:center;padding:24px 14px 18px;background:var(--accent-soft);border-radius:16px;margin:4px 0 10px}
+  .finish-done .finish-emoji{font-size:32px;line-height:1;margin-bottom:8px}
+  .finish-done b{display:block;font-size:14.5px;color:var(--accent-ink);letter-spacing:-0.2px}
+  .finish-done p{margin:5px 0 0;font-size:11.5px;color:var(--muted)}
+  .finish-undo{margin-top:12px;border:none;background:transparent;color:var(--faint);font-size:10.5px;text-decoration:underline;cursor:pointer}
+  .modal.celebrate{text-align:center;max-width:340px}
+  .modal.celebrate .cb-emoji{font-size:46px;line-height:1;margin:6px 0 12px}
+  .modal.celebrate h3{font-size:16px;line-height:1.4}
+  .modal.celebrate p{margin-top:6px}
+  .modal.celebrate .acts{justify-content:center}
+  .confetti{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
+  .confetti i{position:absolute;top:-16px;width:8px;height:12px;border-radius:2px;opacity:0;animation:confettiFall 2.8s cubic-bezier(.25,.6,.4,1) forwards}
+  @keyframes confettiFall{0%{opacity:1;transform:translate3d(0,0,0) rotate(0deg)}85%{opacity:1}100%{opacity:0;transform:translate3d(var(--dx),108vh,0) rotate(var(--rot))}}
   .cpaddbtn{margin-top:9px;border:none;border-radius:9px;padding:8px 15px;font-size:11.5px;font-weight:700;background:var(--accent);color:#fff;cursor:pointer}
   .badge.cat{background:var(--accent-soft);color:var(--accent-ink)}
   .cphint{font-size:10.5px;color:var(--faint);margin-top:6px}
@@ -619,6 +640,12 @@
   <div class="acts"><button class="no" id="mkNo">취소</button><button class="yes" id="mkYes">되돌리기</button></div>
 </div></div>
 
+<div class="mask" id="cbMask"><div class="modal celebrate">
+  <div class="cb-emoji">🎉</div>
+  <h3 id="cbT"></h3><p id="cbB"></p>
+  <div class="acts"><button class="yes primary" id="cbOk">고마워!</button></div>
+</div></div>
+
 <div class="mask" id="nbMask"><div class="modal wide">
   <h3>새 블록 추가</h3>
   <p style="margin-bottom:12px">블록을 생성하기 위해 과목명·시작일·시험일을 지정해주세요</p>
@@ -770,6 +797,21 @@ const expandedFlowCards=new Set();
 let onboardingOpen=false;
 let checklistCardOpen=false;
 
+/* 기본 프롬프트(p1~p5)를 한 번만 '프롬프트 목록'으로 옮긴다. 이후로는 기본/직접 추가 구분 없이
+   전부 이름·단계·설명·내용을 고치고 삭제할 수 있다. 예전에 고쳐둔 문구는 그대로 이어받는다. */
+function builtinPromptEntry(p, app){
+  const pick=o=>{ const v=o && o[p.id]; return (typeof v==='string' && v.trim().length) ? v : null; };
+  return {id:p.id, name:shortPromptName(p.t), cat:BUILTIN_PROMPT_CAT[p.id]||'none', when:p.w,
+          text:(app && (pick(app.promptOverrides) || pick(app.promptDefaults))) || p.x};
+}
+function migrateBuiltinPrompts(app){
+  if(app.promptsUnified) return;
+  const have=new Set(app.customPrompts.map(cp=>cp && cp.id));
+  const builtins=PROMPTS().filter(p=>!have.has(p.id)).map(p=>builtinPromptEntry(p, app));
+  app.customPrompts=builtins.concat(app.customPrompts);
+  PROMPTS().forEach(p=>{ delete app.promptOverrides[p.id]; delete app.promptDefaults[p.id]; });
+  app.promptsUnified=true;
+}
 function normalizeApp(app){
   if(!app || !Array.isArray(app.blocks)) return app;
   if(!app.promptOverrides || typeof app.promptOverrides!=='object') app.promptOverrides={};
@@ -781,6 +823,7 @@ function normalizeApp(app){
   if(typeof app.rev!=='number') app.rev=0; // 옛 저장분 호환용 기본값
   if(!app.subSteps || typeof app.subSteps!=='object') app.subSteps={};
   if(!Array.isArray(app.customPrompts)) app.customPrompts=[];
+  migrateBuiltinPrompts(app);
   /* 직접 고친 체크리스트들(사전 준비·전날 루틴·매일 반복). 없으면 기본값을 쓴다. */
   if(app.onboardSteps!=null && !Array.isArray(app.onboardSteps)) delete app.onboardSteps;
   if(app.examEveSteps!=null && !Array.isArray(app.examEveSteps)) delete app.examEveSteps;
@@ -947,7 +990,7 @@ const SUB_STEPS = {
    체크 기록(subCheck)은 배열 인덱스로 저장되므로, 항목 순서를 바꾸면 체크 위치도 함께 밀린다. */
 function subSteps(type){
   const v = App.subSteps && App.subSteps[type];
-  return Array.isArray(v) && v.length ? v : (SUB_STEPS[type] || []);
+  return Array.isArray(v) ? v : (SUB_STEPS[type] || []); // 빈 배열 = 일부러 다 지운 상태
 }
 /* ===== 체크리스트 입력 =====
    체크리스트를 쓰는 칸에서 Enter를 치면 줄글로 이어지지 않고 다음 줄에 말머리(☐)가
@@ -1127,7 +1170,7 @@ function labelKey(label){
    문구가 기본 항목과 똑같으면 그 항목의 프롬프트·동작 버튼을 그대로 물려받는다. */
 function onboardItems(){
   const custom = App.onboardSteps;
-  if(!Array.isArray(custom) || !custom.length) return ONBOARD_ITEMS;
+  if(!Array.isArray(custom)) return ONBOARD_ITEMS;
   return custom.map(label=>{
     const builtin = ONBOARD_ITEMS.find(it=> it.label===label);
     return builtin || {key:labelKey(label), label};
@@ -1138,27 +1181,27 @@ function onboardItems(){
 const EXAM_EVE_ITEMS = ['Anki 타임 (전체 복습)','족보 전체 풀이','족보에서 많이 틀린 부분 복습','가능하면 정리본 전체 1회독'];
 function examEveItems(){
   const v=App.examEveSteps;
-  return Array.isArray(v) && v.length ? v : EXAM_EVE_ITEMS;
+  return Array.isArray(v) ? v : EXAM_EVE_ITEMS;
 }
 /* ===== 매일 반복 항목 (날짜마다 새로 체크하는 고정 루틴) ===== */
 const DAILY_ITEMS = ['오늘 Anki 복습'];
 function dailyItems(){
   const v=App.dailySteps;
-  return Array.isArray(v) && v.length ? v : DAILY_ITEMS;
+  return Array.isArray(v) ? v : DAILY_ITEMS;
 }
 /* ===== 프롬프트 탭에서 한 번에 고치는 체크리스트들 ===== */
 function saveListOverride(field, arr, def){
-  if(!arr.length || arr.join('\n')===def.join('\n')) delete App[field];
+  if(arr.join('\n')===def.join('\n')) delete App[field]; // 빈 목록도 그대로 저장한다
   else App[field]=arr;
 }
 function checklistSections(){
   const stage = t => ({
     label: catLabel(t)+' 카드',
     cur: ()=> subSteps(t),
-    edited: ()=> Array.isArray(App.subSteps && App.subSteps[t]) && App.subSteps[t].length>0,
+    edited: ()=> Array.isArray(App.subSteps && App.subSteps[t]),
     save: arr=>{
       if(!App.subSteps) App.subSteps={};
-      if(!arr.length || arr.join('\n')===(SUB_STEPS[t]||[]).join('\n')) delete App.subSteps[t];
+      if(arr.join('\n')===(SUB_STEPS[t]||[]).join('\n')) delete App.subSteps[t];
       else App.subSteps[t]=arr;
     },
     reset: ()=>{ if(App.subSteps) delete App.subSteps[t]; }
@@ -1167,17 +1210,17 @@ function checklistSections(){
     stage('new'), stage('r1'), stage('r2'),
     {label:'블록 사전 준비', hint:'기본 항목의 문구를 바꾸면 그 줄에 붙어 있던 프롬프트 버튼은 사라집니다.',
      cur:()=> onboardItems().map(it=>it.label),
-     edited:()=> Array.isArray(App.onboardSteps) && App.onboardSteps.length>0,
+     edited:()=> Array.isArray(App.onboardSteps),
      save: arr=> saveListOverride('onboardSteps', arr, defaultOnboardLabels()),
      reset: ()=>{ delete App.onboardSteps; }},
     {label:'시험 전날 루틴',
      cur:()=> examEveItems(),
-     edited:()=> Array.isArray(App.examEveSteps) && App.examEveSteps.length>0,
+     edited:()=> Array.isArray(App.examEveSteps),
      save: arr=> saveListOverride('examEveSteps', arr, EXAM_EVE_ITEMS),
      reset: ()=>{ delete App.examEveSteps; }},
     {label:'매일 반복 항목', hint:'날짜마다 새로 체크하는 항목입니다. 오늘 탭에 매일 카드로 나옵니다.',
      cur:()=> dailyItems(),
-     edited:()=> Array.isArray(App.dailySteps) && App.dailySteps.length>0,
+     edited:()=> Array.isArray(App.dailySteps),
      save: arr=> saveListOverride('dailySteps', arr, DAILY_ITEMS),
      reset: ()=>{ delete App.dailySteps; }},
   ];
@@ -1521,11 +1564,10 @@ function catLabel(key){ const c=PROMPT_CATS.find(x=>x.key===key); return c? c.la
 function customPrompts(){ if(!Array.isArray(App.customPrompts)) App.customPrompts=[]; return App.customPrompts; }
 function shortPromptName(t){ return String(t).replace(/^PROMPT\s*\d+\s*[·.]\s*/,''); }
 function promptsForStage(type){
-  const list=[];
-  PROMPTS().forEach(p=>{ if(BUILTIN_PROMPT_CAT[p.id]===type) list.push({name:shortPromptName(p.t), text:promptOverrideText(p.id,p.x)}); });
-  customPrompts().forEach(cp=>{ if(cp.cat===type) list.push({name:cp.name || '이름 없는 프롬프트', text:cp.text || ''}); });
-  return list;
+  return customPrompts().filter(cp=>cp.cat===type).map(cp=>({name:cp.name || '이름 없는 프롬프트', text:cp.text || ''}));
 }
+/* 비교(p4)·축약 정리본(p5)처럼 특정 화면에 붙는 프롬프트 — 삭제했으면 null */
+function promptById(id){ return customPrompts().find(cp=>cp && cp.id===id) || null; }
 /* 프롬프트 수정본 저장/조회 — App.promptOverrides(임시 수정) / App.promptDefaults(내 기본값으로 승격)에 id별로 보관
    effective = 임시 수정 있으면 그것, 없으면 내 기본값, 없으면 하드코딩 원본 */
 function promptBaseText(id, fallback){
@@ -1710,7 +1752,7 @@ function renderBanner(){
 
   let ringColor, statusLabel;
   let statusColor;
-  if(rem<=0){ ringColor='var(--warn)'; statusColor='var(--warn)'; statusLabel='시험 당일'; }
+  if(rem<=0){ ringColor='var(--warn)'; statusColor='var(--warn)'; statusLabel= (S.finishedAt && rem===0) ? '완료' : '시험 당일'; }
   else if(rem<=1){ ringColor='var(--warn)'; statusColor='var(--warn)'; statusLabel='내일'; }
   else if(frac<0.34){ ringColor='var(--warn)'; statusColor='var(--warn)'; statusLabel='임박'; }
   else if(frac<0.67){ ringColor='var(--progress)'; statusColor='var(--accent-ink)'; statusLabel='진행 중'; }
@@ -1729,6 +1771,7 @@ function renderBanner(){
   let dnum, sub;
   if(rem>1){ dnum=`D-${rem}`; sub='시험까지 남은 날'; }
   else if(rem===1){ dnum='D-1'; sub='내일이 시험이야! 마지막까지 화이팅🍀'; }
+  else if(rem===0 && S.finishedAt){ dnum='D-DAY'; sub='블록 끝! 정말 고생 많았어 🎉'; }
   else if(rem===0){ dnum='D-DAY'; sub='오늘 시험이야! 지금까지 열심히 한 것보다도 더 잘 볼거야 🍀🍀🍀'; }
   else{ dnum='FIN'; sub='시험이 끝났어. 그동안 수고했어! 다음 블록도 화이팅!'; }
 
@@ -2148,10 +2191,65 @@ function purgePulled(lecId){
   if(!S.pulledReviews) return;
   ['new','r1','r2','assign'].forEach(t=>{ delete S.pulledReviews[lecId+':'+t]; });
 }
+/* 블록 끝내기 — 축하 모달 + 색종이 */
+function celebrateBlock(block){
+  const name = block?.name || '이번';
+  const lecCount = activeLectures().filter(l=>l.type!=='과제').length;
+  document.getElementById('cbT').textContent = `축하해! ${name} 블록이 끝났어`;
+  document.getElementById('cbB').textContent =
+    (lecCount ? `Day1부터 Day${S.examDay}까지, 강의 ${lecCount}개를 끝까지 달려왔어.\n` : '')
+    + '정말 고생 많았어. 오늘은 푹 쉬어!';
+  const m=document.getElementById('cbMask');
+  m.classList.add('on');
+  launchConfetti();
+}
+document.getElementById('cbOk').onclick=()=> document.getElementById('cbMask').classList.remove('on');
+function launchConfetti(){
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cs=getComputedStyle(document.documentElement);
+  const colors=[cs.getPropertyValue('--accent'), cs.getPropertyValue('--fill-progress'), cs.getPropertyValue('--done-soft'), '#F4C95D', '#EE9BB4', '#7CC9A2'].map(c=>c.trim()).filter(Boolean);
+  const wrap=document.createElement('div'); wrap.className='confetti';
+  for(let i=0;i<90;i++){
+    const p=document.createElement('i');
+    p.style.left=(Math.random()*100)+'vw';
+    p.style.background=colors[i%colors.length];
+    p.style.animationDelay=(Math.random()*0.6)+'s';
+    p.style.animationDuration=(2.2+Math.random()*1.4)+'s';
+    p.style.setProperty('--dx', ((Math.random()-0.5)*30)+'vw');
+    p.style.setProperty('--rot', (Math.random()*720-360)+'deg');
+    if(Math.random()<0.35){ p.style.width='7px'; p.style.height='7px'; p.style.borderRadius='50%'; }
+    wrap.appendChild(p);
+  }
+  document.body.appendChild(wrap);
+  setTimeout(()=>wrap.remove(), 4200);
+}
 function renderDayFlow(box, isExamDay){
   box.innerHTML='';
   if(isExamDay){
-    box.appendChild(el('<div class="empty" style="padding:24px 4px">오늘은 시험 보는 날이야. 화이팅! 🍀</div>'));
+    const block=App.blocks.find(b=>b.id===App.active);
+    const name=esc(block?.name || '');
+    if(S.finishedAt){
+      const c=el(`<div class="finish-done">
+        <div class="finish-emoji">🎉</div>
+        <b>${name} 블록 끝!</b>
+        <p>정말 고생 많았어. 오늘은 푹 쉬어.</p>
+        <button class="finish-undo" type="button">블록 끝내기 취소</button>
+      </div>`);
+      c.querySelector('.finish-undo').onclick=()=>{ delete S.finishedAt; saveApp(); render(); showToast('블록 끝내기를 취소했습니다.'); };
+      box.appendChild(c);
+    } else {
+      const c=el(`<div class="finish-wrap">
+        <div class="empty" style="padding:24px 4px 14px">오늘은 시험 보는 날이야. 화이팅! 🍀</div>
+        <button class="finish-btn" type="button">블록 끝내기</button>
+        <div class="finish-hint">시험 보고 나오면 눌러줘</div>
+      </div>`);
+      c.querySelector('.finish-btn').onclick=()=>{
+        S.finishedAt=new Date().toISOString();
+        saveApp(); render();
+        celebrateBlock(block);
+      };
+      box.appendChild(c);
+    }
     return;
   }
   if(!S.manualPlans) S.manualPlans={};
@@ -2203,13 +2301,18 @@ function renderExamEve(box){
   if(!S.examEve) S.examEve={};
   if(!S.manualPlans) S.manualPlans={};
   const manualPlans = S.manualPlans[S.cur] || (S.manualPlans[S.cur]=[]);
+  const p5 = promptById('p5');
   box.innerHTML = `<div class="eeve">
     <h2>시험 D-1</h2>
     <p class="hint">오늘은 크레딧을 배정하지 않습니다. 아래 항목을 끝낸 비율이 오늘의 진도가 됩니다.</p>
-    <details style="margin:10px 0"><summary style="cursor:pointer;font-size:11.5px;font-weight:700;color:var(--muted)">시험 전날 축약 정리본 프롬프트</summary><div class="opromptbox" style="margin-left:0">${esc(promptOverrideText('p5', FINAL_SUMMARY_PROMPT))}</div></details>
+    ${p5?`<details style="margin:10px 0 0"><summary style="cursor:pointer;font-size:11.5px;font-weight:700;color:var(--muted)">${esc(p5.name||'시험 전날 축약 정리본')} 프롬프트 보기</summary><div class="opromptbox" style="margin-left:0">${esc(p5.text||'')}</div></details>
+    <button class="copybtn eeve-copy" type="button">프롬포트 복사</button>`:''}
     <div class="dayflow" id="eeveFlow" style="margin:14px 0 0"></div>
   </div>`;
-  bindDetailsFold(box.querySelector('.eeve details'));
+  if(p5){
+    bindDetailsFold(box.querySelector('.eeve details'));
+    box.querySelector('.eeve-copy').onclick=e=>copyText(p5.text||'', e.target);
+  }
   /* 전날에도 직접 할 일을 붙일 수 있게 — 마지막 날 루틴은 사람마다 다르다.
      매일 반복 항목은 그날엔 띄우지 않는다(시험 전날 루틴만 남긴다). */
   const items = examEveItems();
@@ -2291,7 +2394,7 @@ function renderOnboarding(){
     const overridden = editable && (App.promptOverrides && typeof App.promptOverrides[it.key]==='string' && App.promptOverrides[it.key].trim().length);
     const row = el(`<div class="oitem">
       <span class="ochk ${done?'done':''}">${done?'✓':''}</span>
-      <span class="olabel ${done?'done':''} ${later?'later':''}">${esc(it.label)}${later?'<span class="olater-badge">나중에</span>':''}${overridden?'<span class="omod">수정됨</span>':''}</span>
+      <span class="olabel ${done?'done':''} ${later?'later':''}">${esc(it.label)}${later?'<span class="olater-badge">나중에</span>':''}</span>
       ${(it.prompt||it.action)?'<button class="opromptbtn">프롬포트 복사</button>':''}
       ${editable?'<button class="opromptedit">수정</button>':''}
     </div>`);
@@ -2385,10 +2488,15 @@ function renderToday(){
   const cands = comparisonCandidates();
   const compareDismissKey=`${App.active}:${S.cur}`;
   if(cands.length && !App.compareDismissed[compareDismissKey]){
+    const p4 = promptById('p4');
     const names = cands.map(l=>esc(l.code)+'. '+esc(l.title)).join(', ');
     cbox.innerHTML = `<div class="compareCard"><div class="compareCard-head"><b>⚠ 오늘 실제 수업일인 강의 ${cands.length}개가 있습니다.</b><button class="compareCard-close" title="안내 닫기" aria-label="안내 닫기">×</button></div>이번 연도 필기를 받으신 후, 비교 프롬프트로 한 번 비교해 보시는 것을 권해드립니다.<br>${names}
-    <details style="margin-top:6px"><summary style="cursor:pointer;font-size:10.5px;font-weight:700">비교 프롬프트 보기</summary><div class="opromptbox" style="margin-left:0">${esc(promptOverrideText('p4', COMPARE_PROMPT))}</div></details></div>`;
-    bindDetailsFold(cbox.querySelector('details'));
+    ${p4?`<div class="compare-copy"><button class="copybtn" type="button">프롬포트 복사</button></div>
+    <details style="margin-top:6px"><summary style="cursor:pointer;font-size:10.5px;font-weight:700">비교 프롬프트 보기</summary><div class="opromptbox" style="margin-left:0">${esc(p4.text||'')}</div></details>`:''}</div>`;
+    if(p4){
+      bindDetailsFold(cbox.querySelector('details'));
+      cbox.querySelector('.compare-copy .copybtn').onclick=e=>copyText(p4.text||'', e.target);
+    }
     cbox.querySelector('.compareCard-close').onclick=()=>{
       App.compareDismissed[compareDismissKey]=true;
       saveApp();
@@ -2703,7 +2811,7 @@ function renderPrompts(){
       </div>
 
       <div class="instruction-sub" data-sub="tmpl">
-        <span class="sublabel">Custom instruction 템플릿${tmplOverridden?' · <span class="pmod">수정됨</span>':''}</span>
+        <span class="sublabel">Custom instruction 템플릿</span>
         <div class="subview">${esc(tmplCurrent)}</div>
         <textarea class="pedit-input tmpl" style="display:none">${esc(tmplCurrent)}</textarea>
         <div class="pactions">
@@ -2808,7 +2916,7 @@ function renderPrompts(){
     const cur=spec.cur();
     const edited=spec.edited();
     const sub=el(`<div class="instruction-sub">
-      <span class="sublabel">${esc(spec.label)}${edited?' · <span class="pmod">수정됨</span>':''}</span>
+      <span class="sublabel">${esc(spec.label)}</span>
       <div class="subview${cur.length?'':' placeholder'}">${cur.length? esc(bulletize(cur)) : '항목 없음'}</div>
       <textarea class="pedit-input chklist-input" style="display:none">${esc(bulletize(cur))}</textarea>
       ${spec.hint?`<div class="cphint">${esc(spec.hint)}</div>`:''}
@@ -2841,67 +2949,20 @@ function renderPrompts(){
   stepBody.appendChild(el('<div class="cphint">Enter를 치면 다음 줄에 말머리(☐)가 자동으로 붙습니다. 항목 순서를 바꾸면 이미 체크해둔 표시도 같은 순서로 따라 이동합니다.</div>'));
   box.appendChild(stepCard);
 
-  PROMPTS().forEach(p=>{
-    const current = promptOverrideText(p.id, p.x);
-    const overridden = current !== p.x;
-    const c = el(`<div class="pcard">
-      <div class="ptitle">${esc(p.t)}</div>
-      <div class="pwhen"><span class="badge cat">${catLabel(BUILTIN_PROMPT_CAT[p.id])}</span> ${esc(p.w)}${overridden?' · <span class="pmod">수정됨</span>':''}</div>
-      <div class="ptext">${esc(current)}</div>
-      <textarea class="pedit-input" style="display:none">${esc(current)}</textarea>
-      <div class="pactions">
-        <button class="copybtn">프롬포트 복사</button>
-        <button class="peditbtn">수정</button>
-      </div>
-      <div class="pedit-actions" style="display:none">
-        <button class="psavebtn copybtn">저장</button>
-        <button class="psavedefaultbtn">기본값으로 저장</button>
-        <button class="pcancelbtn">취소</button>
-        ${overridden?'<button class="presetbtn">기본값으로</button>':''}
-      </div>
-    </div>`);
-    const ptextEl=c.querySelector('.ptext');
-    const editInput=c.querySelector('.pedit-input');
-    const viewActions=c.querySelector('.pactions');
-    const editActions=c.querySelector('.pedit-actions');
-    c.querySelector('.copybtn').onclick=(e)=> copyText(promptOverrideText(p.id,p.x), e.target);
-    c.querySelector('.peditbtn').onclick=()=> showEditBox(ptextEl, viewActions, editInput, editActions);
-    c.querySelector('.pcancelbtn').onclick=()=>{
-      editInput.value=promptOverrideText(p.id,p.x);
-      hideEditBox(ptextEl, viewActions, editInput, editActions);
-    };
-    c.querySelector('.psavebtn').onclick=()=>{
-      setPromptOverride(p.id, editInput.value, p.x);
-      render();
-      showToast('프롬프트를 수정했습니다.');
-    };
-    c.querySelector('.psavedefaultbtn').onclick=()=>{
-      savePromptAsDefault(p.id, editInput.value, p.x);
-      render();
-      showToast('지금 상태를 기본값으로 저장했습니다.');
-    };
-    const resetBtn=c.querySelector('.presetbtn');
-    if(resetBtn) resetBtn.onclick=()=>{
-      clearPromptOverride(p.id);
-      render();
-      showToast('기본 프롬프트로 되돌렸습니다.');
-    };
-    box.appendChild(c);
-  });
-
   const catOptions=(sel)=> PROMPT_CATS.map(c=>`<option value="${c.key}" ${c.key===sel?'selected':''}>${c.label}</option>`).join('');
 
   /* 내가 추가한 프롬프트 */
   customPrompts().forEach(cp=>{
     const c = el(`<div class="pcard">
       <div class="ptitle">${esc(cp.name || '이름 없는 프롬프트')}</div>
-      <div class="pwhen"><span class="badge cat">${catLabel(cp.cat)}</span> 내가 추가한 프롬프트</div>
+      <div class="pwhen"><span class="badge cat">${catLabel(cp.cat)}</span>${cp.when?' '+esc(cp.when):''}</div>
       <div class="ptext">${esc(cp.text || '')}</div>
       <div class="cpedit" style="display:none">
         <div class="cprow">
           <input class="cpname" type="text" value="${esc(cp.name || '')}" placeholder="이름 (예: 족보 해설 보완)">
           <select class="cpcat">${catOptions(cp.cat)}</select>
         </div>
+        <input class="cpwhen" type="text" value="${esc(cp.when || '')}" placeholder="언제 쓰는지 (선택, 예: 수업 당일, 강의 채팅에서)">
         <textarea class="pedit-input" style="display:block;margin-top:0">${esc(cp.text || '')}</textarea>
       </div>
       <div class="pactions">
@@ -2925,11 +2986,13 @@ function renderPrompts(){
     c.querySelector('.psavebtn').onclick=()=>{
       cp.name=form.querySelector('.cpname').value.trim() || cp.name;
       cp.cat=form.querySelector('.cpcat').value;
+      cp.when=form.querySelector('.cpwhen').value.trim();
       cp.text=form.querySelector('.pedit-input').value;
       saveApp(); render(); showToast('프롬프트를 저장했습니다.');
     };
     c.querySelector('.cpdelbtn').onclick=()=>{
-      askConfirm(`"${cp.name || '이름 없는 프롬프트'}" 프롬프트를 삭제하시겠습니까?`, '이 프롬프트는 되돌릴 수 없습니다.', ()=>{
+      const isBuiltin = Object.prototype.hasOwnProperty.call(BUILTIN_PROMPT_CAT, cp.id);
+      askConfirm(`"${cp.name || '이름 없는 프롬프트'}" 프롬프트를 삭제하시겠습니까?`, isBuiltin ? '기본 프롬프트는 맨 아래 "기본 프롬프트 되살리기"로 원래 문구를 다시 불러올 수 있습니다.' : '이 프롬프트는 되돌릴 수 없습니다.', ()=>{
         App.customPrompts = customPrompts().filter(x=>x.id!==cp.id);
         saveApp(); render(); showToast('프롬프트를 삭제했습니다.');
       }, '삭제');
@@ -2937,24 +3000,33 @@ function renderPrompts(){
     box.appendChild(c);
   });
 
-  /* 새 프롬프트 추가 */
+  /* 새 프롬프트 추가 (+ 지운 기본 프롬프트 되살리기) */
+  const missingBuiltins = PROMPTS().filter(p=>!promptById(p.id));
   const addCard = el(`<div class="pcard instruction-card">
     <div class="ptitle">+ 프롬프트 추가</div>
-    <div class="pwhen">이름과 단계를 정해두면 오늘 할 일 카드의 프롬포트 버튼에 함께 뜹니다</div>
+    <div class="pwhen">단계를 정해두면 오늘 할 일 카드의 프롬포트 버튼에 함께 뜹니다</div>
     <div class="cpedit">
       <div class="cprow">
         <input class="cpname" type="text" placeholder="이름 (예: 족보 해설 보완)">
         <select class="cpcat">${catOptions('none')}</select>
       </div>
+      <input class="cpwhen" type="text" placeholder="언제 쓰는지 (선택)">
       <textarea class="pedit-input" placeholder="프롬프트 내용을 붙여넣어 주세요."></textarea>
     </div>
-    <div class="pactions"><button class="cpaddbtn" type="button">추가</button></div>
+    <div class="pactions"><button class="cpaddbtn" type="button">추가</button>${missingBuiltins.length?`<button class="cprestorebtn" type="button">기본 프롬프트 되살리기 (${missingBuiltins.length}개)</button>`:''}</div>
   </div>`);
+  const restoreBtn=addCard.querySelector('.cprestorebtn');
+  if(restoreBtn) restoreBtn.onclick=()=>{
+    const list=customPrompts();
+    App.customPrompts = PROMPTS().map(p=> list.find(x=>x.id===p.id) || builtinPromptEntry(p, null))
+      .concat(list.filter(x=>!Object.prototype.hasOwnProperty.call(BUILTIN_PROMPT_CAT, x.id)));
+    saveApp(); render(); showToast('삭제한 기본 프롬프트를 되살렸습니다.');
+  };
   addCard.querySelector('.cpaddbtn').onclick=()=>{
     const name=addCard.querySelector('.cpname').value.trim();
     const text=addCard.querySelector('.pedit-input').value.trim();
     if(!name || !text){ showToast('이름과 내용을 모두 입력해주세요.'); return; }
-    customPrompts().push({id:'cp'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), name, cat:addCard.querySelector('.cpcat').value, text});
+    customPrompts().push({id:'cp'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), name, cat:addCard.querySelector('.cpcat').value, when:addCard.querySelector('.cpwhen').value.trim(), text});
     saveApp(); render(); showToast('프롬프트를 추가했습니다.');
   };
   box.appendChild(addCard);
