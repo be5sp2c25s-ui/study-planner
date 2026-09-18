@@ -7,24 +7,30 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
   :root{
-    /* ---- 원래의 블루 팔레트 ---- */
-    --bg:#F5F7FA; --surface:#FFFFFF; --surface2:#EEF1F5;
-    --ink:#1C2430; --muted:#6B7787; --faint:#8E99A8;
-    --line:#E2E6ED; --track:#E2E6ED;
+    /* ---- 모노크롬 + 3포인트 팔레트 ----
+       바탕은 흰색·검정뿐이고, 색은 의미가 있을 때만 쓴다.
+       #344CEC(파랑·기본/진행) · #E51E1E(빨강·지각/경고) · #FFE24E(노랑·형광펜/채움) */
+    --bg:#FFFFFF; --surface:#FFFFFF; --surface2:#F4F4F4;
+    --ink:#111111; --muted:#6B6B6B; --faint:#9B9B9B;
+    --line:#E4E4E4; --track:#EDEDED;
 
-    --accent:#2F6FED; --accent-soft:#EAF0FE;
-    /* 연한 배경 위에 얹는 '파란 글자' 전용 — 버튼 배경색 그대로 쓰면 대비가 모자란다 */
-    --accent-ink:#215BCC;
-    --idle:#1C2430;
-    --progress:#2F6FED; --progress-soft:#EAF0FE;
-    --done:#2F6FED;     --done-soft:#97B0FC;
-    --inactive:#565F6E; --inactive-soft:#D8DCE4;
-    --warn:#002057;     --warn-soft:#FFF9D6;
+    --accent:#111111; --accent-soft:#F0F0F0;
+    /* 연한 배경 위에 얹는 '색 글자' 전용 — 버튼 배경색 그대로 쓰면 대비가 모자란다 */
+    --accent-ink:#111111;
+    /* accent/done 배경 위에 얹는 글자색 — 노랑 계열에서는 검정으로 바뀐다 */
+    --on-accent:#FFFFFF;
+    /* 포인트 컬러 — 블록마다 직접 고른다(JS가 갈아끼움). 배터리 채움·1차 배지/띠·완료 배지 */
+    --point:#FFE24E; --point-soft:#FFF0A8; --point-rgb:255,226,78;
+    --idle:#111111;
+    --progress:#111111; --progress-soft:#F0F0F0;
+    --done:#111111;     --done-soft:#FFF0A8;
+    --inactive:#6B6B6B; --inactive-soft:#E6E6E6;
+    --warn:#E51E1E;     --warn-soft:#FDE7E7;
 
     /* 넓은 면적 채움(글자 없음) */
-    --fill-done:#2F6FED; --fill-progress:#7BA3F5; --fill-warn:#002057;
-    /* 반투명 배경/그림자용 — 블록 색 계열이 바뀌면 JS가 이 두 값을 같이 갈아끼운다 */
-    --accent-rgb:47,111,237; --donesoft-rgb:151,176,252;
+    --fill-done:#111111; --fill-progress:#9E9E9E; --fill-warn:#E51E1E;
+    /* 반투명 배경/그림자용 — 포인트 컬러가 바뀌면 JS가 이 두 값을 같이 갈아끼운다 */
+    --accent-rgb:17,17,17; --donesoft-rgb:255,240,168;
 
     --disp:'Pretendard',-apple-system,'Segoe UI','Noto Sans KR',sans-serif;
     --sans:'Pretendard',-apple-system,'Segoe UI','Noto Sans KR',sans-serif;
@@ -32,10 +38,10 @@
     --ease:cubic-bezier(.22,1,.36,1);
     --ease-back:cubic-bezier(.34,1.5,.64,1);
     --t-fast:150ms; --t-mid:240ms; --t-slow:420ms;
-    --sh-1:0 1px 2px rgba(28,36,48,.05), 0 2px 8px rgba(28,36,48,.05);
-    --sh-2:0 1px 2px rgba(28,36,48,.055), 0 6px 20px rgba(28,36,48,.07);
-    --sh-3:0 2px 6px rgba(28,36,48,.075), 0 14px 34px rgba(28,36,48,.10);
-    --sh-pop:0 18px 50px rgba(51,51,51,.16);
+    --sh-1:0 1px 2px rgba(0,0,0,.05), 0 2px 8px rgba(0,0,0,.04);
+    --sh-2:0 1px 2px rgba(0,0,0,.06), 0 6px 20px rgba(0,0,0,.06);
+    --sh-3:0 2px 6px rgba(0,0,0,.07), 0 14px 34px rgba(0,0,0,.09);
+    --sh-pop:0 18px 50px rgba(0,0,0,.18);
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased;padding:20px 16px 70px;position:relative;min-height:100vh}
@@ -43,16 +49,16 @@
   body::before{
     content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
     background:
-      radial-gradient(44vw 38vw at 84% -8%, rgba(var(--accent-rgb),.13), transparent 62%),
-      radial-gradient(38vw 32vw at -10% 6%, rgba(var(--accent-rgb),.09), transparent 60%),
-      radial-gradient(48vw 40vw at 110% 86%, rgba(var(--donesoft-rgb),.20), transparent 62%),
-      radial-gradient(36vw 32vw at -8% 104%, rgba(var(--accent-rgb),.10), transparent 60%);
+      radial-gradient(44vw 38vw at 84% -8%, rgba(var(--accent-rgb),.055), transparent 62%),
+      radial-gradient(38vw 32vw at -10% 6%, rgba(var(--accent-rgb),.04), transparent 60%),
+      radial-gradient(48vw 40vw at 110% 86%, rgba(var(--donesoft-rgb),.09), transparent 62%),
+      radial-gradient(36vw 32vw at -8% 104%, rgba(var(--accent-rgb),.045), transparent 60%);
   }
   .wrap{max-width:1080px;margin:0 auto}
 
   .blocktabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
   .blocktab{padding:8px 15px;border-radius:9px;border:1px solid var(--line);background:var(--surface);font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted)}
-  .blocktab.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .blocktab.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
   .blocktab.add{background:var(--surface);border:1px dashed var(--faint);color:var(--muted)}
   .blocktab.add:hover{color:var(--accent-ink);border-color:var(--accent-ink)}
   .blocktabgrp{display:inline-flex;align-items:center;gap:2px}
@@ -66,7 +72,7 @@
   .brand .dot{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:18px;line-height:1;flex-shrink:0;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
   .brand .dot:hover{background:var(--accent-soft);border-color:var(--accent-ink);color:var(--accent-ink)}
   .emoji-picker-wrap{position:relative;flex-shrink:0}
-  .emoji-picker{position:absolute;top:40px;left:0;z-index:20;display:none;grid-template-columns:repeat(6,32px);gap:5px;max-height:70vh;overflow-y:auto;padding:9px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 22px rgba(28,36,48,.14)}
+  .emoji-picker{position:absolute;top:40px;left:0;z-index:20;display:none;grid-template-columns:repeat(6,32px);gap:5px;max-height:70vh;overflow-y:auto;padding:9px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 22px rgba(0,0,0,.14)}
   .emoji-picker.on{display:grid}
   .emoji-choice{width:32px;height:32px;border:1px solid transparent;border-radius:7px;background:transparent;font-size:19px;line-height:1;cursor:pointer;padding:0}
   .emoji-choice:hover{background:var(--accent-soft);border-color:var(--accent-ink)}
@@ -126,9 +132,6 @@
   .stagecol .desc{font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45}
   .panel{background:var(--surface);border:1px solid transparent;border-radius:16px;padding:15px 16px;box-shadow:var(--sh-2)}
   .panel h2{font-family:var(--sans);font-weight:800;font-size:13px;margin:0 0 3px;color:var(--ink)}
-  /* 형광펜으로 그은 듯한 헤딩 — 포인트 컬러를 정보 방해 없이 노출 */
-  .panel > h2, .lh h2, .eeve h2{display:inline-block;padding:0 4px 1px;
-    background:linear-gradient(to top, var(--accent-soft) 0 7px, transparent 7px 100%)}
   .panel .hint{font-size:11px;color:var(--muted);margin:0 0 9px}
   .card{border:1px solid transparent;border-radius:12px;padding:10px 11px;background:var(--surface);margin-bottom:8px;box-shadow:var(--sh-1);transition:transform var(--t-mid) var(--ease),box-shadow var(--t-mid) var(--ease)}
   .card:hover{transform:translateY(-1px);box-shadow:var(--sh-2)}
@@ -142,10 +145,10 @@
   .badge.late{background:var(--warn-soft);color:var(--warn)}
   .card .t{font-size:13px;font-weight:800}
   .card .m{font-size:10.5px;color:var(--muted);margin-top:2px}
-  .go{margin-top:8px;border:none;border-radius:9px;padding:9px 13px;font-size:12.5px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff}
+  .go{margin-top:8px;border:none;border-radius:9px;padding:9px 13px;font-size:12.5px;font-weight:700;cursor:pointer;background:var(--accent);color:var(--on-accent)}
   .go.compact{padding:7px 11px;font-size:11.5px}
   .card .go + .go{margin-left:6px}
-  .go.amber{background:var(--done);color:#fff}
+  .go.amber{background:var(--done);color:var(--on-accent)}
   .empty{font-size:12px;color:var(--faint);text-align:center;padding:18px 4px}
 
   details.pre{margin:6px 0 14px}
@@ -176,8 +179,8 @@
   .chips{display:flex;gap:4px}
   .chip{display:flex;flex-direction:column;align-items:center;gap:1px;width:28px}
   .chip button, .chip span.sq{width:19px;height:19px;border-radius:6px;border:none;cursor:pointer;background:var(--inactive-soft);font-size:8.5px;display:flex;align-items:center;justify-content:center;padding:0;color:var(--inactive)}
-  .chip button.done{background:var(--done);color:#fff}
-  .chip button.due{background:var(--progress);color:#fff}
+  .chip button.done{background:var(--done);color:var(--on-accent)}
+  .chip button.due{background:var(--progress);color:var(--on-accent)}
   .chip button.overdue{background:var(--warn);color:#fff}
   .chip span.sq.na{background:repeating-linear-gradient(45deg,var(--line) 0 2px,var(--surface) 2px 4px);cursor:default}
   .chip span.sq.inactive{cursor:default;opacity:.6}
@@ -190,7 +193,7 @@
   .addlec{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:12px 16px;border-top:1px solid var(--line);background:var(--surface2)}
   .addlec input, .addlec select{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:11.5px;font-family:var(--sans);background:var(--surface)}
   .addlec input[type=text]{width:110px}
-  .addlec button{border:none;border-radius:9px;padding:8px 14px;font-size:11.5px;font-weight:700;background:var(--accent);color:#fff;cursor:pointer}
+  .addlec button{border:none;border-radius:9px;padding:8px 14px;font-size:11.5px;font-weight:700;background:var(--accent);color:var(--on-accent);cursor:pointer}
 
   .plib{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media(max-width:720px){.plib{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}}
@@ -200,7 +203,7 @@
   .pcard .pwhen{font-size:10.5px;color:var(--muted);margin-bottom:8px}
   .pcard .ptext{font-size:11px;color:var(--muted);white-space:pre-wrap;line-height:1.55}
   .copybtn{margin-top:9px;border:none;color:var(--accent-ink);background:var(--accent-soft);border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer}
-  .copybtn.copied{background:var(--accent);color:#fff}
+  .copybtn.copied{background:var(--accent);color:var(--on-accent)}
   .pcard .pactions,.pcard .pedit-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
   .pcard .pmod{color:var(--accent-ink);font-weight:700}
   .peditbtn,.pcancelbtn,.presetbtn,.psavedefaultbtn{margin-top:9px;border:none;color:var(--ink);background:var(--surface2);border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer}
@@ -230,11 +233,11 @@
   .pull-refresh.ready{transform:translate(-50%,0);opacity:1}
   .mobile-refresh{display:none}
   @media(max-width:720px){
-    .mobile-refresh{display:flex;position:fixed;right:14px;bottom:14px;z-index:40;width:32px;height:32px;align-items:center;justify-content:center;border:1px solid rgba(28,36,48,.16);border-radius:50%;background:rgba(255,255,255,.68);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);box-shadow:0 2px 8px rgba(28,36,48,.10);color:var(--muted);font-size:17px;line-height:1;cursor:pointer;opacity:.72}
+    .mobile-refresh{display:flex;position:fixed;right:14px;bottom:14px;z-index:40;width:32px;height:32px;align-items:center;justify-content:center;border:1px solid rgba(0,0,0,.16);border-radius:50%;background:rgba(255,255,255,.68);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);box-shadow:0 2px 8px rgba(0,0,0,.10);color:var(--muted);font-size:17px;line-height:1;cursor:pointer;opacity:.72}
     .mobile-refresh:active{opacity:1}
   }
 
-  .mask{position:fixed;inset:0;background:rgba(28,36,48,.32);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .mask{position:fixed;inset:0;background:rgba(0,0,0,.32);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
   .mask.on{animation:maskIn var(--t-mid) var(--ease)}
   .mask.on .modal{animation:popIn 280ms var(--ease-back)}
   .mask.on{display:flex}
@@ -252,7 +255,7 @@
   .form-row input[type=text],.form-row input[type=date]{border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:12.5px;font-family:var(--sans)}
   .form-row input[type=file]{font-size:11.5px}
   .nbstatus{font-size:11.5px;color:var(--muted);white-space:pre-wrap;margin-top:6px;min-height:14px}
-  .primary{background:var(--accent)!important;color:#fff!important}
+  .primary{background:var(--accent)!important;color:var(--on-accent)!important}
 
   .planlist{display:flex;flex-direction:column;gap:6px;margin-top:10px}
   .planrow{display:grid;grid-template-columns:64px minmax(0,1fr) 168px;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
@@ -296,8 +299,8 @@
   .tcinput{width:54px;font-size:10.5px;border:1px solid var(--line);border-radius:6px;padding:3px 5px;font-family:var(--sans)}
   .pbar2{position:relative;height:100%;display:flex;border-radius:7px;overflow:hidden}
   /* 채움 안쪽 윤곽선 — 크림 톤처럼 밝은 색이 와도 막대의 끝이 어디인지 항상 읽힌다 */
-  .pbarseg{height:100%;box-shadow:inset 0 0 0 1px rgba(28,36,48,.16)}
-  .pbar{box-shadow:inset 0 0 0 1px rgba(28,36,48,.16)}
+  .pbarseg{height:100%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.16)}
+  .pbar{box-shadow:inset 0 0 0 1px rgba(0,0,0,.16)}
   .battery-fill{box-shadow:none}
   .plantags{display:flex;flex-direction:column;gap:3px;margin-top:6px}
   .plantaggrp{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
@@ -305,7 +308,7 @@
   /* 강의 목록은 배지 낱개 나열 대신 칸막이로 나눈 한 줄 띠 —
      개수가 늘어도 테두리·여백이 같이 늘어나지 않아 시각적 소음이 안 쌓인다. */
   .planstrip{display:inline-flex;flex-wrap:wrap;max-width:100%;border-radius:7px;overflow:hidden}
-  .plancell{font-size:9.5px;font-weight:700;line-height:1.7;padding:1px 7px;border-right:1px solid rgba(28,36,48,.13)}
+  .plancell{font-size:9.5px;font-weight:700;line-height:1.7;padding:1px 7px;border-right:1px solid rgba(0,0,0,.13)}
   .plancell:last-child{border-right:none}
   .planstrip.new{background:var(--progress-soft)}
   .planstrip.new .plancell{color:var(--accent-ink)}
@@ -316,7 +319,7 @@
   .planstrip.assign{background:var(--warn-soft)}
   .planstrip.assign .plancell{color:var(--warn)}
   /* 완료한 강의만 채워진 칸으로 — 띠가 왼쪽부터 차오르는 것처럼 읽힌다 */
-  .planstrip .plancell.done{background:var(--done);color:#fff;border-right-color:rgba(255,255,255,.3)}
+  .planstrip .plancell.done{background:var(--done);color:var(--on-accent);border-right-color:color-mix(in srgb, var(--on-accent) 32%, transparent)}
 
   .battery-wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
   .battery{position:relative;width:72px;height:42px;border:none;border-radius:11px;padding:5px 4px;flex-shrink:0;background:var(--track);overflow:hidden}
@@ -360,14 +363,24 @@
 
   /* 블록별 색 계열 스와치 */
   .themebar{display:flex;gap:9px;margin-top:9px;flex-wrap:wrap}
-  .themedot{width:12px;height:12px;padding:0;border-radius:50%;border:none;cursor:pointer;
-    transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
-  .themedot:hover{transform:scale(1.2)}
-  .themedot.on{box-shadow:0 0 0 2px var(--surface),0 0 0 3px rgba(28,36,48,.45)}
+  /* 포인트 컬러 선택기 — 네이티브 색상 선택기를 작은 동그란 스와치로 감싼다 */
+  .themebar{align-items:center;gap:7px}
+  .pointpick{display:inline-flex;width:18px;height:18px;border-radius:50%;overflow:hidden;cursor:pointer;
+    box-shadow:0 0 0 1px rgba(0,0,0,.18), 0 0 0 3px var(--surface), 0 0 0 4px rgba(0,0,0,.10);
+    transition:transform var(--t-fast) var(--ease)}
+  .pointpick:hover{transform:scale(1.14)}
+  .pointpick input[type=color]{width:34px;height:34px;margin:-8px;padding:0;border:none;background:transparent;cursor:pointer}
+  .pointpick input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+  .pointpick input[type=color]::-webkit-color-swatch{border:none;border-radius:50%}
+  .pointpick input[type=color]::-moz-color-swatch{border:none;border-radius:50%}
+  .pointhex{font-size:9.5px;font-weight:700;color:var(--faint);letter-spacing:.3px;font-family:var(--sans)}
+  .pointreset{border:none;background:var(--surface2);color:var(--muted);border-radius:6px;padding:2px 7px;
+    font-size:9.5px;font-weight:700;cursor:pointer;font-family:var(--sans)}
+  .pointreset:hover{background:var(--ink);color:#fff}
   .oitem{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-top:1px solid var(--line)}
   .oitem:first-of-type{border-top:none;padding-top:12px}
   .ochk{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
-  .ochk.done{background:var(--done);border-color:var(--done);color:#fff}
+  .ochk.done{background:var(--done);border-color:var(--done);color:var(--on-accent)}
   .olabel{flex:1;font-size:12px;font-weight:600}
   .olabel.done{color:var(--muted)}
   .olabel.later{color:var(--muted);font-style:italic}
@@ -379,7 +392,7 @@
   .omod{color:var(--accent-ink);font-weight:700;font-size:10px;margin-left:4px}
   .opromptedittext{margin:6px 0 0 26px;width:calc(100% - 26px);min-height:160px;resize:vertical;border:1px solid var(--accent);border-radius:9px;padding:9px 10px;font:10.5px/1.55 var(--sans);color:var(--ink);background:var(--surface)}
   .opromptsavebar{margin:6px 0 0 26px;display:flex;gap:6px}
-  .opromptsavebtn{border:none;background:var(--accent);color:#fff;font-size:10px;font-weight:700;cursor:pointer;border-radius:7px;padding:5px 10px}
+  .opromptsavebtn{border:none;background:var(--accent);color:var(--on-accent);font-size:10px;font-weight:700;cursor:pointer;border-radius:7px;padding:5px 10px}
   .opromptcancelbtn,.opromptresetbtn,.opromptsavedefaultbtn{border:none;background:var(--surface2);color:var(--ink);font-size:10px;font-weight:700;cursor:pointer;border-radius:7px;padding:5px 10px}
   .opromptresetbtn{color:var(--warn);background:var(--warn-soft)}
   .opromptsavedefaultbtn{color:var(--accent-ink);background:var(--accent-soft)}
@@ -395,14 +408,14 @@
   .flowbadge.assign{background:var(--warn-soft);color:var(--warn)}
   .flowtitle{flex:1;font-size:13px;font-weight:700;min-width:0}
   .flowmeta{font-size:10.5px;color:var(--muted);display:block;font-weight:400}
-  .flowdone{border:none;border-radius:9px;padding:7px 13px;font-size:11.5px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;flex-shrink:0}
+  .flowdone{border:none;border-radius:9px;padding:7px 13px;font-size:11.5px;font-weight:700;cursor:pointer;background:var(--accent);color:var(--on-accent);flex-shrink:0}
   .unpullbtn{border:none;border-radius:9px;padding:7px 11px;font-size:11px;font-weight:700;cursor:pointer;background:var(--surface2);color:var(--muted);flex-shrink:0}
   .manualdelbtn{border:none;border-radius:9px;padding:7px 10px;font-size:11px;font-weight:700;cursor:pointer;background:var(--warn-soft);color:var(--warn);flex-shrink:0}
   .pulledtag{color:var(--accent-ink);font-weight:700}
   .flowdone.done{color:var(--ink)}
   .flowpromptbtn{border:none;border-radius:7px;padding:5px 8px;font-size:10px;font-weight:700;cursor:pointer;background:var(--accent-soft);color:var(--accent-ink);flex-shrink:0}
-  .flowpromptbtn.copied{background:var(--accent);color:#fff}
-  .ppcount{display:inline-block;min-width:13px;padding:0 3px;border-radius:20px;background:var(--accent);color:#fff;font-size:9px;line-height:13px;text-align:center;margin-left:2px}
+  .flowpromptbtn.copied{background:var(--accent);color:var(--on-accent)}
+  .ppcount{display:inline-block;min-width:13px;padding:0 3px;border-radius:20px;background:var(--accent);color:var(--on-accent);font-size:9px;line-height:13px;text-align:center;margin-left:2px}
   /* 단계에 묶인 프롬프트가 여러 개일 때 카드 안에서 펼쳐지는 선택 목록 */
   .promptpick{display:none;max-height:0;overflow:hidden;padding:4px 10px 9px;border-top:1px solid var(--line)}
   .promptpick.open{max-height:600px}
@@ -424,7 +437,7 @@
   .compare-copy{margin-top:2px}
   /* ===== 시험 당일 · 블록 끝내기 ===== */
   .finish-wrap{text-align:center;padding-bottom:16px}
-  .finish-btn{border:none;background:var(--accent);color:#fff;border-radius:12px;padding:11px 24px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:var(--sh-2);transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+  .finish-btn{border:none;background:var(--accent);color:var(--on-accent);border-radius:12px;padding:11px 24px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:var(--sh-2);transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
   .finish-btn:hover{transform:translateY(-1px);box-shadow:var(--sh-3)}
   .finish-hint{font-size:10.5px;color:var(--faint);margin-top:8px}
   .finish-done{text-align:center;padding:24px 14px 18px;background:var(--accent-soft);border-radius:16px;margin:4px 0 10px}
@@ -440,7 +453,7 @@
   .confetti{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
   .confetti i{position:absolute;top:-16px;width:8px;height:12px;border-radius:2px;opacity:0;animation:confettiFall 2.8s cubic-bezier(.25,.6,.4,1) forwards}
   @keyframes confettiFall{0%{opacity:1;transform:translate3d(0,0,0) rotate(0deg)}85%{opacity:1}100%{opacity:0;transform:translate3d(var(--dx),108vh,0) rotate(var(--rot))}}
-  .cpaddbtn{margin-top:9px;border:none;border-radius:9px;padding:8px 15px;font-size:11.5px;font-weight:700;background:var(--accent);color:#fff;cursor:pointer}
+  .cpaddbtn{margin-top:9px;border:none;border-radius:9px;padding:8px 15px;font-size:11.5px;font-weight:700;background:var(--accent);color:var(--on-accent);cursor:pointer}
   .badge.cat{background:var(--accent-soft);color:var(--accent-ink)}
   .cphint{font-size:10.5px;color:var(--faint);margin-top:6px}
   .add-plan-btn{align-self:flex-start;border:1px dashed var(--faint);border-radius:9px;padding:8px 12px;background:var(--surface);color:var(--muted);font-size:11.5px;font-weight:700;cursor:pointer}
@@ -453,9 +466,33 @@
   .flowbody.closing .substep{animation:flowStepOut 230ms var(--ease) both}
   .substep{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:11.5px}
   .substep .schk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--line);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;background:var(--surface)}
-  .substep .schk.done{background:var(--done);border-color:var(--done);color:#fff}
+  .substep .schk.done{background:var(--done);border-color:var(--done);color:var(--on-accent)}
   .substep .slabel{flex:1}
   .substep .slabel.done{color:var(--faint)}
+
+  /* ===== 시간표 사진 ===== */
+  .ttdet > summary{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;list-style:none}
+  .ttdet > summary::-webkit-details-marker{display:none}
+  .ttsum{font-size:13px;font-weight:800;color:var(--ink)}
+  .ttsumhint{font-size:10.5px;font-weight:700;color:var(--faint)}
+  .ttgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:9px;margin-top:11px}
+  .ttthumb{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface2);
+    transition:transform var(--t-mid) var(--ease),box-shadow var(--t-mid) var(--ease)}
+  .ttthumb:hover{transform:translateY(-2px);box-shadow:var(--sh-2)}
+  .ttthumb img{display:block;width:100%;height:112px;object-fit:cover;cursor:zoom-in}
+  .ttdel{position:absolute;top:5px;right:5px;width:22px;height:22px;border:none;border-radius:50%;background:rgba(255,255,255,.9);
+    color:var(--warn);font-size:13px;font-weight:700;line-height:1;cursor:pointer;padding:0;box-shadow:var(--sh-1)}
+  .ttdel:hover{background:var(--warn);color:#fff}
+  .ttcap{font-size:9.5px;font-weight:700;color:var(--muted);padding:5px 7px;border-top:1px solid var(--line);background:var(--surface);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ttadd{display:inline-flex;align-items:center;gap:6px;margin-top:11px;border:1px dashed var(--faint);border-radius:9px;padding:9px 14px;
+    background:var(--surface);color:var(--muted);font-size:11.5px;font-weight:700;cursor:pointer}
+  .ttadd:hover{border-color:var(--accent-ink);background:var(--accent-soft);color:var(--accent-ink)}
+  .ttstatus{font-size:10.5px;font-weight:700;color:var(--accent-ink);margin-top:7px;min-height:13px}
+  #ttMask .ttview{position:relative;max-width:min(96vw,1100px);max-height:90vh;display:flex;flex-direction:column;align-items:center;gap:10px}
+  #ttMask.on .ttview{animation:popIn 280ms var(--ease-back)}
+  #ttMask img{max-width:100%;max-height:82vh;border-radius:12px;background:var(--surface);box-shadow:var(--sh-pop)}
+  #ttMask .ttclose{border:none;border-radius:9px;padding:8px 16px;font-size:12px;font-weight:700;background:var(--surface);color:var(--ink);cursor:pointer;box-shadow:var(--sh-2)}
 
   .eeve{background:var(--surface);border:1px solid transparent;border-radius:16px;padding:16px;box-shadow:var(--sh-2)}
   .eeve h2{font-family:var(--disp);font-weight:800;font-size:14px;margin:0 0 8px}
@@ -466,7 +503,7 @@
   .compareCard-close:hover{color:var(--ink)}
 
   .emptystate{background:var(--surface);border:1px solid transparent;border-radius:18px;padding:40px 20px;text-align:center;box-shadow:var(--sh-2)}
-  .emptystate button{margin-top:12px;border:none;border-radius:9px;padding:10px 18px;font-size:12.5px;font-weight:700;background:var(--accent);color:#fff;cursor:pointer}
+  .emptystate button{margin-top:12px;border:none;border-radius:9px;padding:10px 18px;font-size:12.5px;font-weight:700;background:var(--accent);color:var(--on-accent);cursor:pointer}
 
   /* ============ 모션 시스템 ============
      원칙: 마이크로 인터랙션 150~240ms, 등장 280~420ms.
@@ -549,7 +586,7 @@
         <div>
           <h1 id="blockTitle"></h1>
           <p>Task Manager & Study Planner</p>
-          <div class="themebar" id="themeBar" role="group" aria-label="블록 색 계열"></div>
+          <div class="themebar" id="themeBar" role="group" aria-label="포인트 색"></div>
         </div>
       </div>
       <div class="ctrls">
@@ -610,6 +647,7 @@
     </div>
 
     <div class="panelset" id="tab-list">
+      <div id="timetableBox"></div>
       <div class="listbox">
         <div class="lh"><h2>전체 강의</h2><button class="reset" data-a="reset">이 블록 초기화</button></div>
         <div id="fullList"></div>
@@ -644,6 +682,11 @@
   <div class="cb-emoji">🎉</div>
   <h3 id="cbT"></h3><p id="cbB"></p>
   <div class="acts"><button class="yes primary" id="cbOk">고마워!</button></div>
+</div></div>
+
+<div class="mask" id="ttMask"><div class="ttview">
+  <img id="ttViewImg" alt="시간표 크게 보기">
+  <button class="ttclose" id="ttClose" type="button">닫기</button>
 </div></div>
 
 <div class="mask" id="nbMask"><div class="modal wide">
@@ -751,50 +794,96 @@ let App = {blocks:[], active:null, promptOverrides:{}, promptDefaults:{}, custom
 /* ===== 블록별 색 계열 =====
    한 계열은 (accent 중간톤 / soft 아주 옅은 배경 / ink 글자용 진한 톤 / doneSoft·fill 넓은 면적용)
    으로 구성된다. 글자가 얹히는 accent·ink는 흰 글자 대비를 확보한 톤으로만 고른다. */
-const THEMES={
-  blue:   {name:'블루',     accent:'#2F6FED', soft:'#EAF0FE', ink:'#215BCC', doneSoft:'#97B0FC', fill:'#7BA3F5', warn:'#002057', warnSoft:'#FFF9D6', rgb:'47,111,237',  softRgb:'151,176,252'},
-  green:  {name:'그린',     accent:'#2A8F63', soft:'#E7F6EE', ink:'#1E6E4B', doneSoft:'#A0D8BE', fill:'#7CC9A2', warn:'#06341F', warnSoft:'#FFF9D6', rgb:'42,143,99',   softRgb:'160,216,190'},
-  yellow: {name:'옐로우',   accent:'#A87D07', soft:'#FBF3D9', ink:'#7E5D04', doneSoft:'#EBD292', fill:'#E3C264', warn:'#4A2A00', warnSoft:'#FBE3DA', rgb:'168,125,7',   softRgb:'235,210,146'},
-  coral:  {name:'코랄',     accent:'#D4527A', soft:'#FDECF1', ink:'#A93A5C', doneSoft:'#F3B4C7', fill:'#EE9BB4', warn:'#4A0E22', warnSoft:'#FFF9D6', rgb:'212,82,122',  softRgb:'243,180,199'},
-  lavender:{name:'라벤더',  accent:'#7B6BE0', soft:'#F0EDFE', ink:'#5B4BC2', doneSoft:'#C4BBF4', fill:'#A99DEE', warn:'#221055', warnSoft:'#FFF9D6', rgb:'123,107,224', softRgb:'196,187,244'},
-  mint:   {name:'민트',     accent:'#22868E', soft:'#E3F5F6', ink:'#196B72', doneSoft:'#A0D6DA', fill:'#79CBD1', warn:'#04333A', warnSoft:'#FFF9D6', rgb:'34,134,142',  softRgb:'160,214,218'},
-  orange: {name:'오렌지',   accent:'#C96A25', soft:'#FDEEE2', ink:'#A2521A', doneSoft:'#F2C29B', fill:'#EDA972', warn:'#40200A', warnSoft:'#FFF9D6', rgb:'201,106,37',  softRgb:'242,194,155'},
-  slate:  {name:'슬레이트', accent:'#5A6B82', soft:'#ECEFF4', ink:'#445468', doneSoft:'#B8C3D2', fill:'#97A5B8', warn:'#101C2B', warnSoft:'#FFF9D6', rgb:'90,107,130',  softRgb:'184,195,210'}
-};
-function themeOf(block){ return (block && THEMES[block.theme]) ? block.theme : 'blue'; }
+/* 색 계열은 포인트 컬러 3개 + 검정 네 가지만. on은 그 색 위에 얹는 글자색
+   (노랑 위에는 흰 글자가 안 읽히므로 검정으로 바뀐다). */
+/* ===== 색: 검정 한 가지 + 블록별 포인트 컬러 =====
+   기본 골격(흰 바탕·검정 글자·검정 버튼)은 고정이고, 강조에 쓰는 한 가지 색만
+   블록마다 직접 고른다. 빨강(--warn)은 지각·경고 전용이라 고르는 색과 무관하게 유지. */
+const BASE={accent:'#111111', soft:'#F0F0F0', ink:'#111111', on:'#FFFFFF', fill:'#9E9E9E',
+            warn:'#E51E1E', warnSoft:'#FDE7E7', rgb:'17,17,17'};
+const DEFAULT_POINT='#FFE24E';
+function hexToRgb(hex){
+  const m=String(hex||'').trim().match(/^#?([0-9a-f]{6})$/i);
+  if(!m) return null;
+  const v=parseInt(m[1],16);
+  return [(v>>16)&255,(v>>8)&255,v&255];
+}
+function rgbToHex(c){ return '#'+c.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('').toUpperCase(); }
+function mixWhite(c, amount){ return c.map(v=> v+(255-v)*amount); }
+function relLum(c){
+  const f=v=>{ v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); };
+  return 0.2126*f(c[0])+0.7152*f(c[1])+0.0722*f(c[2]);
+}
+function contrastRatio(a,b){
+  const l1=relLum(a), l2=relLum(b);
+  return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);
+}
+function pointOf(block){
+  const hex=block && block.point;
+  return hexToRgb(hex) ? rgbToHex(hexToRgb(hex)) : DEFAULT_POINT;
+}
+/* 어떤 색을 골라도 그 위의 검정 글자가 읽히도록, 옅은 톤(배지·띠 배경)은 흰색을
+   섞어 가며 대비 4.5:1을 넘길 때까지 밝힌다. 어두운 색을 골라도 안 깨진다. */
+function pointTints(hex){
+  const rgb=hexToRgb(hex) || hexToRgb(DEFAULT_POINT);
+  let soft=mixWhite(rgb,0.5);
+  for(let a=0.56; a<=0.94 && contrastRatio(soft,[17,17,17])<4.5; a+=0.06) soft=mixWhite(rgb,a);
+  return {point:rgbToHex(rgb), soft:rgbToHex(soft),
+          rgb:rgb.map(Math.round).join(','), softRgb:soft.map(Math.round).join(',')};
+}
 function applyTheme(block){
-  const t=THEMES[themeOf(block)];
+  const t=pointTints(pointOf(block));
   const r=document.documentElement.style;
-  r.setProperty('--accent',t.accent);
-  r.setProperty('--accent-soft',t.soft);
-  r.setProperty('--accent-ink',t.ink);
-  r.setProperty('--progress',t.accent);
-  r.setProperty('--progress-soft',t.soft);
-  r.setProperty('--done',t.accent);
-  r.setProperty('--done-soft',t.doneSoft);
-  r.setProperty('--fill-done',t.accent);
-  r.setProperty('--fill-progress',t.fill);
-  r.setProperty('--fill-warn',t.warn);
-  r.setProperty('--warn',t.warn);
-  r.setProperty('--warn-soft',t.warnSoft);
-  r.setProperty('--accent-rgb',t.rgb);
+  r.setProperty('--accent',BASE.accent);
+  r.setProperty('--accent-soft',BASE.soft);
+  r.setProperty('--accent-ink',BASE.ink);
+  r.setProperty('--on-accent',BASE.on);
+  r.setProperty('--progress',BASE.accent);
+  r.setProperty('--progress-soft',BASE.soft);
+  r.setProperty('--done',BASE.accent);
+  r.setProperty('--fill-done',BASE.accent);
+  r.setProperty('--fill-progress',BASE.fill);
+  r.setProperty('--fill-warn',BASE.warn);
+  r.setProperty('--warn',BASE.warn);
+  r.setProperty('--warn-soft',BASE.warnSoft);
+  r.setProperty('--accent-rgb',BASE.rgb);
+  /* 포인트 컬러가 실제로 칠해지는 곳: 배터리 채움 · 1차 배지/띠 · 완료 배지 · 배경 웨시 */
+  r.setProperty('--point',t.point);
+  r.setProperty('--point-soft',t.soft);
+  r.setProperty('--point-rgb',t.rgb);
+  r.setProperty('--done-soft',t.soft);
   r.setProperty('--donesoft-rgb',t.softRgb);
 }
-function renderThemeSwatches(block){
+/* 포인트 컬러 고르기 — 네이티브 색상 선택기(그라데이션 스펙트럼)를 그대로 쓴다.
+   끌고 있는 동안에는 CSS 변수만 즉시 갈아끼우고(리렌더 없음), 손을 떼면 저장한다. */
+let _pointSaveTimer=null;
+function renderPointPicker(block){
   const bar=document.getElementById('themeBar'); if(!bar) return;
-  bar.innerHTML='';
-  const cur=themeOf(block);
-  Object.keys(THEMES).forEach(key=>{
-    const t=THEMES[key];
-    const dot=el(`<button type="button" class="themedot ${key===cur?'on':''}" title="${t.name} 계열" aria-label="${t.name} 계열" aria-pressed="${key===cur}" style="background:${t.fill}"></button>`);
-    dot.onclick=()=>{ block.theme=key; applyTheme(block); saveApp(); render(); };
-    bar.appendChild(dot);
-  });
+  const cur=pointOf(block);
+  bar.innerHTML=`<label class="pointpick" title="포인트 색 고르기">
+      <input type="color" id="pointInput" value="${cur}" aria-label="포인트 색">
+    </label>
+    <span class="pointhex">${cur}</span>
+    ${cur.toUpperCase()!==DEFAULT_POINT ? '<button type="button" class="pointreset">기본 노랑</button>' : ''}`;
+  const input=bar.querySelector('#pointInput');
+  const hexLabel=bar.querySelector('.pointhex');
+  const commit=(hex, immediate)=>{
+    block.point=rgbToHex(hexToRgb(hex) || hexToRgb(DEFAULT_POINT));
+    applyTheme(block);
+    if(hexLabel) hexLabel.textContent=block.point;
+    clearTimeout(_pointSaveTimer);
+    _pointSaveTimer=setTimeout(()=>{ saveApp(); if(immediate) render(); }, immediate?0:260);
+  };
+  input.oninput=()=>commit(input.value,false);
+  input.onchange=()=>commit(input.value,true);
+  const reset=bar.querySelector('.pointreset');
+  if(reset) reset.onclick=()=>{ block.point=DEFAULT_POINT; applyTheme(block); saveApp(); render(); };
 }
 let S=null, LEC=[], SCHOOL_DAYS=[], MAXDAY=0;
 let undoSnapshot=null;
 const expandedFlowCards=new Set();
 let onboardingOpen=false;
+let timetableOpen=false;
 let checklistCardOpen=false;
 
 /* 기본 프롬프트(p1~p5)를 한 번만 '프롬프트 목록'으로 옮긴다. 이후로는 기본/직접 추가 구분 없이
@@ -844,7 +933,14 @@ function normalizeApp(app){
       }
     }
   });
-  app.blocks.forEach(b=>{ if(!b || !THEMES[b.theme]) { if(b) b.theme='blue'; } }); // 색 계열 기본값
+  app.blocks.forEach(b=>{ if(b && !Array.isArray(b.timetable)) b.timetable=[]; }); // 시간표 사진 칸
+  /* 옛 '색 계열'은 없어졌다 — 블록마다 포인트 컬러 하나만 남긴다.
+     예전에 옐로우 계열을 쓰던 블록은 그 노랑을 포인트 컬러로 이어받는다. */
+  app.blocks.forEach(b=>{
+    if(!b) return;
+    if(!hexToRgb(b.point)) b.point = (b.theme==='yellow') ? '#FFE24E' : DEFAULT_POINT;
+    delete b.theme;
+  });
   return app;
 }
 
@@ -1422,6 +1518,17 @@ function customInstructions(){
    하루 목표 크레딧은 각 날짜별로 직접 상향·하향 조정할 수 있다(약속 있는 날은 낮추고,
    몰아서 할 수 있는 날은 올리는 식) — 그러면 다음 계산부터 바로 반영된다. */
 function activeLectures(){ return LEC.filter(l=>!S.lec[l.id].excluded); }
+/* ===== 강의 번호 =====
+   "3강", "12강 (2)", "L7" 처럼 코드 안에 든 숫자를 강의 번호로 읽는다. 숫자가 없으면
+   수업일 → 등록 순서로 갈음한다. 계획을 세울 때 같은 단계(신규/1차/2차)끼리는 항상
+   이 번호 순서로만 진행된다. */
+function lecSeq(l){
+  if(!l) return Number.MAX_SAFE_INTEGER;
+  const m = String(l.code||'').match(/\d+/);
+  if(m) return parseInt(m[0],10)*1000 + (l.id%1000);
+  return 1e6 + l.day*1000 + (l.id%1000);
+}
+function seqOf(lecId){ return lecSeq(byId(lecId)); }
 function usableDays(){ return Math.max(1, S.examDay-2); } // 시험 당일·전날은 분배 제외
 const DEFAULT_TYPE_COST = {new:1, r1:0.5, r2:0.25};
 function typeCost(type){ return (S.typeCost && S.typeCost[type]!=null) ? S.typeCost[type] : DEFAULT_TYPE_COST[type]; }
@@ -1500,15 +1607,57 @@ function buildPendingPool(excludeKeys){
       else if(!st.r[2]){ push('r2',st.enc+3); }
     }
   });
+  return alignPoolBySeq(pool);
+}
+/* ===== 단계별 번호 순서 보정 =====
+   복습의 기준일(nominal)은 "실제로 인코딩한 날 + 1/+3"이라, 강의를 미뤄서 인코딩
+   순서가 뒤바뀌면 1차 목록이 3강 → 7·8·9강 → 4강처럼 꼬인다. 그래서 각 단계 안에서는
+   기준일 묶음을 그대로 두고, 그 날짜들을 "강의 번호가 빠른 순서"로 다시 나눠 준다.
+   (= 날짜 구성은 변하지 않고, 같은 단계 안의 진행 순서만 항상 번호순이 된다.
+     원래 예정일 표시에 쓰는 original은 건드리지 않는다.) */
+function alignPoolBySeq(pool){
+  ['assign','new','r1','r2'].forEach(type=>{
+    const items=pool.filter(it=>it.type===type && it.nominal!=null);
+    if(items.length<2) return;
+    const days=items.map(it=>it.nominal).sort((a,b)=>a-b);
+    items.sort((a,b)=> seqOf(a.lecId)-seqOf(b.lecId));
+    items.forEach((it,i)=>{ it.nominal=days[i]; });
+  });
+  /* 한 강의 안에서는 신규 → 1차 → 2차 순서가 절대 뒤집히지 않게 눌러 둔다
+     (번호순 재배정 때문에 복습 기준일이 그 강의의 신규 기준일보다 앞서는 일 방지) */
+  const perLec={};
+  pool.forEach(it=>{ if(it.nominal!=null) (perLec[it.lecId]=perLec[it.lecId]||[]).push(it); });
+  Object.values(perLec).forEach(items=>{
+    items.sort((a,b)=> TYPE_ORDER[a.type]-TYPE_ORDER[b.type]);
+    let floor=-Infinity;
+    items.forEach(it=>{ it.nominal=Math.max(it.nominal, floor); floor=it.nominal; });
+  });
   return pool;
 }
 const TYPE_ORDER={assign:-1,new:0,r1:1,r2:2};
-const scheduleSortFn=(a,b)=> a.nominal-b.nominal || TYPE_ORDER[a.type]-TYPE_ORDER[b.type] || a.lecId-b.lecId;
+/* ===== 신규 학습 우선 =====
+   그 강의의 수업일 당일(또는 하루 전)이 되면, 복습보다 그 강의의 신규 학습을 먼저
+   끝낸다 — 수업을 듣기 전에 예습이 끝나 있는 상태를 유지하는 게 목적이다.
+   수업일이 이미 지난(=밀린) 신규도 같은 최우선 묶음에 들어가 먼저 따라잡는다.
+   NEW_LEAD_DAYS를 0으로 두면 "수업일 당일부터"만 우선이 된다. */
+const NEW_LEAD_DAYS=1;
+function newFirstRank(it, day){
+  if(day==null) return 1;
+  if(it.type!=='new' && it.type!=='assign') return 1;
+  return (it.nominal!=null && it.nominal<=day+NEW_LEAD_DAYS) ? 0 : 1;
+}
+/* 같은 단계끼리는 언제나 강의 번호 순서 — 미뤄서 기준일이 뒤바뀌어도 순서가 꼬이지 않는다 */
+function scheduleSortFor(day){
+  return (a,b)=> newFirstRank(a,day)-newFirstRank(b,day)
+              || a.nominal-b.nominal
+              || TYPE_ORDER[a.type]-TYPE_ORDER[b.type]
+              || seqOf(a.lecId)-seqOf(b.lecId);
+}
 /* 그날 목표 크레딧(cap)이 남아 있는 한(used<cap) 다음 항목을 마저 진행한다 — 정확히
    맞아떨어지지 않아 살짝 넘어가도 OK. 여유가 완전히 없어지면(used>=cap) 그 시점에서
    멈추고 나머지는 전부 다음 날로 이월한다. */
-function fillDay(pool, cap){
-  pool.sort(scheduleSortFn);
+function fillDay(pool, cap, day){
+  pool.sort(scheduleSortFor(day==null?null:day));
   const placed=[]; let used=0; let i=0;
   for(; i<pool.length; i++){
     if(used >= cap-1e-9) break;
@@ -1565,7 +1714,7 @@ function ensureTodayLock(){
   const pinnedCost = pinned.reduce((a,it)=>a+itemCost(it),0);
   const cap = (S.capOverride && S.capOverride[S.cur]!=null) ? S.capOverride[S.cur] : defaultCapacityFor(S.cur, remainingCredits()+pinnedCost, S.cur);
   const pool = buildPendingPool(pinnedKeys);
-  const {placed} = fillDay(pool, Math.max(0, cap-pinnedCost));
+  const {placed} = fillDay(pool, Math.max(0, cap-pinnedCost), S.cur);
   S.todayLock = {day:S.cur, items: [...pinned, ...placed].map(it=>({type:it.type, lecId:it.lecId, original:it.original, pulled:!!it.pulled}))};
 }
 /* 오늘 몫은 S.todayLock을 그대로 쓰고(체크할수록 줄기만 함), 내일부터 시험 전날까지는
@@ -1590,7 +1739,7 @@ function computeSchedule(){
 
   let pool = buildPendingPool(lockedKeys);
   for(let d=startDay+1; d<=uEnd; d++){
-    const {placed, rest} = fillDay(pool, dayCapacity(d));
+    const {placed, rest} = fillDay(pool, dayCapacity(d), d);
     placed.forEach(it=>{ it.day=d; byDay[d].push(it); });
     pool = rest;
   }
@@ -1671,9 +1820,9 @@ function preQueue(){
   return activeLectures().filter(l=> l.type!=='과제' && S.lec[l.id].enc==null && SCHEDULE.byLecture[l.id].new!==S.cur)
     .sort((a,b)=>{
       const da=SCHEDULE.byLecture[a.id].new, db=SCHEDULE.byLecture[b.id].new;
-      if(da==null && db==null) return a.id-b.id;
-      if(da==null) return 1; if(db==null) return -1;
-      return da-db || a.id-b.id;
+      if(da==null && db!=null) return 1;
+      if(db==null && da!=null) return -1;
+      return lecSeq(a)-lecSeq(b); // 미리 할 신규도 강의 번호 순서
     });
 }
 /* 오늘 락에 이미 들어간 것 말고, "지금 당장 미리 끝내고 싶은" 복습들을 수동으로 고를
@@ -1690,16 +1839,19 @@ function previewReviewQueue(){
     if(!st.r[1] && !lockedKeys.has(l.id+':r1') && pulled[l.id+':r1']!==S.cur) out.push({type:'r1', l});
     else if(st.r[1] && !st.r[2] && !lockedKeys.has(l.id+':r2') && pulled[l.id+':r2']!==S.cur) out.push({type:'r2', l});
   });
-  return out.sort((a,b)=>{
-    const da=SCHEDULE.byLecture[a.l.id][a.type], db=SCHEDULE.byLecture[b.l.id][b.type];
-    if(da==null && db==null) return a.l.id-b.l.id;
-    if(da==null) return 1; if(db==null) return -1;
-    return da-db || a.l.id-b.l.id;
-  });
+  /* 1차끼리·2차끼리 번호순으로 묶어 보여준다 */
+  return out.sort((a,b)=> TYPE_ORDER[a.type]-TYPE_ORDER[b.type] || lecSeq(a.l)-lecSeq(b.l));
 }
-/* 오늘 실제 수업일인 일반 강의는 올해 필기와 비교해볼 수 있도록 안내한다. */
+/* ===== 필기 비교 안내 =====
+   "미리 인코딩해둔 강의의 실제 수업일이 오늘 도래한" 경우에만 안내한다.
+   아직 신규 학습을 안 한 강의는 올해 필기가 올라온 뒤 그 필기로 인코딩하게 되므로
+   비교할 대상이 없고, 오늘 인코딩한 강의도 이미 올해 필기를 쓴 것이라 비교가 불필요하다. */
 function comparisonCandidates(){
-  return activeLectures().filter(l=> l.type!=='과제' && l.day===S.cur);
+  return activeLectures().filter(l=>{
+    if(l.type==='과제' || l.day!==S.cur) return false;
+    const st=S.lec[l.id];
+    return st && st.enc!=null && st.enc < l.day; // 수업일보다 앞서 인코딩해둔 강의만
+  });
 }
 /* ===== 렌더 유틸 ===== */
 function el(h){ const t=document.createElement('template'); t.innerHTML=h.trim(); return t.content.firstChild; }
@@ -1707,8 +1859,8 @@ function el(h){ const t=document.createElement('template'); t.innerHTML=h.trim()
    체크 순간 클릭 지점에서 라벤더·크림 점이 피어오른다. render()가 DOM을 다시 그려도
    body에 직접 붙이므로 지워지지 않고, 완료 행위에만 모션 보상을 몰아준다. */
 function markColors(){
-  const t=THEMES[themeOf(App.blocks.find(b=>b.id===App.active))] || THEMES.blue;
-  return [t.accent,t.doneSoft,t.fill,t.soft,t.ink];
+  const t=pointTints(pointOf(App.blocks.find(b=>b.id===App.active)));
+  return [t.point,t.soft,'#111111',t.point,t.soft];
 }
 function popMarks(x,y){
   if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -1770,7 +1922,7 @@ function renderHeader(){
   const block=App.blocks.find(b=>b.id===App.active);
   const d=dInfo(S.cur), e=dInfo(S.examDay);
   applyTheme(block);
-  renderThemeSwatches(block);
+  renderPointPicker(block);
   document.getElementById('blockTitle').textContent = block.name;
   const emojiButton=document.getElementById('blockEmoji');
   const emojiPicker=document.getElementById('emojiPicker');
@@ -1888,8 +2040,9 @@ function renderLoadPanel(){
   /* color = 배지 글자색(진한 톤), fill = 막대 채움색(중간 톤). 둘을 분리해야
      작은 글자는 또렷하고 넓은 막대는 차분하게 유지된다. */
   let fill;
-  if(pct>=100){ color='var(--accent-ink)'; fill='var(--done)'; bg='var(--done-soft)'; statusText='완료'; }
-  else if(pct>=1){ color='var(--accent-ink)'; fill='var(--fill-progress)'; bg='var(--progress-soft)'; statusText='진행 중'; }
+  /* 배터리 채움은 포인트 컬러 — 진도가 차오르는 곳이 이 앱에서 색이 가장 필요한 자리다 */
+  if(pct>=100){ color='var(--ink)'; fill='var(--point)'; bg='var(--point-soft)'; statusText='완료'; }
+  else if(pct>=1){ color='var(--ink)'; fill='var(--point)'; bg='var(--point-soft)'; statusText='진행 중'; }
   else { color='var(--muted)'; fill='var(--inactive-soft)'; bg='var(--inactive-soft)'; statusText='시작 전'; }
   document.getElementById('loadPanel').innerHTML = `
     <h2>오늘의 진도</h2>
@@ -2260,7 +2413,7 @@ document.getElementById('cbOk').onclick=()=> document.getElementById('cbMask').c
 function launchConfetti(){
   if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const cs=getComputedStyle(document.documentElement);
-  const colors=[cs.getPropertyValue('--accent'), cs.getPropertyValue('--fill-progress'), cs.getPropertyValue('--done-soft'), '#F4C95D', '#EE9BB4', '#7CC9A2'].map(c=>c.trim()).filter(Boolean);
+  const colors=[cs.getPropertyValue('--point'), cs.getPropertyValue('--point-soft'), '#111111', '#E51E1E', cs.getPropertyValue('--point'), '#FFFFFF'].map(c=>c.trim()).filter(Boolean);
   const wrap=document.createElement('div'); wrap.className='confetti';
   for(let i=0;i<90;i++){
     const p=document.createElement('i');
@@ -2321,7 +2474,7 @@ function renderDayFlow(box, isExamDay){
   const items = scheduled.concat(pulled).sort((a,b)=>{
     const aDone=(a.type==='new'||a.type==='assign') ? S.lec[a.lecId].enc!=null : !!S.lec[a.lecId].r[a.type==='r1'?1:2];
     const bDone=(b.type==='new'||b.type==='assign') ? S.lec[b.lecId].enc!=null : !!S.lec[b.lecId].r[b.type==='r1'?1:2];
-    return Number(aDone)-Number(bDone) || TYPE_ORDER[a.type]-TYPE_ORDER[b.type] || a.lecId-b.lecId;
+    return Number(aDone)-Number(bDone) || TYPE_ORDER[a.type]-TYPE_ORDER[b.type] || seqOf(a.lecId)-seqOf(b.lecId);
   });
   box.appendChild(el('<button class="add-plan-btn" type="button">+ 오늘 계획 추가</button>'));
   const isDone = it => (it.type==='new'||it.type==='assign') ? S.lec[it.lecId].enc!=null : !!S.lec[it.lecId].r[it.type==='r1'?1:2];
@@ -2536,7 +2689,7 @@ function renderToday(){
   if(cands.length && !App.compareDismissed[compareDismissKey]){
     const p4 = promptById('pd');
     const names = cands.map(l=>esc(l.code)+'. '+esc(l.title)).join(', ');
-    cbox.innerHTML = `<div class="compareCard"><div class="compareCard-head"><b>⚠ 오늘 실제 수업일인 강의 ${cands.length}개가 있습니다.</b><button class="compareCard-close" title="안내 닫기" aria-label="안내 닫기">×</button></div>이번 연도 필기를 받으신 후, 비교 프롬프트로 한 번 비교해 보시는 것을 권해드립니다.<br>${names}
+    cbox.innerHTML = `<div class="compareCard"><div class="compareCard-head"><b>⚠ 미리 신규 학습해둔 강의 ${cands.length}개의 실제 수업일이 오늘입니다.</b><button class="compareCard-close" title="안내 닫기" aria-label="안내 닫기">×</button></div>이번 연도 필기를 받으신 후, 비교 프롬프트로 한 번 비교해 보시는 것을 권해드립니다.<br>${names}
     ${p4?`<div class="compare-copy"><button class="copybtn" type="button">프롬포트 복사</button></div>
     <details style="margin-top:6px"><summary style="cursor:pointer;font-size:10.5px;font-weight:700">비교 프롬프트 보기</summary><div class="opromptbox" style="margin-left:0">${esc(p4.text||'')}</div></details>`:''}</div>`;
     if(p4){
@@ -2588,6 +2741,7 @@ function renderTypeCostInputs(){
 function tagGroupsHtml(items, isDoneFn){
   const groups={assign:[], new:[], r1:[], r2:[]};
   items.forEach(it=>{ if(groups[it.type]) groups[it.type].push(it); });
+  Object.values(groups).forEach(g=> g.sort((a,b)=> seqOf(a.lecId)-seqOf(b.lecId))); // 같은 단계는 항상 번호순
   const labels={assign:'과제',new:'신규',r1:'1차',r2:'2차'};
   let html='';
   ['assign','new','r1','r2'].forEach(type=>{
@@ -2653,8 +2807,12 @@ function renderPlan(){
       const load = items.reduce((a,it)=>a+it.cost,0);
       const loadPct=Math.min(100, load/scale*100);
       const capPct=Math.min(100, cap/scale*100);
-      /* 막대는 중간 톤으로 — 과부하만 채도를 올려 눈에 걸리게 한다 */
-      let color = blocked? 'var(--inactive-soft)' : (load>cap+1e-9?'var(--fill-warn)':'var(--fill-progress)');
+      /* 막대는 중간 톤으로 — 진짜 과부하만 경고색으로 눈에 걸리게 한다.
+         하루 채우기는 목표 크레딧을 살짝 넘겨서 끝내는 게 정상이므로(마지막 한 항목까지는
+         마저 진행), 가장 큰 항목 하나를 빼고도 목표를 넘는 날만 과부하로 본다. */
+      const biggest = items.reduce((m,it)=>Math.max(m,it.cost),0);
+      const overloaded = load > cap + biggest + 1e-9;
+      let color = blocked? 'var(--inactive-soft)' : (overloaded?'var(--fill-warn)':'var(--fill-progress)');
       if(load<1e-9 && !blocked) color='var(--inactive-soft)';
       barHtml = `<div class="pbarwrap"><div class="pbar" style="width:${loadPct}%;background:${color}"></div><div class="pcapline" style="left:${capPct}%"></div></div>`;
       n=items.filter(it=>it.type==='new').length; r1=items.filter(it=>it.type==='r1').length; r2=items.filter(it=>it.type==='r2').length; assign=items.filter(it=>it.type==='assign').length;
@@ -2700,7 +2858,7 @@ function renderPlan(){
 }
 function stage0Chip(l){
   const enc = S.lec[l.id].enc!=null;
-  return `<div class="chip"><span class="sq ${enc?'done-static':'inactive'}" title="신규: ${STAGE_DESC[0].desc}" style="${enc?'background:var(--done);color:#fff':''}"></span><span class="lbl">신</span></div>`;
+  return `<div class="chip"><span class="sq ${enc?'done-static':'inactive'}" title="신규: ${STAGE_DESC[0].desc}" style="${enc?'background:var(--done);color:var(--on-accent)':''}"></span><span class="lbl">신</span></div>`;
 }
 function buildRow(l, st){
   const excluded = !!st.excluded;
@@ -2813,6 +2971,104 @@ function buildAssignRow(l, st){
     row.querySelector('.assign-checklist-toggle').onclick=()=> toggleFlowBody(body);
   }
   return wrap;
+}
+/* ===== 시간표 사진 =====
+   블록별로 시간표·강의 일정표 사진을 올려둔다. 저장소(Firebase/로컬)에 앱 상태 전체가
+   문자열로 들어가므로, 원본을 그대로 넣으면 저장이 통째로 실패한다 → 캔버스로 긴 변을
+   줄이고 JPEG로 다시 인코딩해서 한 장당 대략 수백 KB 안으로 맞춘 뒤 보관한다. */
+const TT_STEPS=[[1600,0.82],[1280,0.74],[1000,0.66],[820,0.58]];
+const TT_MAX_BYTES=700*1024;
+function shrinkImage(file, maxSide, quality){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onerror=()=>reject(new Error('파일을 읽지 못했습니다'));
+    reader.onload=()=>{
+      const img=new Image();
+      img.onerror=()=>reject(new Error('이미지 형식을 읽지 못했습니다'));
+      img.onload=()=>{
+        const scale=Math.min(1, maxSide/Math.max(img.width, img.height));
+        const w=Math.max(1,Math.round(img.width*scale)), h=Math.max(1,Math.round(img.height*scale));
+        const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+        const ctx=cv.getContext('2d');
+        ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,w,h); // 투명 PNG가 검게 깔리는 것 방지
+        ctx.drawImage(img,0,0,w,h);
+        resolve(cv.toDataURL('image/jpeg', quality));
+      };
+      img.src=reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+async function fitImage(file){
+  let last=null;
+  for(const [side,q] of TT_STEPS){
+    last=await shrinkImage(file, side, q);
+    if(last.length*0.75 <= TT_MAX_BYTES) return last;
+  }
+  return last;
+}
+function openTimetableViewer(src){
+  document.getElementById('ttViewImg').src=src;
+  document.getElementById('ttMask').classList.add('on');
+}
+function renderTimetable(){
+  const box=document.getElementById('timetableBox'); if(!box) return;
+  const block=App.blocks.find(b=>b.id===App.active); if(!block){ box.innerHTML=''; return; }
+  if(!Array.isArray(block.timetable)) block.timetable=[];
+  const shots=block.timetable;
+  box.innerHTML=`<div class="panel" style="margin-bottom:12px">
+    <details class="foldable ttdet" ${timetableOpen?'open':''}>
+      <summary><span class="ttsum">시간표 사진 ${shots.length?`(${shots.length})`:''}</span><span class="ttsumhint">${shots.length?'펼쳐 보기':'사진 등록하기'}</span></summary>
+      <div>
+        ${shots.length?`<div class="ttgrid">${shots.map((sh,i)=>`<div class="ttthumb" data-i="${i}">
+          <img src="${sh.src}" alt="${esc(sh.name||'시간표')}">
+          <button class="ttdel" type="button" title="사진 삭제" aria-label="사진 삭제">×</button>
+          <div class="ttcap">${esc(sh.name||'시간표')}</div>
+        </div>`).join('')}</div>`:'<div class="empty" style="padding:14px 4px">등록된 시간표 사진이 없습니다</div>'}
+        <label class="ttadd">+ 사진 추가<input type="file" accept="image/*" multiple hidden></label>
+        <div class="ttstatus"></div>
+        <p class="cphint">시간표를 찍어 올려두면 강의를 Day에 배치할 때 바로 확인할 수 있습니다. 사진은 저장 용량에 맞게 자동으로 줄여 보관합니다.</p>
+      </div>
+    </details>
+  </div>`;
+  const det=box.querySelector('.ttdet');
+  const hint=box.querySelector('.ttsumhint');
+  const hintText=open=> open? '접기' : (shots.length? '펼쳐 보기' : '사진 등록하기');
+  if(hint) hint.textContent=hintText(timetableOpen);
+  det.addEventListener('toggle',()=>{ timetableOpen=det.open; if(hint) hint.textContent=hintText(det.open); });
+  bindDetailsFold(det, '.ttadd, .ttdel, .ttthumb');
+  const status=box.querySelector('.ttstatus');
+  box.querySelectorAll('.ttthumb img').forEach(img=>{
+    img.onclick=()=>openTimetableViewer(img.getAttribute('src'));
+  });
+  box.querySelectorAll('.ttdel').forEach(btn=>{
+    btn.onclick=e=>{
+      e.preventDefault(); e.stopPropagation();
+      const i=Number(btn.closest('.ttthumb').dataset.i);
+      askConfirm('시간표 사진 삭제','이 사진을 삭제할까요?',()=>{
+        block.timetable.splice(i,1); saveApp(); render(); showToast('시간표 사진을 삭제했습니다.');
+      },'삭제');
+    };
+  });
+  const input=box.querySelector('.ttadd input');
+  input.onclick=e=>e.stopPropagation();
+  input.onchange=async()=>{
+    const files=Array.from(input.files||[]).filter(f=>f && f.type.startsWith('image/'));
+    if(!files.length) return;
+    status.textContent=`사진 ${files.length}장 처리 중...`;
+    let added=0;
+    for(const f of files){
+      try{
+        const src=await fitImage(f);
+        block.timetable.push({id:'t'+Date.now()+Math.random().toString(36).slice(2,6), name:f.name||'시간표', src});
+        added++;
+      }catch(err){ console.warn(err); }
+    }
+    input.value='';
+    if(!added){ status.textContent='사진을 등록하지 못했습니다.'; return; }
+    timetableOpen=true;
+    saveApp(); render(); showToast(`시간표 사진 ${added}장을 등록했습니다.`);
+  };
 }
 function renderList(){
   const wrap=document.getElementById('fullList'); wrap.innerHTML='';
@@ -3084,7 +3340,7 @@ function render(){
   document.getElementById('emptyState').style.display = has? 'none' : '';
   if(!has) return;
   SCHEDULE = computeSchedule();
-  renderHeader(); renderBanner(); renderLoadPanel(); renderToday(); renderPlan(); renderList(); renderPrompts();
+  renderHeader(); renderBanner(); renderLoadPanel(); renderToday(); renderPlan(); renderTimetable(); renderList(); renderPrompts();
   if(typeof moveTabInk==='function') requestAnimationFrame(moveTabInk);
 }
 
@@ -3113,6 +3369,11 @@ function askConfirm(title, body, onYes, yesLabel){
   mask.classList.add('on'); _cb=onYes;
 }
 document.getElementById('mkYes').onclick=()=>{ mask.classList.remove('on'); if(_cb) _cb(); };
+/* 시간표 사진 크게 보기 — 배경/닫기 버튼/ESC로 닫는다 */
+const ttMask=document.getElementById('ttMask');
+document.getElementById('ttClose').onclick=()=>ttMask.classList.remove('on');
+ttMask.onclick=e=>{ if(e.target===ttMask) ttMask.classList.remove('on'); };
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') ttMask.classList.remove('on'); });
 document.getElementById('mkNo').onclick=()=>{ mask.classList.remove('on'); };
 
 /* ===== 새 블록 추가 (수동) ===== */
