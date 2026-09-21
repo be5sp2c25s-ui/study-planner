@@ -241,6 +241,9 @@
   .mask.on{animation:maskIn var(--t-mid) var(--ease)}
   .mask.on .modal{animation:popIn 280ms var(--ease-back)}
   .mask.on{display:flex}
+  /* 확인·축하 모달은 시간표 팝업이나 뽀모도로 전체화면 위에서도 항상 보여야 한다 */
+  #mask{z-index:120}
+  #cbMask{z-index:121}
   .modal{background:var(--surface);border-radius:18px;max-width:360px;width:100%;padding:22px;max-height:88vh;overflow:auto;border:1px solid transparent;box-shadow:var(--sh-pop)}
   .modal.wide{max-width:420px}
   .modal h3{margin:0 0 6px;font-size:15px;font-family:var(--disp);font-weight:800;letter-spacing:-0.3px}
@@ -470,30 +473,6 @@
   .substep .slabel{flex:1}
   .substep .slabel.done{color:var(--faint)}
 
-  /* ===== 시간표 사진 ===== */
-  .ttdet > summary{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;list-style:none}
-  .ttdet > summary::-webkit-details-marker{display:none}
-  .ttsum{font-size:13px;font-weight:800;color:var(--ink)}
-  .ttsumhint{font-size:10.5px;font-weight:700;color:var(--faint)}
-  .ttgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:9px;margin-top:11px}
-  .ttthumb{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface2);
-    transition:transform var(--t-mid) var(--ease),box-shadow var(--t-mid) var(--ease)}
-  .ttthumb:hover{transform:translateY(-2px);box-shadow:var(--sh-2)}
-  .ttthumb img{display:block;width:100%;height:112px;object-fit:cover;cursor:zoom-in}
-  .ttdel{position:absolute;top:5px;right:5px;width:22px;height:22px;border:none;border-radius:50%;background:rgba(255,255,255,.9);
-    color:var(--warn);font-size:13px;font-weight:700;line-height:1;cursor:pointer;padding:0;box-shadow:var(--sh-1)}
-  .ttdel:hover{background:var(--warn);color:#fff}
-  .ttcap{font-size:9.5px;font-weight:700;color:var(--muted);padding:5px 7px;border-top:1px solid var(--line);background:var(--surface);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .ttadd{display:inline-flex;align-items:center;gap:6px;margin-top:11px;border:1px dashed var(--faint);border-radius:9px;padding:9px 14px;
-    background:var(--surface);color:var(--muted);font-size:11.5px;font-weight:700;cursor:pointer}
-  .ttadd:hover{border-color:var(--accent-ink);background:var(--accent-soft);color:var(--accent-ink)}
-  .ttstatus{font-size:10.5px;font-weight:700;color:var(--accent-ink);margin-top:7px;min-height:13px}
-  #ttMask .ttview{position:relative;max-width:min(96vw,1100px);max-height:90vh;display:flex;flex-direction:column;align-items:center;gap:10px}
-  #ttMask.on .ttview{animation:popIn 280ms var(--ease-back)}
-  #ttMask img{max-width:100%;max-height:82vh;border-radius:12px;background:var(--surface);box-shadow:var(--sh-pop)}
-  #ttMask .ttclose{border:none;border-radius:9px;padding:8px 16px;font-size:12px;font-weight:700;background:var(--surface);color:var(--ink);cursor:pointer;box-shadow:var(--sh-2)}
-
   .eeve{background:var(--surface);border:1px solid transparent;border-radius:16px;padding:16px;box-shadow:var(--sh-2)}
   .eeve h2{font-family:var(--disp);font-weight:800;font-size:14px;margin:0 0 8px}
   .compareCard{border-left:4px solid var(--warn);background:var(--warn-soft);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:11.5px}
@@ -562,6 +541,106 @@
   .mark{position:fixed;z-index:80;pointer-events:none;width:7px;height:7px;border-radius:50%;
     animation:markFloat 900ms var(--ease) forwards}
 
+  /* ===== 뽀모도로 · 메인 화면 런처 ===== */
+  .pomo-launch{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);
+    border-radius:10px;padding:5px 12px 5px 8px;cursor:pointer;font-family:var(--sans);box-shadow:var(--sh-1)}
+  .pomo-launch:hover{border-color:var(--accent-ink);box-shadow:var(--sh-2)}
+  .pomo-launch .pl-emoji{font-size:19px;line-height:1}
+  .pomo-launch .pl-txt{font-size:13px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+  .pomo-launch[data-live="1"]{border-color:var(--ink)}
+  .pomo-launch[data-live="done"]{border-color:var(--warn);background:var(--warn-soft)}
+  .pomo-launch[data-live="done"] .pl-txt{color:var(--warn)}
+
+  /* ===== 뽀모도로 · 전체화면(휴식) ===== */
+  .pomo-full{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;padding:24px;
+    background:var(--bg);color:var(--ink);transition:background var(--t-slow) var(--ease),color var(--t-slow) var(--ease)}
+  .pomo-full.on{display:flex;animation:maskIn var(--t-mid) var(--ease)}
+  .pomo-full.ring{background:#E51E1E;color:#fff}
+  .pf-in{width:100%;max-width:420px;text-align:center}
+  .pf-tag{font-size:12.5px;font-weight:800;letter-spacing:.3px;opacity:.62}
+  .pf-time{font-variant-numeric:tabular-nums;font-weight:800;font-size:clamp(64px,17vw,124px);line-height:1.02;margin:6px 0 4px;letter-spacing:1px}
+  .pf-sub{font-size:12px;font-weight:700;opacity:.55;margin-bottom:20px}
+  .pf-ctl{display:flex;align-items:center;justify-content:center;gap:8px}
+  .pf-ctl button{border-radius:11px;font-family:var(--sans);font-weight:800;cursor:pointer;border:1px solid currentColor;
+    background:transparent;color:inherit;height:44px}
+  .pf-step{width:44px;font-size:19px;opacity:.7}
+  .pf-ctl .pf-main{flex:1;max-width:240px;font-size:14px;background:var(--ink);color:#fff;border-color:var(--ink)}
+  .pomo-full.ring .pf-ctl .pf-main{background:#fff;color:#E51E1E;border-color:#fff}
+  .pf-alt{margin-top:14px;border:none;background:transparent;color:inherit;opacity:.62;font-size:12.5px;font-weight:800;
+    cursor:pointer;text-decoration:underline;font-family:var(--sans)}
+  .pf-note{margin-top:18px;font-size:11px;font-weight:700;opacity:.45}
+  .pf-close{position:absolute;top:16px;right:18px;border:none;background:transparent;color:inherit;opacity:.5;
+    font-size:22px;line-height:1;cursor:pointer;padding:4px 8px}
+  .pf-close:hover{opacity:1}
+
+  /* ===== 시간표 · 모든 화면에서 열리는 팝업 ===== */
+  .ttbar{display:flex;align-items:center;gap:11px;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);
+    border-radius:14px;padding:9px 13px 9px 9px;cursor:pointer;font-family:var(--sans);box-shadow:var(--sh-1);margin-bottom:14px}
+  .ttbar:hover{border-color:var(--accent-ink);box-shadow:var(--sh-2);transform:translateY(-1px)}
+  .ttbar-thumb{width:56px;height:38px;border-radius:9px;overflow:hidden;background:var(--surface2);flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--faint)}
+  .ttbar-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .ttbar-txt{flex:1;min-width:0}
+  .ttbar-txt b{display:block;font-size:12.5px;font-weight:800;color:var(--ink)}
+  .ttbar-txt small{display:block;font-size:10.5px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ttbar-go{font-size:10.5px;font-weight:800;color:var(--accent-ink);background:var(--accent-soft);border-radius:20px;padding:3px 10px;flex-shrink:0}
+
+  #twMask .ttwrap{position:relative;width:fit-content;min-width:min(92vw,540px);max-width:min(96vw,1180px);
+    max-height:92vh;display:flex;flex-direction:column;gap:9px}
+  #twMask.on .ttwrap{animation:popIn 280ms var(--ease-back)}
+  .ttwtop{display:flex;align-items:center;gap:10px;color:#fff}
+  .ttwtop .ttwtitle{font-size:14px;font-weight:800;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ttwtop .ttwcount{font-size:11.5px;font-weight:800;opacity:.72;font-variant-numeric:tabular-nums}
+  .ttwtop .ttwclose{border:none;background:rgba(255,255,255,.16);color:#fff;border-radius:9px;width:30px;height:30px;
+    font-size:16px;line-height:1;cursor:pointer;padding:0;flex-shrink:0}
+  .ttwtop .ttwclose:hover{background:#fff;color:var(--ink)}
+  .ttwstage{display:flex;align-items:center;justify-content:center;min-height:0;flex:1}
+  .ttwshot{position:relative;display:inline-block;max-width:100%;line-height:0}
+  .ttwstage img{max-width:100%;max-height:72vh;border-radius:12px;background:var(--surface);box-shadow:var(--sh-pop);display:block}
+  .ttwempty{padding:56px 20px;border-radius:12px;background:var(--surface);color:var(--muted);font-size:12.5px;font-weight:700;text-align:center;box-shadow:var(--sh-pop)}
+  .ttwnav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:56px;border:none;border-radius:11px;
+    background:rgba(255,255,255,.86);color:var(--ink);font-size:23px;line-height:1;cursor:pointer;padding:0;box-shadow:var(--sh-2)}
+  .ttwnav:hover{background:#fff}
+  .ttwnav.prev{left:8px} .ttwnav.next{right:8px}
+  @media(max-width:720px){.ttwstage img{max-height:62vh}}
+  .ttwdots{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+  .ttwdot{width:38px;height:26px;border-radius:6px;overflow:hidden;border:2px solid transparent;background:rgba(255,255,255,.22);
+    cursor:pointer;padding:0;flex-shrink:0}
+  .ttwdot img{width:100%;height:100%;object-fit:cover;display:block;opacity:.6}
+  .ttwdot.on{border-color:#fff}
+  .ttwdot.on img{opacity:1}
+  .ttwbar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:center}
+  .ttwbar button,.ttwbar .ttwadd{border:none;border-radius:9px;padding:8px 14px;font-size:11.5px;font-weight:800;cursor:pointer;
+    background:rgba(255,255,255,.16);color:#fff;font-family:var(--sans);display:inline-flex;align-items:center;gap:5px}
+  .ttwbar button:hover,.ttwbar .ttwadd:hover{background:#fff;color:var(--ink)}
+  .ttwbar .ttwstar.on{background:var(--point);color:#111}
+  .ttwbar .ttwdel:hover{background:var(--warn);color:#fff}
+  .ttwstatus{text-align:center;font-size:11px;font-weight:700;color:#fff;opacity:.8;min-height:14px}
+  .ttwcap{text-align:center;font-size:11px;font-weight:700;color:#fff;opacity:.72;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ttwweek{background:var(--point);color:#111;border-radius:20px;padding:2px 9px;font-size:10px;font-weight:800;margin-left:6px}
+
+  /* ===== 학습 계획 · 지난 날 기록 ===== */
+  .histhead{display:flex;align-items:center;gap:9px;width:100%;text-align:left;border:1px dashed var(--line);background:var(--surface);
+    border-radius:10px;padding:8px 12px;cursor:pointer;font-family:var(--sans);margin-top:10px}
+  .histhead:hover{border-color:var(--accent-ink);background:var(--accent-soft)}
+  .histhead .hh-t{flex:1;font-size:11.5px;font-weight:800;color:var(--ink)}
+  .histhead .hh-m{font-size:10.5px;font-weight:700;color:var(--muted)}
+  .histhead .hh-c{font-size:12px;color:var(--faint);transition:transform var(--t-mid) var(--ease)}
+  .histhead[aria-expanded="true"] .hh-c{transform:rotate(180deg)}
+  .planrow.hist{background:var(--surface2);border-style:dashed}
+  .planrow.hist .pd{color:var(--muted)}
+  .planrow.hist:hover{transform:none}
+  .histbatt{display:inline-flex;align-items:center;gap:6px}
+  .histbatt .hb{position:relative;width:42px;height:18px;border-radius:5px;background:var(--track);overflow:hidden;flex-shrink:0;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+  .histbatt .hb i{position:absolute;left:0;top:0;bottom:0;display:block;background:var(--point);
+    background-image:linear-gradient(90deg,color-mix(in srgb,var(--point) 55%,#fff),var(--point))}
+  .histbatt .hb.zero i{background:var(--inactive-soft)}
+  .histbatt b{font-size:11.5px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+  .histbatt.none b{color:var(--faint);font-weight:700;font-size:10.5px}
+  .histnote{font-size:9.5px;font-weight:700;color:var(--faint);grid-column:1/-1}
+  .planstrip .plancell.missed{opacity:.55}
+
   @media(prefers-reduced-motion:reduce){
     *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   }
@@ -590,6 +669,11 @@
         </div>
       </div>
       <div class="ctrls">
+        <div><div class="capl">Focus</div>
+          <button class="pomo-launch" id="pomoLaunch" type="button" title="뽀모도로 타이머 (작은 창으로 띄우기)">
+            <span class="pl-emoji">🍅</span><span class="pl-txt" id="pomoLaunchTxt">25분 집중</span>
+          </button>
+        </div>
         <div><div class="capl">Current Day <button class="todaybtn" data-a="today" type="button" title="실제 오늘 날짜에 해당하는 Day로 이동">오늘로</button></div><div class="stepper">
           <button data-a="day-">−</button>
           <div class="readout"><div class="n" id="dn">1/1</div><div class="d" id="dd">-</div></div>
@@ -606,6 +690,8 @@
     <div id="banner"></div>
 
     <div id="onboardBox"></div>
+
+    <div id="timetableBar"></div>
 
     <div class="tabs">
       <span class="tabink" id="tabInk" aria-hidden="true"></span>
@@ -647,7 +733,6 @@
     </div>
 
     <div class="panelset" id="tab-list">
-      <div id="timetableBox"></div>
       <div class="listbox">
         <div class="lh"><h2>전체 강의</h2><button class="reset" data-a="reset">이 블록 초기화</button></div>
         <div id="fullList"></div>
@@ -684,10 +769,40 @@
   <div class="acts"><button class="yes primary" id="cbOk">고마워!</button></div>
 </div></div>
 
-<div class="mask" id="ttMask"><div class="ttview">
-  <img id="ttViewImg" alt="시간표 크게 보기">
-  <button class="ttclose" id="ttClose" type="button">닫기</button>
+<!-- 시간표 팝업 — 어느 탭에서든 열리고, 좌우로 넘겨 본다 -->
+<div class="mask" id="twMask"><div class="ttwrap">
+  <div class="ttwtop">
+    <div class="ttwtitle" id="twTitle">시간표</div>
+    <div class="ttwcount" id="twCount"></div>
+    <button class="ttwclose" id="twClose" type="button" aria-label="닫기">×</button>
+  </div>
+  <div class="ttwstage" id="twStage"></div>
+  <div class="ttwcap" id="twCap"></div>
+  <div class="ttwdots" id="twDots"></div>
+  <div class="ttwbar">
+    <button class="ttwstar" id="twStar" type="button">★ 이번 주로 지정</button>
+    <label class="ttwadd">+ 사진 추가<input type="file" accept="image/*" multiple hidden id="twFile"></label>
+    <button class="ttwdel" id="twDel" type="button">삭제</button>
+  </div>
+  <div class="ttwstatus" id="twStatus"></div>
 </div></div>
+
+<!-- 뽀모도로 전체화면 — 집중이 끝난 뒤 휴식을 고르는 화면 -->
+<div class="pomo-full" id="pomoFull">
+  <button class="pf-close" id="pfClose" type="button" aria-label="닫기">×</button>
+  <div class="pf-in">
+    <div class="pf-tag" id="pfTag">집중 완료</div>
+    <div class="pf-time" id="pfTime">05:00</div>
+    <div class="pf-sub" id="pfSub">쉬는 시간</div>
+    <div class="pf-ctl">
+      <button class="pf-step" data-pf="minus" type="button" aria-label="1분 줄이기">−</button>
+      <button class="pf-main" id="pfMain" type="button">휴식 시작</button>
+      <button class="pf-step" data-pf="plus" type="button" aria-label="1분 늘리기">+</button>
+    </div>
+    <button class="pf-alt" id="pfBack" type="button">25분 공부하기 →</button>
+    <div class="pf-note" id="pfNote">휴식이 끝나면 이 화면 전체가 빨개집니다.</div>
+  </div>
+</div>
 
 <div class="mask" id="nbMask"><div class="modal wide">
   <h3>새 블록 추가</h3>
@@ -883,7 +998,6 @@ let S=null, LEC=[], SCHOOL_DAYS=[], MAXDAY=0;
 let undoSnapshot=null;
 const expandedFlowCards=new Set();
 let onboardingOpen=false;
-let timetableOpen=false;
 let checklistCardOpen=false;
 
 /* 기본 프롬프트(p1~p5)를 한 번만 '프롬프트 목록'으로 옮긴다. 이후로는 기본/직접 추가 구분 없이
@@ -934,6 +1048,15 @@ function normalizeApp(app){
     }
   });
   app.blocks.forEach(b=>{ if(b && !Array.isArray(b.timetable)) b.timetable=[]; }); // 시간표 사진 칸
+  /* 지난 날의 학습 계획 기록 — 그날 확정됐던 목록을 날짜별로 보관해 둔다.
+     (계획을 세우고 다시 나누는 알고리즘 자체는 전혀 건드리지 않는다. 기록만 남긴다.) */
+  app.blocks.forEach(b=>{
+    const st=b && b.state; if(!st) return;
+    if(!st.dayHistory || typeof st.dayHistory!=='object') st.dayHistory={};
+  });
+  if(!app.pomo || typeof app.pomo!=='object') app.pomo={};
+  if(!(app.pomo.focusMin>0)) app.pomo.focusMin=25;
+  if(!(app.pomo.breakMin>0)) app.pomo.breakMin=5;
   /* 옛 '색 계열'은 없어졌다 — 블록마다 포인트 컬러 하나만 남긴다.
      예전에 옐로우 계열을 쓰던 블록은 그 노랑을 포인트 컬러로 이어받는다. */
   app.blocks.forEach(b=>{
@@ -972,7 +1095,7 @@ document.addEventListener('keydown', e=>{
 
 function freshState(schoolDays, lec){
   const m={}; lec.forEach(l=> m[l.id]=freshLecState());
-  return {cur:1, examDay: schoolDays.length, capOverride:{}, todayLock:null, typeCost:{new:1,r1:0.5,r2:0.25}, onboarding:{}, examEve:{}, ankiCheck:{}, dailyCheck:{}, manualPlans:{}, pulledReviews:{}, lec:m};
+  return {cur:1, examDay: schoolDays.length, capOverride:{}, todayLock:null, dayHistory:{}, typeCost:{new:1,r1:0.5,r2:0.25}, onboarding:{}, examEve:{}, ankiCheck:{}, dailyCheck:{}, manualPlans:{}, pulledReviews:{}, lec:m};
 }
 function freshLecState(){
   return {enc:null, r:{1:false,2:false}, rDay:{1:null,2:null}, subCheck:{new:{},r1:{},r2:{},assign:{}}, excluded:false};
@@ -1720,8 +1843,67 @@ function ensureTodayLock(){
 /* 오늘 몫은 S.todayLock을 그대로 쓰고(체크할수록 줄기만 함), 내일부터 시험 전날까지는
    오늘 lock에 들어간 것들을 제외한 나머지로 매번 새로 시뮬레이션한다(이월·예습 반영,
    실제 상태는 건드리지 않는 순수 계산). */
+/* ===== 지난 날 기록 =====
+   계획을 세우는 방식은 그대로다. 다만 "그날 확정됐던 목록"(=todayLock)을 날짜별로
+   복사해 남겨서, 날이 지나도 그날 무엇을 하기로 했었는지가 사라지지 않게 한다.
+   못 지킨 항목은 지우지 않고 색만 안 칠한 채로 남는다 — 이월·재분배는 기존 알고리즘이
+   그대로 처리하므로, 이 기록은 화면에 보여주기 위한 사본일 뿐 계산에 쓰이지 않는다. */
+function recordDayHistory(){
+  if(!S.dayHistory || typeof S.dayHistory!=='object') S.dayHistory={};
+  if(!S.todayLock || S.todayLock.day!==S.cur) return;
+  const snap = S.todayLock.items.map(it=>({type:it.type, lecId:it.lecId, original:it.original, pulled:!!it.pulled}));
+  const prev = S.dayHistory[S.cur];
+  const sig = JSON.stringify(snap);
+  if(prev && JSON.stringify(prev.items||[])===sig) return;
+  S.dayHistory[S.cur] = {items:snap};
+  saveApp(); // 렌더는 호출하지 않는다 — 저장만 조용히
+}
+/* 그 항목이 day d까지(=그날 혹은 그 전에) 실제로 끝났는가 */
+function itemDoneBy(it, d){
+  const st=S.lec[it.lecId]; if(!st) return false;
+  if(it.type==='r1') return !!st.r[1] && (!st.rDay || st.rDay[1]==null || st.rDay[1]<=d);
+  if(it.type==='r2') return !!st.r[2] && (!st.rDay || st.rDay[2]==null || st.rDay[2]<=d);
+  return st.enc!=null && st.enc<=d; // 'new' 또는 'assign'
+}
+/* 기록이 없는 날에도 "그날 실제로 끝낸 것"은 완료 기록에서 되살릴 수 있다 */
+function actualDoneOn(d){
+  const out=[];
+  LEC.forEach(l=>{
+    const st=S.lec[l.id]; if(!st) return;
+    if(l.type==='과제'){ if(st.enc===d) out.push({type:'assign', lecId:l.id}); return; }
+    if(st.enc===d) out.push({type:'new', lecId:l.id});
+    if(st.r[1] && st.rDay && st.rDay[1]===d) out.push({type:'r1', lecId:l.id});
+    if(st.r[2] && st.rDay && st.rDay[2]===d) out.push({type:'r2', lecId:l.id});
+  });
+  return out;
+}
+/* 지난 날 한 줄에 그릴 항목 = 그날 계획 ∪ 그날 실제로 끝낸 것 */
+function historyItems(d){
+  const hist = (S.dayHistory && S.dayHistory[d]) || null;
+  const seen=new Set(), out=[];
+  const add=it=>{
+    const key=it.lecId+':'+it.type;
+    if(seen.has(key)) return;
+    if(!byId(it.lecId) || !S.lec[it.lecId]) return; // 지워진 강의는 건너뛴다
+    seen.add(key);
+    out.push({type:it.type, lecId:it.lecId, planned:!!it.planned, done:itemDoneBy(it,d)});
+  };
+  (hist && Array.isArray(hist.items) ? hist.items : []).forEach(it=>add({...it, planned:true}));
+  actualDoneOn(d).forEach(it=>add({...it, planned:false}));
+  return {items:out, hasRecord: !!(hist && Array.isArray(hist.items))};
+}
+function historyProgress(d, items){
+  let total=0, done=0;
+  items.forEach(it=>{ const c=itemCost(it); total+=c; if(it.done) done+=c; });
+  const plans=(S.manualPlans && S.manualPlans[d]) || [];
+  if(total<1e-9 && plans.length){ // 크레딧 항목이 없던 날은 직접 추가한 계획으로 본다
+    total=plans.length; done=plans.filter(p=>p.done).length;
+  }
+  return {total, done, pct: total>1e-9 ? Math.round(done/total*100) : null};
+}
 function computeSchedule(){
   ensureTodayLock();
+  recordDayHistory();
   const uEnd = usableDays(), startDay = S.cur;
   const byDay={}; for(let d=startDay; d<=uEnd; d++) byDay[d]=[];
   if(!byDay[startDay]) byDay[startDay]=[]; // 오늘이 분배 구간 밖이어도(시험 전날 등) 항상 키는 존재하게
@@ -2738,7 +2920,7 @@ function renderTypeCostInputs(){
   if(document.activeElement!==r1El) r1El.value=tc.r1;
   if(document.activeElement!==r2El) r2El.value=tc.r2;
 }
-function tagGroupsHtml(items, isDoneFn){
+function tagGroupsHtml(items, isDoneFn, markMissed){
   const groups={assign:[], new:[], r1:[], r2:[]};
   items.forEach(it=>{ if(groups[it.type]) groups[it.type].push(it); });
   Object.values(groups).forEach(g=> g.sort((a,b)=> seqOf(a.lecId)-seqOf(b.lecId))); // 같은 단계는 항상 번호순
@@ -2749,12 +2931,53 @@ function tagGroupsHtml(items, isDoneFn){
     const cells = groups[type].map(it=>{
       const l=byId(it.lecId); if(!l) return '';
       const done = isDoneFn ? isDoneFn(it) : false;
-      const tip = `${esc(l.title||'')}${done?' · 완료':''}`;
-      return `<span class="plancell ${done?'done':''}" title="${tip}">${esc(l.code || l.title)}</span>`;
+      const tip = `${esc(l.title||'')}${done?' · 완료':(markMissed?' · 못 지킴':'')}`;
+      const cls = done? 'done' : (markMissed? 'missed' : '');
+      return `<span class="plancell ${cls}" title="${tip}">${esc(l.code || l.title)}</span>`;
     }).join('');
     html += `<div class="plantaggrp"><span class="glbl">${labels[type]}</span><span class="planstrip ${type}">${cells}</span></div>`;
   });
   return html? `<div class="plantags">${html}</div>` : '';
+}
+/* 지난 날 한 줄 — 그날 계획(못 지킨 건 색 안 칠한 채로) + 달성률 배터리 */
+function historyRow(h, scale){
+  const info=dInfo(h.d) || {date:'', dow:''};
+  const {items, prog}=h;
+  const donePct = prog.total>1e-9 ? Math.min(100, prog.done/scale*100) : 0;
+  const restPct = prog.total>1e-9 ? Math.min(100-donePct, (prog.total-prog.done)/scale*100) : 0;
+  const barHtml = `<div class="pbarwrap"><div class="pbar2">
+      <div class="pbarseg" style="width:${donePct}%;background:var(--fill-done)"></div>
+      <div class="pbarseg" style="width:${restPct}%;background:var(--inactive-soft)"></div>
+    </div></div>`;
+  const tagsHtml = tagGroupsHtml(items, it=>it.done, true);
+  const n=items.filter(it=>it.type==='new').length, r1=items.filter(it=>it.type==='r1').length,
+        r2=items.filter(it=>it.type==='r2').length, assign=items.filter(it=>it.type==='assign').length;
+  const countCells = [
+    assign? {k:'과제', v:assign, c:'assign'} : null,
+    {k:'신규', v:n, c:'new'}, {k:'1차', v:r1, c:'r1'}, {k:'2차', v:r2, c:'r2'},
+  ].filter(Boolean).map(x=>`<span class="pcnt ${x.c}${x.v?'':' zero'}"><i>${x.k}</i><b>${x.v}</b></span>`).join('');
+  const pct=prog.pct;
+  const battHtml = pct!=null
+    ? `<div class="histbatt" title="그날 계획을 얼마나 지켰는지 (${prog.done.toFixed(2)} / ${prog.total.toFixed(2)})">
+         <span class="hb${pct<1?' zero':''}"><i style="width:${Math.max(pct<1?0:4, pct)}%"></i></span><b>${pct}%</b>
+       </div>`
+    : `<div class="histbatt none"><span class="hb zero"><i style="width:0"></i></span><b>기록 없음</b></div>`;
+  const missed = items.filter(it=>!it.done).length;
+  const note = h.hasRecord
+    ? (missed? `계획 ${items.length}개 중 ${missed}개는 못 지켜 다음 날로 이월됐습니다` : `그날 계획을 모두 지켰습니다`)
+    : `그날의 계획 기록은 없고, 실제로 끝낸 항목만 남아 있습니다`;
+  return el(`<div class="planrow hist">
+    <div class="pd">Day${h.d}<div class="pdate">${info.date}${info.dow?`(${info.dow})`:''}</div></div>
+    <div>
+      ${barHtml}
+      ${tagsHtml}
+      <div class="histnote">${esc(note)}${info.note?' · '+esc(info.note):''}</div>
+    </div>
+    <div class="pside">
+      <div class="pcount">${countCells}</div>
+      ${battHtml}
+    </div>
+  </div>`);
 }
 function renderPlan(){
   renderTypeCostInputs();
@@ -2770,12 +2993,47 @@ function renderPlan(){
     warnEl.style.display='';
   } else { warnEl.style.display='none'; warnEl.innerHTML=''; }
 
+  /* ===== 지난 날 기록 =====
+     오늘 이전의 날들도 지우지 않고 남긴다. 계획·재분배 알고리즘은 그대로이고,
+     여기서는 그날 세워졌던 계획과 달성률(배터리)만 다시 그린다. */
+  const histDays=[];
+  for(let d=1; d<S.cur; d++){
+    const {items, hasRecord} = historyItems(d);
+    const plans=(S.manualPlans && S.manualPlans[d]) || [];
+    if(!items.length && !plans.length && !hasRecord) continue;
+    histDays.push({d, items, hasRecord, prog: historyProgress(d, items)});
+  }
   let scale=0.01;
   for(let d=S.cur; d<=S.examDay; d++){
     const load = d===S.cur ? lockedTodayTotalCost() : (SCHEDULE.byDay[d]||[]).reduce((a,it)=>a+it.cost,0);
     scale=Math.max(scale, load, dayCapacity(d));
   }
+  histDays.forEach(h=> scale=Math.max(scale, h.prog.total));
   scale*=1.08;
+
+  if(histDays.length){
+    const rated = histDays.filter(h=>h.prog.pct!=null);
+    const avg = rated.length ? Math.round(rated.reduce((a,h)=>a+h.prog.pct,0)/rated.length) : null;
+    if(App.planHistoryOpen==null) App.planHistoryOpen = histDays.length<=7;
+    const open = !!App.planHistoryOpen;
+    const head = el(`<button class="histhead" type="button" aria-expanded="${open}">
+      <span class="hh-t">지난 기록 ${histDays.length}일</span>
+      <span class="hh-m">${avg!=null?`평균 달성률 ${avg}%`:'달성률 기록 없음'}</span>
+      <span class="hh-c">▾</span>
+    </button>`);
+    box.appendChild(head);
+    const histWrap = el('<div class="planlist" style="margin-top:6px"></div>');
+    histWrap.style.display = open? '' : 'none';
+    histDays.forEach(h=> histWrap.appendChild(historyRow(h, scale)));
+    box.appendChild(histWrap);
+    head.onclick=()=>{
+      const nowOpen = histWrap.style.display==='none';
+      App.planHistoryOpen = nowOpen;
+      head.setAttribute('aria-expanded', String(nowOpen));
+      if(nowOpen) foldOpen(histWrap, 'flex'); else foldClose(histWrap, ()=>{ histWrap.style.display='none'; });
+      saveApp();
+    };
+  }
 
   for(let d=S.cur; d<=S.examDay; d++){
     const info=dInfo(d);
@@ -3007,69 +3265,141 @@ async function fitImage(file){
   }
   return last;
 }
-function openTimetableViewer(src){
-  document.getElementById('ttViewImg').src=src;
-  document.getElementById('ttMask').classList.add('on');
-}
-function renderTimetable(){
-  const box=document.getElementById('timetableBox'); if(!box) return;
-  const block=App.blocks.find(b=>b.id===App.active); if(!block){ box.innerHTML=''; return; }
+/* ===== 시간표 =====
+   '블록 사전 준비' 바로 아래에 얇은 바 하나로 늘 떠 있고(=어느 탭에서든 보인다),
+   누르면 팝업이 열려 이번 주 시간표를 크게 본다. 등록한 사진이 여러 장이면
+   좌우로 넘겨 가며 볼 수 있고, 그중 한 장을 '이번 주'로 지정해 둘 수 있다. */
+function ttShots(){
+  const block=App.blocks.find(b=>b.id===App.active);
+  if(!block) return {block:null, shots:[]};
   if(!Array.isArray(block.timetable)) block.timetable=[];
-  const shots=block.timetable;
-  box.innerHTML=`<div class="panel" style="margin-bottom:12px">
-    <details class="foldable ttdet" ${timetableOpen?'open':''}>
-      <summary><span class="ttsum">시간표 사진 ${shots.length?`(${shots.length})`:''}</span><span class="ttsumhint">${shots.length?'펼쳐 보기':'사진 등록하기'}</span></summary>
-      <div>
-        ${shots.length?`<div class="ttgrid">${shots.map((sh,i)=>`<div class="ttthumb" data-i="${i}">
-          <img src="${sh.src}" alt="${esc(sh.name||'시간표')}">
-          <button class="ttdel" type="button" title="사진 삭제" aria-label="사진 삭제">×</button>
-          <div class="ttcap">${esc(sh.name||'시간표')}</div>
-        </div>`).join('')}</div>`:'<div class="empty" style="padding:14px 4px">등록된 시간표 사진이 없습니다</div>'}
-        <label class="ttadd">+ 사진 추가<input type="file" accept="image/*" multiple hidden></label>
-        <div class="ttstatus"></div>
-        <p class="cphint">시간표를 찍어 올려두면 강의를 Day에 배치할 때 바로 확인할 수 있습니다. 사진은 저장 용량에 맞게 자동으로 줄여 보관합니다.</p>
-      </div>
-    </details>
-  </div>`;
-  const det=box.querySelector('.ttdet');
-  const hint=box.querySelector('.ttsumhint');
-  const hintText=open=> open? '접기' : (shots.length? '펼쳐 보기' : '사진 등록하기');
-  if(hint) hint.textContent=hintText(timetableOpen);
-  det.addEventListener('toggle',()=>{ timetableOpen=det.open; if(hint) hint.textContent=hintText(det.open); });
-  bindDetailsFold(det, '.ttadd, .ttdel, .ttthumb');
-  const status=box.querySelector('.ttstatus');
-  box.querySelectorAll('.ttthumb img').forEach(img=>{
-    img.onclick=()=>openTimetableViewer(img.getAttribute('src'));
-  });
-  box.querySelectorAll('.ttdel').forEach(btn=>{
-    btn.onclick=e=>{
-      e.preventDefault(); e.stopPropagation();
-      const i=Number(btn.closest('.ttthumb').dataset.i);
-      askConfirm('시간표 사진 삭제','이 사진을 삭제할까요?',()=>{
-        block.timetable.splice(i,1); saveApp(); render(); showToast('시간표 사진을 삭제했습니다.');
-      },'삭제');
-    };
-  });
-  const input=box.querySelector('.ttadd input');
-  input.onclick=e=>e.stopPropagation();
-  input.onchange=async()=>{
-    const files=Array.from(input.files||[]).filter(f=>f && f.type.startsWith('image/'));
-    if(!files.length) return;
-    status.textContent=`사진 ${files.length}장 처리 중...`;
-    let added=0;
-    for(const f of files){
-      try{
-        const src=await fitImage(f);
-        block.timetable.push({id:'t'+Date.now()+Math.random().toString(36).slice(2,6), name:f.name||'시간표', src});
-        added++;
-      }catch(err){ console.warn(err); }
-    }
-    input.value='';
-    if(!added){ status.textContent='사진을 등록하지 못했습니다.'; return; }
-    timetableOpen=true;
-    saveApp(); render(); showToast(`시간표 사진 ${added}장을 등록했습니다.`);
-  };
+  return {block, shots:block.timetable};
 }
+function ttWeekIndex(){
+  const {block, shots}=ttShots();
+  if(!block || !shots.length) return -1;
+  const i = shots.findIndex(s=>s && s.id===block.timetableWeek);
+  return i>=0 ? i : 0; // 지정이 없으면 첫 장을 이번 주로 본다
+}
+function renderTimetableBar(){
+  const box=document.getElementById('timetableBar'); if(!box) return;
+  const {block, shots}=ttShots();
+  if(!block){ box.innerHTML=''; return; }
+  const wi=ttWeekIndex();
+  const cur = wi>=0 ? shots[wi] : null;
+  box.innerHTML = `<button class="ttbar" type="button" title="시간표 크게 보기">
+    <span class="ttbar-thumb">${cur?`<img src="${cur.src}" alt="">`:'🗓️'}</span>
+    <span class="ttbar-txt">
+      <b>${cur?'이번 주 시간표':'시간표 사진'}</b>
+      <small>${cur? `${esc(cur.name||'시간표')}${shots.length>1?` · 총 ${shots.length}장, 좌우로 넘겨 보기`:''}` : '아직 등록된 사진이 없습니다 · 눌러서 등록하기'}</small>
+    </span>
+    <span class="ttbar-go">${cur?'크게 보기':'등록하기'}</span>
+  </button>`;
+  box.querySelector('.ttbar').onclick=()=>openTimetableWindow();
+}
+let twIdx=0;
+const twMask=document.getElementById('twMask');
+function openTimetableWindow(startIdx){
+  const {shots}=ttShots();
+  const wi=ttWeekIndex();
+  twIdx = (startIdx!=null? startIdx : (wi>=0? wi : 0));
+  if(twIdx<0) twIdx=0;
+  if(twIdx>=shots.length) twIdx=Math.max(0, shots.length-1);
+  document.getElementById('twStatus').textContent='';
+  twMask.classList.add('on');
+  renderTimetableWindow();
+}
+function closeTimetableWindow(){ twMask.classList.remove('on'); }
+function twGo(delta){
+  const {shots}=ttShots();
+  if(shots.length<2) return;
+  twIdx=(twIdx+delta+shots.length)%shots.length;
+  renderTimetableWindow();
+}
+function renderTimetableWindow(){
+  if(!twMask.classList.contains('on')) return;
+  const {block, shots}=ttShots();
+  const stage=document.getElementById('twStage');
+  const dots=document.getElementById('twDots');
+  const star=document.getElementById('twStar');
+  const del=document.getElementById('twDel');
+  const isWeek = shots.length && block && shots[twIdx] && block.timetableWeek===shots[twIdx].id;
+  const weekIdx = ttWeekIndex();
+  document.getElementById('twTitle').innerHTML = `시간표${(shots.length && twIdx===weekIdx)?'<span class="ttwweek">이번 주</span>':''}`;
+  document.getElementById('twCount').textContent = shots.length? `${twIdx+1} / ${shots.length}` : '';
+  document.getElementById('twCap').textContent = shots.length? (shots[twIdx].name||'시간표') : '';
+  if(!shots.length){
+    stage.innerHTML = `<div class="ttwempty">등록된 시간표 사진이 없습니다.<br>아래 <b>+ 사진 추가</b>로 올려 두면<br>어느 탭에서든 바로 펼쳐 볼 수 있습니다.</div>`;
+    dots.innerHTML='';
+    star.style.display='none'; del.style.display='none';
+    return;
+  }
+  star.style.display=''; del.style.display='';
+  stage.innerHTML = `<div class="ttwshot">
+      <img src="${shots[twIdx].src}" alt="${esc(shots[twIdx].name||'시간표')}">
+      ${shots.length>1?'<button class="ttwnav prev" type="button" aria-label="이전 시간표">‹</button><button class="ttwnav next" type="button" aria-label="다음 시간표">›</button>':''}
+    </div>`;
+  const prev=stage.querySelector('.prev'), next=stage.querySelector('.next');
+  if(prev) prev.onclick=()=>twGo(-1);
+  if(next) next.onclick=()=>twGo(1);
+  dots.innerHTML = shots.length>1 ? shots.map((s,i)=>`<button class="ttwdot ${i===twIdx?'on':''}" type="button" data-i="${i}" title="${esc(s.name||'시간표')}"><img src="${s.src}" alt=""></button>`).join('') : '';
+  dots.querySelectorAll('.ttwdot').forEach(b=>{ b.onclick=()=>{ twIdx=Number(b.dataset.i); renderTimetableWindow(); }; });
+  star.classList.toggle('on', !!isWeek);
+  star.textContent = isWeek? '★ 이번 주 시간표' : '☆ 이번 주로 지정';
+}
+/* 터치로 넘기기 */
+(function bindTwSwipe(){
+  let x0=null;
+  const stage=document.getElementById('twStage');
+  stage.addEventListener('touchstart', e=>{ x0=e.touches[0].clientX; }, {passive:true});
+  stage.addEventListener('touchend', e=>{
+    if(x0==null) return;
+    const dx=e.changedTouches[0].clientX-x0; x0=null;
+    if(Math.abs(dx)>45) twGo(dx<0? 1 : -1);
+  }, {passive:true});
+})();
+document.getElementById('twClose').onclick=closeTimetableWindow;
+twMask.onclick=e=>{ if(e.target===twMask) closeTimetableWindow(); };
+document.getElementById('twStar').onclick=()=>{
+  const {block, shots}=ttShots();
+  if(!block || !shots.length) return;
+  const id=shots[twIdx].id;
+  block.timetableWeek = (block.timetableWeek===id) ? null : id;
+  saveApp(); renderTimetableBar(); renderTimetableWindow();
+  showToast(block.timetableWeek? '이번 주 시간표로 지정했습니다.' : '이번 주 지정을 해제했습니다.');
+};
+document.getElementById('twDel').onclick=()=>{
+  const {block, shots}=ttShots();
+  if(!block || !shots.length) return;
+  askConfirm('시간표 사진 삭제','이 사진을 삭제할까요?',()=>{
+    const [gone]=block.timetable.splice(twIdx,1);
+    if(gone && block.timetableWeek===gone.id) block.timetableWeek=null;
+    if(twIdx>=block.timetable.length) twIdx=Math.max(0, block.timetable.length-1);
+    saveApp(); renderTimetableBar(); renderTimetableWindow();
+    showToast('시간표 사진을 삭제했습니다.');
+  },'삭제');
+};
+document.getElementById('twFile').onchange=async(e)=>{
+  const input=e.target;
+  const {block}=ttShots(); if(!block) return;
+  const files=Array.from(input.files||[]).filter(f=>f && f.type.startsWith('image/'));
+  if(!files.length) return;
+  const status=document.getElementById('twStatus');
+  status.textContent=`사진 ${files.length}장 처리 중...`;
+  let added=0, firstNew=block.timetable.length;
+  for(const f of files){
+    try{
+      const src=await fitImage(f);
+      block.timetable.push({id:'t'+Date.now()+Math.random().toString(36).slice(2,6), name:f.name||'시간표', src});
+      added++;
+    }catch(err){ console.warn(err); }
+  }
+  input.value='';
+  if(!added){ status.textContent='사진을 등록하지 못했습니다.'; return; }
+  status.textContent=`${added}장을 등록했습니다.`;
+  twIdx=firstNew;
+  saveApp(); renderTimetableBar(); renderTimetableWindow();
+};
 function renderList(){
   const wrap=document.getElementById('fullList'); wrap.innerHTML='';
   SCHOOL_DAYS.forEach(d=>{
@@ -3340,7 +3670,8 @@ function render(){
   document.getElementById('emptyState').style.display = has? 'none' : '';
   if(!has) return;
   SCHEDULE = computeSchedule();
-  renderHeader(); renderBanner(); renderLoadPanel(); renderToday(); renderPlan(); renderTimetable(); renderList(); renderPrompts();
+  renderHeader(); renderBanner(); renderLoadPanel(); renderToday(); renderPlan(); renderTimetableBar(); renderTimetableWindow(); renderList(); renderPrompts();
+  pomoSyncLauncher();
   if(typeof moveTabInk==='function') requestAnimationFrame(moveTabInk);
 }
 
@@ -3369,11 +3700,13 @@ function askConfirm(title, body, onYes, yesLabel){
   mask.classList.add('on'); _cb=onYes;
 }
 document.getElementById('mkYes').onclick=()=>{ mask.classList.remove('on'); if(_cb) _cb(); };
-/* 시간표 사진 크게 보기 — 배경/닫기 버튼/ESC로 닫는다 */
-const ttMask=document.getElementById('ttMask');
-document.getElementById('ttClose').onclick=()=>ttMask.classList.remove('on');
-ttMask.onclick=e=>{ if(e.target===ttMask) ttMask.classList.remove('on'); };
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') ttMask.classList.remove('on'); });
+/* 시간표 팝업 — 배경/닫기 버튼/ESC로 닫고, ←/→ 로 넘긴다 */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ closeTimetableWindow(); }
+  if(!twMask.classList.contains('on')) return;
+  if(e.key==='ArrowLeft'){ e.preventDefault(); twGo(-1); }
+  if(e.key==='ArrowRight'){ e.preventDefault(); twGo(1); }
+});
 document.getElementById('mkNo').onclick=()=>{ mask.classList.remove('on'); };
 
 /* ===== 새 블록 추가 (수동) ===== */
@@ -3659,10 +3992,372 @@ function activateTab(name){
 document.querySelectorAll('.tab').forEach(tb=>{
   tb.onclick=()=> activateTab(tb.dataset.tab);
 });
+/* =======================================================================
+   뽀모도로 타이머 위젯
+   - 메인 화면의 🍅 버튼 → 작은 창이 뜬다. 크롬/엣지에서는 Document
+     Picture-in-Picture를 써서 브라우저 밖 화면 위에 항상 떠 있는 창이 되고
+     (다른 프로그램을 눌러도 안 사라진다), 지원하지 않는 브라우저에서는
+     앱 화면 안에 떠 있는 위젯으로 대신한다(드래그해서 옮길 수 있다).
+   - 기본 25분. −/+ 로 직접 바꾼다.
+   - 끝나면 위젯 윤곽선·바탕이 빨개지고, 그걸 누르면 앱 전체화면으로 넘어와
+     휴식 타이머를 시작할 수 있다. 휴식이 끝나면 화면 전체가 빨개지고,
+     '공부하기'를 누르면 다시 위젯으로 돌아간다.
+   ======================================================================= */
+const POMO_CSS = `
+*{box-sizing:border-box}
+body.pomo-pip{margin:0;overflow:hidden;background:#fff;
+  font-family:'Pretendard',-apple-system,'Segoe UI','Noto Sans KR',sans-serif}
+.pw{display:flex;flex-direction:column;gap:7px;padding:11px 13px 12px;border-radius:15px;
+  border:2px solid #E7E7E7;background:#fff;color:#111;user-select:none;-webkit-user-select:none;
+  font-family:'Pretendard',-apple-system,'Segoe UI','Noto Sans KR',sans-serif;
+  transition:border-color .25s ease, background .25s ease}
+body.pomo-pip .pw{height:100vh;border-radius:0;border-width:4px;justify-content:center}
+.pw.inpage{position:fixed;z-index:55;width:210px;box-shadow:0 12px 36px rgba(0,0,0,.17),0 2px 6px rgba(0,0,0,.08);cursor:grab}
+.pw.inpage.dragging{cursor:grabbing}
+.pw-head{display:flex;align-items:center;gap:4px}
+.pw-tag{flex:1;font-size:10.5px;font-weight:800;color:#6B6B6B;letter-spacing:.2px;white-space:nowrap}
+.pw-mini{border:none;background:transparent;color:#B4B4B4;font-size:12px;line-height:1;cursor:pointer;
+  padding:3px 4px;border-radius:5px;font-family:inherit}
+.pw-mini:hover{background:#F2F2F2;color:#111}
+.pw-time{font-variant-numeric:tabular-nums;font-weight:800;font-size:36px;line-height:1;
+  letter-spacing:.5px;text-align:center;color:#111}
+body.pomo-pip .pw-time{font-size:min(21vw,54px)}
+.pw-ctl{display:flex;align-items:center;gap:5px}
+.pw-ctl button{border:1px solid #E7E7E7;background:#fff;color:#6B6B6B;border-radius:8px;height:29px;
+  font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;padding:0}
+.pw-step{width:30px;flex-shrink:0;font-size:15px}
+.pw-go{flex:1;background:#111;border-color:#111;color:#fff}
+.pw-ctl button:hover{filter:brightness(.93)}
+.pw-ctl button:active{transform:scale(.95)}
+.pw-hint{font-size:9.5px;font-weight:700;color:#B4B4B4;text-align:center;min-height:12px}
+.pw[data-phase="running"]{border-color:#111}
+.pw[data-mode="break"][data-phase="running"]{border-color:#6B6B6B}
+.pw[data-phase="done"]{border-color:#E51E1E;background:#FFF5F5;cursor:pointer;
+  animation:pwPulse 1.25s ease-in-out infinite}
+.pw[data-phase="done"] .pw-time,.pw[data-phase="done"] .pw-hint,.pw[data-phase="done"] .pw-tag{color:#E51E1E}
+@keyframes pwPulse{0%,100%{box-shadow:0 0 0 0 rgba(229,30,30,.36)}50%{box-shadow:0 0 0 8px rgba(229,30,30,0)}}
+@media(prefers-reduced-motion:reduce){.pw[data-phase="done"]{animation:none}}
+`;
+const POMO = {mode:'focus', phase:'idle', remain:25*60, endAt:null, pip:null, node:null,
+               tick:null, actx:null, suppressDock:false};
+function pomoCfg(){ if(!App.pomo || typeof App.pomo!=='object') App.pomo={focusMin:25, breakMin:5}; return App.pomo; }
+function pomoMin(mode){ const c=pomoCfg(); return (mode==='break') ? (c.breakMin||5) : (c.focusMin||25); }
+function pomoSetMin(mode, v){
+  const c=pomoCfg();
+  v=Math.max(1, Math.min(180, Math.round(v)));
+  if(mode==='break') c.breakMin=v; else c.focusMin=v;
+  saveApp();
+}
+function fmtClock(sec){
+  sec=Math.max(0, Math.ceil(sec));
+  const m=Math.floor(sec/60), s=sec%60;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+function pomoRemain(){
+  if(POMO.phase==='running') return Math.max(0,(POMO.endAt-Date.now())/1000);
+  return Math.max(0, POMO.remain);
+}
+function pomoBeep(times){
+  try{
+    const Ctx=window.AudioContext||window.webkitAudioContext; if(!Ctx) return;
+    POMO.actx = POMO.actx || new Ctx();
+    const ctx=POMO.actx;
+    if(ctx.state==='suspended') ctx.resume();
+    let t=ctx.currentTime+0.02;
+    for(let i=0;i<(times||3);i++){
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='sine'; o.frequency.setValueAtTime(i%2? 700 : 880, t);
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(0.2, t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t+0.33);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t); o.stop(t+0.35);
+      t+=0.44;
+    }
+  }catch(e){}
+}
+/* ---- 위젯 DOM (하나만 만들어 PiP 창과 앱 화면 사이를 오간다) ---- */
+function pomoNode(){
+  if(POMO.node) return POMO.node;
+  const w = el(`<div class="pw" data-mode="focus" data-phase="idle">
+    <div class="pw-head">
+      <span class="pw-tag" data-role="tag">🍅 집중</span>
+      <button class="pw-mini" data-p="reset" type="button" title="처음으로 되돌리기">↺</button>
+      <button class="pw-mini" data-p="close" type="button" title="위젯 닫기">✕</button>
+    </div>
+    <div class="pw-time" data-role="time">25:00</div>
+    <div class="pw-ctl">
+      <button class="pw-step" data-p="minus" type="button" title="1분 줄이기">−</button>
+      <button class="pw-go" data-p="toggle" type="button">시작</button>
+      <button class="pw-step" data-p="plus" type="button" title="1분 늘리기">+</button>
+    </div>
+    <div class="pw-hint" data-role="hint"></div>
+  </div>`);
+  w.addEventListener('click', e=>{
+    const btn=e.target.closest('[data-p]');
+    if(btn && btn.dataset.p==='close'){ pomoHideWidget(); return; }
+    /* 다 끝나 빨개진 상태에서는 어디를 눌러도 앱 전체화면으로 넘어간다 */
+    if(POMO.phase==='done'){ pomoGoFullFromWidget(); return; }
+    if(!btn) return;
+    pomoAction(btn.dataset.p);
+  });
+  pomoBindDrag(w);
+  POMO.node=w;
+  return w;
+}
+function pomoAction(a){
+  if(a==='toggle'){
+    if(POMO.phase==='running') pomoPause();
+    else if(POMO.phase==='done') pomoReset();
+    else pomoRun();
+  }
+  else if(a==='reset') pomoReset();
+  else if(a==='minus' || a==='plus'){
+    const delta = (a==='plus'? 1 : -1);
+    if(POMO.phase==='running'){
+      POMO.endAt = Math.max(Date.now()+1000, POMO.endAt + delta*60000);
+    } else {
+      const next = Math.max(1, Math.min(180, pomoMin(POMO.mode)+delta));
+      pomoSetMin(POMO.mode, next);
+      POMO.phase='idle'; POMO.remain=next*60;
+    }
+  }
+  pomoPaint();
+}
+function pomoRun(){
+  if(POMO.remain<=0) POMO.remain=pomoMin(POMO.mode)*60;
+  POMO.endAt = Date.now() + POMO.remain*1000;
+  POMO.phase='running';
+  clearInterval(POMO.tick);
+  POMO.tick=setInterval(pomoTick, 250);
+  pomoPaint();
+}
+function pomoPause(){
+  POMO.remain=pomoRemain(); POMO.phase='paused';
+  clearInterval(POMO.tick); POMO.tick=null;
+  pomoPaint();
+}
+function pomoReset(){
+  clearInterval(POMO.tick); POMO.tick=null;
+  POMO.phase='idle'; POMO.remain=pomoMin(POMO.mode)*60; POMO.endAt=null;
+  const full=document.getElementById('pomoFull');
+  if(full) full.classList.remove('ring');
+  pomoPaint();
+}
+function pomoTick(){
+  if(POMO.phase!=='running') return;
+  if(Date.now()>=POMO.endAt){ pomoComplete(); return; }
+  pomoPaint();
+}
+function pomoComplete(){
+  clearInterval(POMO.tick); POMO.tick=null;
+  POMO.phase='done'; POMO.remain=0;
+  pomoBeep(POMO.mode==='break'? 4 : 3);
+  const full=document.getElementById('pomoFull');
+  /* 휴식이 끝나면 화면 전체가 빨개진다. 집중이 끝났을 때는 위젯만 빨개지고,
+     그 위젯을 눌러야 전체화면으로 넘어온다. */
+  if(POMO.mode==='break'){ pomoShowFull(true); }
+  else if(full && full.classList.contains('on')){ full.classList.add('ring'); }
+  pomoPaint();
+}
+/* ---- 작은 창(PiP) ---- */
+function pomoPipSupported(){ return 'documentPictureInPicture' in window; }
+async function pomoOpenPip(){
+  if(!pomoPipSupported()) return false;
+  try{
+    if(POMO.pip && !POMO.pip.closed){ try{ POMO.pip.focus(); }catch(e){} pomoPaint(); return true; }
+    const pip = await documentPictureInPicture.requestWindow({width:238, height:196});
+    POMO.pip=pip;
+    const st=pip.document.createElement('style'); st.textContent=POMO_CSS;
+    pip.document.head.appendChild(st);
+    pip.document.body.classList.add('pomo-pip');
+    try{ pip.document.title='🍅 집중 타이머'; }catch(e){}
+    const w=pomoNode(); w.classList.remove('inpage'); w.style.left=''; w.style.top='';
+    pip.document.body.appendChild(w);
+    pip.addEventListener('pagehide', ()=>{
+      POMO.pip=null;
+      if(POMO.suppressDock){ const n=POMO.node; if(n && n.parentNode) n.parentNode.removeChild(n); }
+      else if(POMO.phase==='running' || POMO.phase==='paused' || POMO.phase==='done') pomoDockInPage();
+      else { const n=POMO.node; if(n && n.parentNode) n.parentNode.removeChild(n); }
+      pomoPaint();
+    });
+    pomoPaint();
+    return true;
+  }catch(e){ console.warn('PiP 창을 열지 못했습니다', e); return false; }
+}
+async function pomoClosePip(){
+  if(!POMO.pip) return;
+  POMO.suppressDock=true;
+  try{ POMO.pip.close(); }catch(e){}
+  POMO.pip=null;
+  setTimeout(()=>{ POMO.suppressDock=false; }, 250);
+}
+function pomoDockInPage(){
+  const w=pomoNode();
+  w.classList.add('inpage');
+  document.body.appendChild(w);
+  const pos=(pomoCfg().pos)||null;
+  const W=w.offsetWidth||210, H=w.offsetHeight||150;
+  /* 기본 자리는 우측 하단 — 본문이 가운데 1080px로 모여 있어서 오른쪽 여백이 비고,
+     헤더의 Day 조절 버튼도 가리지 않는다. 마음에 안 들면 끌어서 옮기면 그 자리를 기억한다. */
+  let x = pos? pos.x : (window.innerWidth - W - 18);
+  let y = pos? pos.y : (window.innerHeight - H - (window.innerWidth<=720 ? 62 : 20));
+  x=Math.max(6, Math.min(window.innerWidth-W-6, x));
+  y=Math.max(6, Math.min(window.innerHeight-H-6, y));
+  w.style.left=x+'px'; w.style.top=y+'px'; w.style.right='auto'; w.style.bottom='auto';
+  pomoPaint();
+}
+function pomoBindDrag(w){
+  let sx=0, sy=0, ox=0, oy=0, on=false;
+  w.addEventListener('pointerdown', e=>{
+    if(!w.classList.contains('inpage')) return;
+    if(e.target.closest('button')) return;
+    on=true; w.classList.add('dragging');
+    sx=e.clientX; sy=e.clientY;
+    ox=parseFloat(w.style.left)||0; oy=parseFloat(w.style.top)||0;
+    w.setPointerCapture(e.pointerId);
+  });
+  w.addEventListener('pointermove', e=>{
+    if(!on) return;
+    const W=w.offsetWidth, H=w.offsetHeight;
+    const x=Math.max(6, Math.min(window.innerWidth-W-6, ox+e.clientX-sx));
+    const y=Math.max(6, Math.min(window.innerHeight-H-6, oy+e.clientY-sy));
+    w.style.left=x+'px'; w.style.top=y+'px';
+  });
+  const end=()=>{
+    if(!on) return;
+    on=false; w.classList.remove('dragging');
+    pomoCfg().pos={x:parseFloat(w.style.left)||0, y:parseFloat(w.style.top)||0};
+    saveApp();
+  };
+  w.addEventListener('pointerup', end);
+  w.addEventListener('pointercancel', end);
+}
+async function pomoShowWidget(){
+  const ok=await pomoOpenPip();
+  if(!ok) pomoDockInPage();
+  return ok;
+}
+function pomoHideWidget(){
+  pomoClosePip();
+  const n=POMO.node;
+  if(n && n.parentNode && !POMO.pip) n.parentNode.removeChild(n);
+  showToast(POMO.phase==='running'? '위젯을 닫았습니다 — 타이머는 계속 갑니다(🍅 버튼으로 다시 열기).' : '타이머 위젯을 닫았습니다.');
+  pomoPaint();
+}
+/* ---- 전체화면(휴식) ---- */
+function pomoShowFull(ring){
+  const full=document.getElementById('pomoFull'); if(!full) return;
+  full.classList.add('on');
+  full.classList.toggle('ring', !!ring);
+  try{ window.focus(); }catch(e){}
+}
+function pomoHideFull(){
+  const full=document.getElementById('pomoFull'); if(!full) return;
+  full.classList.remove('on','ring');
+}
+async function pomoGoFullFromWidget(){
+  POMO.mode='break'; POMO.phase='idle'; POMO.remain=pomoMin('break')*60; POMO.endAt=null;
+  await pomoClosePip();
+  const n=POMO.node; if(n && n.parentNode) n.parentNode.removeChild(n);
+  pomoShowFull(false);
+  pomoPaint();
+}
+async function pomoStartFocus(){
+  POMO.mode='focus'; POMO.phase='idle'; POMO.remain=pomoMin('focus')*60; POMO.endAt=null;
+  pomoHideFull();
+  pomoRun();
+  await pomoShowWidget();
+  pomoPaint();
+}
+/* ---- 그리기 ---- */
+function pomoPaint(){
+  const left=pomoRemain();
+  const w=POMO.node;
+  if(w){
+    w.dataset.mode=POMO.mode; w.dataset.phase=POMO.phase;
+    const q=s=>w.querySelector(s);
+    q('[data-role="time"]').textContent=fmtClock(left);
+    q('[data-role="tag"]').textContent = POMO.mode==='break'? '☕ 휴식' : '🍅 집중';
+    const go=w.querySelector('[data-p="toggle"]');
+    go.textContent = POMO.phase==='running'? '일시정지' : (POMO.phase==='paused'? '이어서' : (POMO.phase==='done'? '다시' : '시작'));
+    q('[data-role="hint"]').textContent =
+      POMO.phase==='done' ? (POMO.mode==='break'? '휴식 끝! 눌러서 돌아가기' : '집중 끝! 눌러서 쉬러 가기')
+      : POMO.phase==='running' ? (POMO.mode==='break'? '쉬는 중' : '집중하는 중')
+      : `−/+ 로 ${pomoMin(POMO.mode)}분을 조정`;
+  }
+  const full=document.getElementById('pomoFull');
+  if(full && full.classList.contains('on')){
+    const breakMode = POMO.mode==='break';
+    const doneNow = POMO.phase==='done';
+    document.getElementById('pfTime').textContent=fmtClock(left);
+    document.getElementById('pfTag').textContent = doneNow&&breakMode? '휴식 끝' : (breakMode? '집중 완료' : '집중 중');
+    document.getElementById('pfSub').textContent =
+      doneNow&&breakMode ? '이제 다시 집중할 시간입니다'
+      : POMO.phase==='running' ? '쉬는 중 — 끝나면 이 화면이 빨개집니다'
+      : `쉬는 시간 ${pomoMin('break')}분`;
+    const main=document.getElementById('pfMain');
+    if(doneNow && breakMode){ main.textContent=`${pomoMin('focus')}분 공부하기`; }
+    else if(POMO.phase==='running'){ main.textContent='일시정지'; }
+    else if(POMO.phase==='paused'){ main.textContent='이어서 쉬기'; }
+    else { main.textContent=`${pomoMin('break')}분 휴식 시작`; }
+    document.getElementById('pfBack').textContent=`${pomoMin('focus')}분 공부하기 →`;
+    document.getElementById('pfBack').style.display = (doneNow&&breakMode)? 'none' : '';
+    document.getElementById('pfNote').textContent = doneNow&&breakMode
+      ? '공부를 시작하면 다시 작은 위젯으로 돌아갑니다.'
+      : '휴식이 끝나면 이 화면 전체가 빨개집니다.';
+  }
+  pomoSyncLauncher();
+}
+function pomoSyncLauncher(){
+  const btn=document.getElementById('pomoLaunch'), txt=document.getElementById('pomoLaunchTxt');
+  if(!btn||!txt) return;
+  const left=pomoRemain();
+  if(POMO.phase==='running'){ btn.dataset.live='1'; txt.textContent=`${POMO.mode==='break'?'휴식':'집중'} ${fmtClock(left)}`; }
+  else if(POMO.phase==='paused'){ btn.dataset.live='1'; txt.textContent=`${fmtClock(left)} 멈춤`; }
+  else if(POMO.phase==='done'){ btn.dataset.live='done'; txt.textContent = POMO.mode==='break'? '휴식 끝!' : '집중 끝!'; }
+  else { btn.dataset.live='0'; txt.textContent=`${pomoMin('focus')}분 집중`; }
+}
+function pomoInit(){
+  const st=document.createElement('style'); st.textContent=POMO_CSS; document.head.appendChild(st);
+  POMO.remain=pomoMin('focus')*60;
+  const launch=document.getElementById('pomoLaunch');
+  if(launch) launch.onclick=async()=>{
+    if(POMO.mode==='break' && POMO.phase!=='idle'){ pomoShowFull(POMO.phase==='done'); pomoPaint(); return; }
+    if(POMO.phase==='idle'){ await pomoStartFocus(); return; }
+    await pomoShowWidget(); pomoPaint();
+  };
+  const full=document.getElementById('pomoFull');
+  document.getElementById('pfClose').onclick=()=>{ pomoHideFull(); pomoPaint(); };
+  document.getElementById('pfMain').onclick=()=>{
+    if(POMO.mode==='break' && POMO.phase==='done'){ pomoStartFocus(); return; }
+    if(POMO.phase==='running') pomoPause(); else pomoRun();
+  };
+  document.getElementById('pfBack').onclick=()=>pomoStartFocus();
+  full.querySelectorAll('[data-pf]').forEach(b=>{
+    b.onclick=()=>{
+      const delta = b.dataset.pf==='plus'? 1 : -1;
+      if(POMO.phase==='running'){ POMO.endAt=Math.max(Date.now()+1000, POMO.endAt+delta*60000); }
+      else { const next=Math.max(1,Math.min(180, pomoMin(POMO.mode)+delta)); pomoSetMin(POMO.mode,next); POMO.phase='idle'; POMO.remain=next*60; }
+      pomoPaint();
+    };
+  });
+  window.addEventListener('beforeunload', ()=>{ try{ POMO.pip && POMO.pip.close(); }catch(e){} });
+  window.addEventListener('resize', ()=>{
+    const w=POMO.node;
+    if(!w || !w.classList.contains('inpage')) return;
+    const W=w.offsetWidth, H=w.offsetHeight;
+    w.style.left=Math.max(6, Math.min(window.innerWidth-W-6, parseFloat(w.style.left)||0))+'px';
+    w.style.top=Math.max(6, Math.min(window.innerHeight-H-6, parseFloat(w.style.top)||0))+'px';
+  });
+  pomoSyncLauncher();
+}
+
 window.addEventListener('resize', moveTabInk);
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') refreshApp(); });
 (async ()=>{
   await loadApp();
+  pomoInit();
   render();
   requestAnimationFrame(()=>{ moveTabInk(); playPanelStagger(document.querySelector('.panelset.on')); });
   startRealtimeSync();
