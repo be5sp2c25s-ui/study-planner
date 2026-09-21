@@ -30,7 +30,8 @@
     --warn:#E51E1E;     --warn-soft:#FDE7E7;
 
     /* 넓은 면적 채움(글자 없음) */
-    --fill-done:#111111; --fill-progress:#9E9E9E; --fill-warn:#E51E1E;
+    /* 완료 채움은 새까만 검정 대신 진한 회색 — 대비는 남기고 부담만 던다 */
+    --fill-done:#555555; --fill-progress:#9E9E9E; --fill-warn:#E51E1E;
     /* 반투명 배경/그림자용 — 포인트 컬러가 바뀌면 JS가 이 두 값을 같이 갈아끼운다 */
     --accent-rgb:17,17,17; --donesoft-rgb:255,240,168;
 
@@ -324,14 +325,14 @@
   .planstrip.assign{background:var(--warn-soft)}
   .planstrip.assign .plancell{color:var(--warn)}
   /* 완료한 강의만 채워진 칸으로 — 띠가 왼쪽부터 차오르는 것처럼 읽힌다 */
-  .planstrip .plancell.done{background:var(--done);color:var(--on-accent);border-right-color:color-mix(in srgb, var(--on-accent) 32%, transparent)}
+  .planstrip .plancell.done{background:var(--fill-done);color:#fff;border-right-color:rgba(255,255,255,.34)}
 
   .battery-wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
   .battery{position:relative;width:72px;height:42px;border:none;border-radius:11px;padding:5px 4px;flex-shrink:0;background:var(--track);overflow:hidden}
   .battery::after{display:none}
   /* 채움 요소는 항상 전체 폭. 수위와 물결은 전부 clip-path로 그린다 —
      그래야 "출렁임의 최대치"가 아니라 "수면의 기준선"이 곧 퍼센트가 된다. */
-  .battery-fill{position:relative;width:100%;height:100%;border-radius:5px;overflow:hidden;background-repeat:no-repeat;background-position:left center;will-change:clip-path}
+  .battery-fill{position:relative;width:100%;height:100%;border-radius:5px;overflow:hidden;will-change:clip-path}
   .battery-pct{font-family:var(--sans);font-weight:700;font-size:23px;letter-spacing:.2px}
 
   .onboard{background:var(--surface);border:1px solid transparent;border-radius:16px;padding:15px 16px;margin-bottom:14px;box-shadow:var(--sh-2)}
@@ -629,14 +630,13 @@
   .planrow.hist{background:var(--surface2);border-style:dashed}
   .planrow.hist .pd{color:var(--muted)}
   .planrow.hist:hover{transform:none}
-  .histbatt{display:inline-flex;align-items:center;gap:6px}
-  .histbatt .hb{position:relative;width:42px;height:18px;border-radius:5px;background:var(--track);overflow:hidden;flex-shrink:0;
-    box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
-  .histbatt .hb i{position:absolute;left:0;top:0;bottom:0;display:block;background:var(--point);
-    background-image:linear-gradient(90deg,color-mix(in srgb,var(--point) 55%,#fff),var(--point))}
-  .histbatt .hb.zero i{background:var(--inactive-soft)}
-  .histbatt b{font-size:11.5px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
-  .histbatt.none b{color:var(--faint);font-weight:700;font-size:10.5px}
+  /* 지난 날 달성률 — 막대 대신 숫자로 읽는다 */
+  .histpct{display:inline-flex;align-items:baseline;gap:4px;white-space:nowrap}
+  .histpct i{font-style:normal;font-size:9.5px;font-weight:700;color:var(--faint);letter-spacing:.2px}
+  .histpct b{font-size:13px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+  .histpct.mid b{color:var(--muted)}
+  .histpct.zero b{color:var(--faint)}
+  .histpct.none{color:var(--faint);font-size:10.5px;font-weight:700}
   .histnote{font-size:9.5px;font-weight:700;color:var(--faint);grid-column:1/-1}
   .planstrip .plancell.missed{opacity:.55}
 
@@ -914,7 +914,7 @@ let App = {blocks:[], active:null, promptOverrides:{}, promptDefaults:{}, custom
    기본 골격(흰 바탕·검정 글자·검정 버튼)은 고정이고, 강조에 쓰는 한 가지 색만
    블록마다 직접 고른다. 빨강(--warn)은 지각·경고 전용이라 고르는 색과 무관하게 유지. */
 const BASE={accent:'#111111', soft:'#F0F0F0', ink:'#111111', on:'#FFFFFF', fill:'#9E9E9E',
-            warn:'#E51E1E', warnSoft:'#FDE7E7', rgb:'17,17,17'};
+            done:'#555555', warn:'#E51E1E', warnSoft:'#FDE7E7', rgb:'17,17,17'};
 const DEFAULT_POINT='#FFE24E';
 function hexToRgb(hex){
   const m=String(hex||'').trim().match(/^#?([0-9a-f]{6})$/i);
@@ -955,7 +955,7 @@ function applyTheme(block){
   r.setProperty('--progress',BASE.accent);
   r.setProperty('--progress-soft',BASE.soft);
   r.setProperty('--done',BASE.accent);
-  r.setProperty('--fill-done',BASE.accent);
+  r.setProperty('--fill-done',BASE.done);
   r.setProperty('--fill-progress',BASE.fill);
   r.setProperty('--fill-warn',BASE.warn);
   r.setProperty('--warn',BASE.warn);
@@ -2227,7 +2227,7 @@ function renderLoadPanel(){
     <h2>오늘의 진도</h2>
     <p class="hint"></p>
     <div class="battery-wrap" style="margin-top:10px">
-      <div class="battery"><div class="battery-fill" id="battFill" style="background:linear-gradient(90deg, color-mix(in srgb, ${fill} 55%, #fff), ${fill});background-size:${Math.max(6,battLevel).toFixed(1)}% 100%"></div></div>
+      <div class="battery"><div class="battery-fill" id="battFill" style="background:${fill}"></div></div>
       <div>
         <div style="display:flex;align-items:baseline;gap:8px">
           <span class="battery-pct" id="battPct">${battShown()}%</span>
@@ -2256,7 +2256,6 @@ function bindBatteryInteraction(){
     fill.style.clipPath = pts
       ? `polygon(0 0,${pts.join(',')},0 100%)`
       : `polygon(0 0,${level}% 0,${level}% 100%,0 100%)`;
-    fill.style.backgroundSize = Math.max(6,level).toFixed(1)+'% 100%';
     if(pctNode) pctNode.textContent = battShown()+'%';
   };
   if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
@@ -2954,11 +2953,10 @@ function historyRow(h, scale){
     {k:'신규', v:n, c:'new'}, {k:'1차', v:r1, c:'r1'}, {k:'2차', v:r2, c:'r2'},
   ].filter(Boolean).map(x=>`<span class="pcnt ${x.c}${x.v?'':' zero'}"><i>${x.k}</i><b>${x.v}</b></span>`).join('');
   const pct=prog.pct;
+  const pctCls = pct==null ? '' : (pct>=100 ? '' : (pct>=1 ? 'mid' : 'zero'));
   const battHtml = pct!=null
-    ? `<div class="histbatt" title="그날 계획을 얼마나 지켰는지 (${prog.done.toFixed(2)} / ${prog.total.toFixed(2)})">
-         <span class="hb${pct<1?' zero':''}"><i style="width:${Math.max(pct<1?0:4, pct)}%"></i></span><b>${pct}%</b>
-       </div>`
-    : `<div class="histbatt none"><span class="hb zero"><i style="width:0"></i></span><b>기록 없음</b></div>`;
+    ? `<div class="histpct ${pctCls}" title="그날 계획을 얼마나 지켰는지 (${prog.done.toFixed(2)} / ${prog.total.toFixed(2)} 크레딧)"><i>달성률</i><b>${pct}%</b></div>`
+    : `<div class="histpct none">기록 없음</div>`;
   const missed = items.filter(it=>!it.done).length;
   const note = h.hasRecord
     ? (missed? `계획 ${items.length}개 중 ${missed}개는 못 지켜 다음 날로 이월됐습니다` : `그날 계획을 모두 지켰습니다`)
@@ -4014,15 +4012,13 @@ body.pomo-pip{margin:0;overflow:hidden;background:#fff;color-scheme:light;
 /* PiP 안에서는 테두리를 아예 안 그린다 — 창틀과 겹쳐 검은 띠처럼 보이기 때문.
    (다 끝나 빨개질 때만 윤곽선이 나타난다) */
 /* 창을 끌어서 넓히거나 좁히면 숫자·버튼·여백이 전부 같이 줄고 늘어난다 */
-body.pomo-pip .pw{position:relative;height:100vh;width:100%;border-radius:0;border-color:transparent;
-  padding:0;gap:0;justify-content:center}
+body.pomo-pip .pw{height:100vh;width:100%;border-radius:0;border-color:transparent;
+  padding:min(1.4vh,3px) min(4vw,5px) min(2vh,4px);gap:min(1.2vh,2px)}
 .pw.inpage{position:fixed;z-index:55;box-shadow:0 8px 24px rgba(0,0,0,.16),0 2px 5px rgba(0,0,0,.07);cursor:grab}
-.pw.inpage .pw-ctl{max-height:0;opacity:0;overflow:hidden;transition:max-height .18s ease,opacity .16s ease,margin-top .18s ease}
-.pw.inpage:hover .pw-ctl{max-height:30px;opacity:1;margin-top:2px}
 .pw.inpage.dragging{cursor:grabbing}
 .pw-time{font-variant-numeric:tabular-nums;font-weight:800;font-size:17px;line-height:1.08;
   letter-spacing:.2px;text-align:center;color:#111;white-space:nowrap}
-body.pomo-pip .pw-time{font-size:clamp(11px,min(54vh,25vw),64px)}
+body.pomo-pip .pw-time{font-size:clamp(10px,min(38vh,19vw),42px)}
 .pw-ctl{display:flex;align-items:center;justify-content:center;gap:2px}
 .pw-b{width:16px;height:13px;flex-shrink:0;border:1px solid #EAEAEA;background:#fff;color:#7A7A7A;
   border-radius:4px;font-size:10px;font-weight:800;line-height:1;cursor:pointer;padding:0;
@@ -4033,11 +4029,7 @@ body.pomo-pip .pw-time{font-size:clamp(11px,min(54vh,25vw),64px)}
 .pw-b:active{transform:scale(.92)}
 .pw-close{display:none}                 /* PiP는 크롬 창틀에 닫기가 이미 있다 */
 .pw.inpage .pw-close{display:flex}
-body.pomo-pip .pw-ctl{position:absolute;left:0;right:0;bottom:0;gap:min(2.4vw,2px);
-  padding:min(1vh,2px) 0 min(1.4vh,3px);background:rgba(255,255,255,.88);
-  opacity:0;pointer-events:none;transition:opacity .16s ease}
-body.pomo-pip .pw:hover .pw-ctl{opacity:1;pointer-events:auto}
-body.pomo-pip .pw[data-phase="done"] .pw-ctl{background:rgba(255,241,241,.9)}
+body.pomo-pip .pw-ctl{gap:min(2.4vw,2px)}
 body.pomo-pip .pw-b{width:clamp(9px,15vw,24px);height:clamp(9px,26vh,19px);border-radius:min(1.4vw,5px)}
 body.pomo-pip .pw-go{width:clamp(13px,21vw,34px)}
 body.pomo-pip .pw-b svg{width:clamp(7px,10vw,16px);height:clamp(7px,10vw,16px)}
