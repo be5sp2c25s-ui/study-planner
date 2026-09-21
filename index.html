@@ -4014,13 +4014,15 @@ body.pomo-pip{margin:0;overflow:hidden;background:#fff;color-scheme:light;
 /* PiP 안에서는 테두리를 아예 안 그린다 — 창틀과 겹쳐 검은 띠처럼 보이기 때문.
    (다 끝나 빨개질 때만 윤곽선이 나타난다) */
 /* 창을 끌어서 넓히거나 좁히면 숫자·버튼·여백이 전부 같이 줄고 늘어난다 */
-body.pomo-pip .pw{height:100vh;width:100%;border-radius:0;border-color:transparent;
-  padding:min(1.4vh,3px) min(4vw,5px) min(2vh,4px);gap:min(1.2vh,2px)}
+body.pomo-pip .pw{position:relative;height:100vh;width:100%;border-radius:0;border-color:transparent;
+  padding:0;gap:0;justify-content:center}
 .pw.inpage{position:fixed;z-index:55;box-shadow:0 8px 24px rgba(0,0,0,.16),0 2px 5px rgba(0,0,0,.07);cursor:grab}
+.pw.inpage .pw-ctl{max-height:0;opacity:0;overflow:hidden;transition:max-height .18s ease,opacity .16s ease,margin-top .18s ease}
+.pw.inpage:hover .pw-ctl{max-height:30px;opacity:1;margin-top:2px}
 .pw.inpage.dragging{cursor:grabbing}
 .pw-time{font-variant-numeric:tabular-nums;font-weight:800;font-size:17px;line-height:1.08;
   letter-spacing:.2px;text-align:center;color:#111;white-space:nowrap}
-body.pomo-pip .pw-time{font-size:clamp(10px,min(38vh,19vw),42px)}
+body.pomo-pip .pw-time{font-size:clamp(11px,min(54vh,25vw),64px)}
 .pw-ctl{display:flex;align-items:center;justify-content:center;gap:2px}
 .pw-b{width:16px;height:13px;flex-shrink:0;border:1px solid #EAEAEA;background:#fff;color:#7A7A7A;
   border-radius:4px;font-size:10px;font-weight:800;line-height:1;cursor:pointer;padding:0;
@@ -4031,7 +4033,11 @@ body.pomo-pip .pw-time{font-size:clamp(10px,min(38vh,19vw),42px)}
 .pw-b:active{transform:scale(.92)}
 .pw-close{display:none}                 /* PiP는 크롬 창틀에 닫기가 이미 있다 */
 .pw.inpage .pw-close{display:flex}
-body.pomo-pip .pw-ctl{gap:min(2.4vw,2px)}
+body.pomo-pip .pw-ctl{position:absolute;left:0;right:0;bottom:0;gap:min(2.4vw,2px);
+  padding:min(1vh,2px) 0 min(1.4vh,3px);background:rgba(255,255,255,.88);
+  opacity:0;pointer-events:none;transition:opacity .16s ease}
+body.pomo-pip .pw:hover .pw-ctl{opacity:1;pointer-events:auto}
+body.pomo-pip .pw[data-phase="done"] .pw-ctl{background:rgba(255,241,241,.9)}
 body.pomo-pip .pw-b{width:clamp(9px,15vw,24px);height:clamp(9px,26vh,19px);border-radius:min(1.4vw,5px)}
 body.pomo-pip .pw-go{width:clamp(13px,21vw,34px)}
 body.pomo-pip .pw-b svg{width:clamp(7px,10vw,16px);height:clamp(7px,10vw,16px)}
