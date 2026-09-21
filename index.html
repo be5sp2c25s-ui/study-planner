@@ -2,6 +2,8 @@
 <title>스터디 플래너</title>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<meta name="theme-color" content="#FFFFFF" />
 <link rel="icon" type="image/svg+xml" href="./logo.png" />
 <link rel="apple-touch-icon" href="./logo.png" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
@@ -377,9 +379,6 @@
   .pointpick input[type=color]::-webkit-color-swatch{border:none;border-radius:50%}
   .pointpick input[type=color]::-moz-color-swatch{border:none;border-radius:50%}
   .pointhex{font-size:9.5px;font-weight:700;color:var(--faint);letter-spacing:.3px;font-family:var(--sans)}
-  .pointreset{border:none;background:var(--surface2);color:var(--muted);border-radius:6px;padding:2px 7px;
-    font-size:9.5px;font-weight:700;cursor:pointer;font-family:var(--sans)}
-  .pointreset:hover{background:var(--ink);color:#fff}
   .oitem{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-top:1px solid var(--line)}
   .oitem:first-of-type{border-top:none;padding-top:12px}
   .ochk{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
@@ -978,8 +977,7 @@ function renderPointPicker(block){
   bar.innerHTML=`<label class="pointpick" title="포인트 색 고르기">
       <input type="color" id="pointInput" value="${cur}" aria-label="포인트 색">
     </label>
-    <span class="pointhex">${cur}</span>
-    ${cur.toUpperCase()!==DEFAULT_POINT ? '<button type="button" class="pointreset">기본 노랑</button>' : ''}`;
+    <span class="pointhex">${cur}</span>`;
   const input=bar.querySelector('#pointInput');
   const hexLabel=bar.querySelector('.pointhex');
   const commit=(hex, immediate)=>{
@@ -991,8 +989,6 @@ function renderPointPicker(block){
   };
   input.oninput=()=>commit(input.value,false);
   input.onchange=()=>commit(input.value,true);
-  const reset=bar.querySelector('.pointreset');
-  if(reset) reset.onclick=()=>{ block.point=DEFAULT_POINT; applyTheme(block); saveApp(); render(); };
 }
 let S=null, LEC=[], SCHOOL_DAYS=[], MAXDAY=0;
 let undoSnapshot=null;
@@ -1057,6 +1053,7 @@ function normalizeApp(app){
   if(!app.pomo || typeof app.pomo!=='object') app.pomo={};
   if(!(app.pomo.focusMin>0)) app.pomo.focusMin=25;
   if(!(app.pomo.breakMin>0)) app.pomo.breakMin=5;
+  delete app.pomo.clean; // 없어진 '깔끔 모드' 설정 정리
   /* 옛 '색 계열'은 없어졌다 — 블록마다 포인트 컬러 하나만 남긴다.
      예전에 옐로우 계열을 쓰던 블록은 그 노랑을 포인트 컬러로 이어받는다. */
   app.blocks.forEach(b=>{
@@ -4005,39 +4002,54 @@ document.querySelectorAll('.tab').forEach(tb=>{
    ======================================================================= */
 const POMO_CSS = `
 *{box-sizing:border-box}
-body.pomo-pip{margin:0;overflow:hidden;background:#fff;
+/* 크롬이 그리는 PiP 창틀·제목줄이 어두운 색으로 칠해지지 않게 밝은 테마로 못박는다 */
+:root{color-scheme:light}
+body.pomo-pip{margin:0;overflow:hidden;background:#fff;color-scheme:light;
   font-family:'Pretendard',-apple-system,'Segoe UI','Noto Sans KR',sans-serif}
-.pw{display:flex;flex-direction:column;gap:7px;padding:11px 13px 12px;border-radius:15px;
-  border:2px solid #E7E7E7;background:#fff;color:#111;user-select:none;-webkit-user-select:none;
+.pw{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  padding:3px 6px 4px;border-radius:10px;
+  border:2px solid #EAEAEA;background:#fff;color:#111;user-select:none;-webkit-user-select:none;
   font-family:'Pretendard',-apple-system,'Segoe UI','Noto Sans KR',sans-serif;
   transition:border-color .25s ease, background .25s ease}
-body.pomo-pip .pw{height:100vh;border-radius:0;border-width:4px;justify-content:center}
-.pw.inpage{position:fixed;z-index:55;width:210px;box-shadow:0 12px 36px rgba(0,0,0,.17),0 2px 6px rgba(0,0,0,.08);cursor:grab}
+/* PiP 안에서는 테두리를 아예 안 그린다 — 창틀과 겹쳐 검은 띠처럼 보이기 때문.
+   (다 끝나 빨개질 때만 윤곽선이 나타난다) */
+/* 창을 끌어서 넓히거나 좁히면 숫자·버튼·여백이 전부 같이 줄고 늘어난다 */
+body.pomo-pip .pw{height:100vh;width:100%;border-radius:0;border-color:transparent;
+  padding:min(1.4vh,3px) min(4vw,5px) min(2vh,4px);gap:min(1.2vh,2px)}
+.pw.inpage{position:fixed;z-index:55;box-shadow:0 8px 24px rgba(0,0,0,.16),0 2px 5px rgba(0,0,0,.07);cursor:grab}
 .pw.inpage.dragging{cursor:grabbing}
-.pw-head{display:flex;align-items:center;gap:4px}
-.pw-tag{flex:1;font-size:10.5px;font-weight:800;color:#6B6B6B;letter-spacing:.2px;white-space:nowrap}
-.pw-mini{border:none;background:transparent;color:#B4B4B4;font-size:12px;line-height:1;cursor:pointer;
-  padding:3px 4px;border-radius:5px;font-family:inherit}
-.pw-mini:hover{background:#F2F2F2;color:#111}
-.pw-time{font-variant-numeric:tabular-nums;font-weight:800;font-size:36px;line-height:1;
-  letter-spacing:.5px;text-align:center;color:#111}
-body.pomo-pip .pw-time{font-size:min(21vw,54px)}
-.pw-ctl{display:flex;align-items:center;gap:5px}
-.pw-ctl button{border:1px solid #E7E7E7;background:#fff;color:#6B6B6B;border-radius:8px;height:29px;
-  font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;padding:0}
-.pw-step{width:30px;flex-shrink:0;font-size:15px}
-.pw-go{flex:1;background:#111;border-color:#111;color:#fff}
-.pw-ctl button:hover{filter:brightness(.93)}
-.pw-ctl button:active{transform:scale(.95)}
-.pw-hint{font-size:9.5px;font-weight:700;color:#B4B4B4;text-align:center;min-height:12px}
-.pw[data-phase="running"]{border-color:#111}
-.pw[data-mode="break"][data-phase="running"]{border-color:#6B6B6B}
+.pw-time{font-variant-numeric:tabular-nums;font-weight:800;font-size:17px;line-height:1.08;
+  letter-spacing:.2px;text-align:center;color:#111;white-space:nowrap}
+body.pomo-pip .pw-time{font-size:clamp(10px,min(38vh,19vw),42px)}
+.pw-ctl{display:flex;align-items:center;justify-content:center;gap:2px}
+.pw-b{width:16px;height:13px;flex-shrink:0;border:1px solid #EAEAEA;background:#fff;color:#7A7A7A;
+  border-radius:4px;font-size:10px;font-weight:800;line-height:1;cursor:pointer;padding:0;
+  font-family:inherit;display:flex;align-items:center;justify-content:center}
+.pw-b svg{width:10px;height:10px;fill:currentColor;display:block}
+.pw-go{width:22px;background:#111;border-color:#111;color:#fff}
+.pw-b:hover{filter:brightness(.92)}
+.pw-b:active{transform:scale(.92)}
+.pw-close{display:none}                 /* PiP는 크롬 창틀에 닫기가 이미 있다 */
+.pw.inpage .pw-close{display:flex}
+body.pomo-pip .pw-ctl{gap:min(2.4vw,2px)}
+body.pomo-pip .pw-b{width:clamp(9px,15vw,24px);height:clamp(9px,26vh,19px);border-radius:min(1.4vw,5px)}
+body.pomo-pip .pw-go{width:clamp(13px,21vw,34px)}
+body.pomo-pip .pw-b svg{width:clamp(7px,10vw,16px);height:clamp(7px,10vw,16px)}
+/* 더는 줄일 수 없을 만큼 좁아지면 −/+ 를 접고 재생·정지만 남긴다 */
+@media(max-width:54px){ body.pomo-pip .pw-b[data-p="minus"],body.pomo-pip .pw-b[data-p="plus"]{display:none} }
 .pw[data-phase="done"]{border-color:#E51E1E;background:#FFF5F5;cursor:pointer;
   animation:pwPulse 1.25s ease-in-out infinite}
-.pw[data-phase="done"] .pw-time,.pw[data-phase="done"] .pw-hint,.pw[data-phase="done"] .pw-tag{color:#E51E1E}
-@keyframes pwPulse{0%,100%{box-shadow:0 0 0 0 rgba(229,30,30,.36)}50%{box-shadow:0 0 0 8px rgba(229,30,30,0)}}
+body.pomo-pip .pw[data-phase="done"]{border-color:#E51E1E}
+.pw[data-phase="done"] .pw-time{color:#E51E1E}
+.pw[data-mode="break"] .pw-time{color:#6B6B6B}
+@keyframes pwPulse{0%,100%{box-shadow:0 0 0 0 rgba(229,30,30,.32)}50%{box-shadow:0 0 0 5px rgba(229,30,30,0)}}
 @media(prefers-reduced-motion:reduce){.pw[data-phase="done"]{animation:none}}
 `;
+const PW_ICON = {
+  play:'<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M3 2.1 L7.9 5 L3 7.9 Z"/></svg>',
+  pause:'<svg viewBox="0 0 10 10" aria-hidden="true"><rect x="3" y="2.2" width="1.5" height="5.6" rx=".45"/><rect x="5.5" y="2.2" width="1.5" height="5.6" rx=".45"/></svg>',
+  stop:'<svg viewBox="0 0 10 10" aria-hidden="true"><rect x="2.9" y="2.9" width="4.2" height="4.2" rx=".9"/></svg>',
+};
 const POMO = {mode:'focus', phase:'idle', remain:25*60, endAt:null, pip:null, node:null,
                tick:null, actx:null, suppressDock:false};
 function pomoCfg(){ if(!App.pomo || typeof App.pomo!=='object') App.pomo={focusMin:25, breakMin:5}; return App.pomo; }
@@ -4080,18 +4092,14 @@ function pomoBeep(times){
 function pomoNode(){
   if(POMO.node) return POMO.node;
   const w = el(`<div class="pw" data-mode="focus" data-phase="idle">
-    <div class="pw-head">
-      <span class="pw-tag" data-role="tag">🍅 집중</span>
-      <button class="pw-mini" data-p="reset" type="button" title="처음으로 되돌리기">↺</button>
-      <button class="pw-mini" data-p="close" type="button" title="위젯 닫기">✕</button>
-    </div>
     <div class="pw-time" data-role="time">25:00</div>
     <div class="pw-ctl">
-      <button class="pw-step" data-p="minus" type="button" title="1분 줄이기">−</button>
-      <button class="pw-go" data-p="toggle" type="button">시작</button>
-      <button class="pw-step" data-p="plus" type="button" title="1분 늘리기">+</button>
+      <button class="pw-b" data-p="minus" type="button" title="1분 줄이기">−</button>
+      <button class="pw-b pw-go" data-p="toggle" type="button" title="시작"><span data-role="icon">${PW_ICON.play}</span></button>
+      <button class="pw-b" data-p="plus" type="button" title="1분 늘리기">+</button>
+      <button class="pw-b" data-p="reset" type="button" title="처음으로 되돌리기">${PW_ICON.stop}</button>
+      <button class="pw-b pw-close" data-p="close" type="button" title="위젯 닫기">✕</button>
     </div>
-    <div class="pw-hint" data-role="hint"></div>
   </div>`);
   w.addEventListener('click', e=>{
     const btn=e.target.closest('[data-p]');
@@ -4166,8 +4174,31 @@ async function pomoOpenPip(){
   if(!pomoPipSupported()) return false;
   try{
     if(POMO.pip && !POMO.pip.closed){ try{ POMO.pip.focus(); }catch(e){} pomoPaint(); return true; }
-    const pip = await documentPictureInPicture.requestWindow({width:238, height:196});
+    /* 지난번에 끌어서 맞춰 둔 창 크기가 있으면 그걸로 연다 */
+    const cfg=pomoCfg();
+    const wantW=Math.max(40, Math.min(600, cfg.pipW||78));
+    const wantH=Math.max(30, Math.min(500, cfg.pipH||42));
+    let pip;
+    try{ pip = await documentPictureInPicture.requestWindow({width:wantW, height:wantH}); }
+    catch(e){ pip = await documentPictureInPicture.requestWindow({width:78, height:42}); } // 브라우저 최소 크기에 걸린 경우
     POMO.pip=pip;
+    /* 창 크기를 바꾸면 그 크기를 기억한다 — 다음에 열 때 그대로 뜬다 */
+    let sizeTimer=null;
+    pip.addEventListener('resize', ()=>{
+      clearTimeout(sizeTimer);
+      sizeTimer=setTimeout(()=>{
+        if(!POMO.pip || POMO.pip.closed) return;
+        const c=pomoCfg();
+        if(c.pipW===pip.innerWidth && c.pipH===pip.innerHeight) return;
+        c.pipW=pip.innerWidth; c.pipH=pip.innerHeight;
+        saveApp();
+      }, 400);
+    });
+    /* 창틀(제목줄)이 다크모드에서 검게 칠해지지 않도록 밝은 테마로 선언한다 */
+    const cs=pip.document.createElement('meta'); cs.name='color-scheme'; cs.content='light';
+    pip.document.head.appendChild(cs);
+    const tc=pip.document.createElement('meta'); tc.name='theme-color'; tc.content='#FFFFFF';
+    pip.document.head.appendChild(tc);
     const st=pip.document.createElement('style'); st.textContent=POMO_CSS;
     pip.document.head.appendChild(st);
     pip.document.body.classList.add('pomo-pip');
@@ -4258,7 +4289,9 @@ function pomoHideFull(){
 }
 async function pomoGoFullFromWidget(){
   POMO.mode='break'; POMO.phase='idle'; POMO.remain=pomoMin('break')*60; POMO.endAt=null;
+  POMO.suppressDock=true;
   await pomoClosePip();
+  POMO.suppressDock=false;
   const n=POMO.node; if(n && n.parentNode) n.parentNode.removeChild(n);
   pomoShowFull(false);
   pomoPaint();
@@ -4278,13 +4311,14 @@ function pomoPaint(){
     w.dataset.mode=POMO.mode; w.dataset.phase=POMO.phase;
     const q=s=>w.querySelector(s);
     q('[data-role="time"]').textContent=fmtClock(left);
-    q('[data-role="tag"]').textContent = POMO.mode==='break'? '☕ 휴식' : '🍅 집중';
     const go=w.querySelector('[data-p="toggle"]');
-    go.textContent = POMO.phase==='running'? '일시정지' : (POMO.phase==='paused'? '이어서' : (POMO.phase==='done'? '다시' : '시작'));
-    q('[data-role="hint"]').textContent =
-      POMO.phase==='done' ? (POMO.mode==='break'? '휴식 끝! 눌러서 돌아가기' : '집중 끝! 눌러서 쉬러 가기')
-      : POMO.phase==='running' ? (POMO.mode==='break'? '쉬는 중' : '집중하는 중')
-      : `−/+ 로 ${pomoMin(POMO.mode)}분을 조정`;
+    const running = POMO.phase==='running';
+    q('[data-role="icon"]').innerHTML = running? PW_ICON.pause : PW_ICON.play;
+    go.title = running? '일시정지' : (POMO.phase==='paused'? '이어서' : (POMO.phase==='done'? '다시 시작' : '시작'));
+    /* 작은 위젯이라 설명은 말풍선(title)으로만 남긴다 */
+    w.title = POMO.phase==='done'
+      ? (POMO.mode==='break'? '휴식 끝 — 눌러서 앱으로 돌아가기' : '집중 끝 — 눌러서 쉬러 가기')
+      : `${POMO.mode==='break'?'휴식':'집중'} ${pomoMin(POMO.mode)}분 · −/+ 로 시간 조정`;
   }
   const full=document.getElementById('pomoFull');
   if(full && full.classList.contains('on')){
@@ -4342,7 +4376,9 @@ function pomoInit(){
       pomoPaint();
     };
   });
-  window.addEventListener('beforeunload', ()=>{ try{ POMO.pip && POMO.pip.close(); }catch(e){} });
+  window.addEventListener('beforeunload', ()=>{
+    try{ POMO.pip && POMO.pip.close(); }catch(e){}
+  });
   window.addEventListener('resize', ()=>{
     const w=POMO.node;
     if(!w || !w.classList.contains('inpage')) return;
