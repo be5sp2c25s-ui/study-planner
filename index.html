@@ -723,7 +723,7 @@
   .toast.show.has-act{pointer-events:auto}
   .toast .t-act{border:none;border-left:1px solid rgba(255,255,255,.28);background:transparent;color:#fff;font-size:12px;font-weight:800;cursor:pointer;padding:0 0 0 12px;font-family:var(--sans);white-space:nowrap;text-decoration:underline;text-underline-offset:3px}
 
-  /* ===== 강의 일괄 추가 ===== */
+  /* ===== 강의 일괄 추가 (스타일) ===== */
   details.bulkadd{border-top:1px solid var(--line);background:var(--surface2)}
   details.bulkadd > summary{padding:11px 16px;font-size:11.5px;font-weight:700;color:var(--muted);cursor:pointer}
   details.bulkadd > summary:hover{color:var(--ink)}
@@ -741,6 +741,28 @@
   .bulkbar button:disabled{opacity:.35;cursor:default}
   .bulkbar span{font-size:10.5px;color:var(--muted);font-weight:700}
 
+  /* ===== 항목별 시간 측정 ===== */
+  .tmr{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;padding:2px 8px 2px 2px;border-radius:9px;background:var(--surface2)}
+  .tmr-btn{width:24px;height:24px;border:none;border-radius:7px;background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;box-shadow:0 0 0 1px var(--line)}
+  .tmr-btn svg{width:11px;height:11px;fill:currentColor;display:block}
+  .tmr-time{font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--muted);min-width:38px;text-align:center;cursor:default;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+  .tmr.run{background:var(--ink)}
+  .tmr.run .tmr-time{color:#fff}
+  .tmr.run .tmr-btn{background:#fff;color:#111;box-shadow:none}
+  .tmr.off .tmr-btn{opacity:.35;cursor:default}
+  .runchip{display:inline-flex;align-items:center;gap:8px;margin-left:auto;font-size:11px;font-weight:700;color:var(--muted)}
+  .runchip + .expandall{margin-left:0}
+  .terow{display:flex;align-items:center;gap:6px}
+  .terow input{width:76px;border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:14px;font-family:var(--sans);font-variant-numeric:tabular-nums}
+  .terow span{font-size:12px;font-weight:700;color:var(--muted);margin-right:6px}
+  .tstat{margin:4px 0 2px;border-radius:9px;background:var(--surface2);padding:8px 10px}
+  .tstat table{width:100%;border-collapse:collapse;font-size:11px}
+  .tstat th{font-size:10px;font-weight:700;color:var(--faint);text-align:right;padding:2px 4px}
+  .tstat th:first-child,.tstat td:first-child{text-align:left}
+  .tstat td{padding:3px 4px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink);font-weight:700}
+  .tstat td i{font-style:normal;font-weight:600;color:var(--faint);font-size:10px;margin-left:3px}
+  .tstat td.na{color:var(--faint);font-weight:600}
+  @media(max-width:560px){ .flowhead{flex-wrap:wrap} .flowhead .flowtitle{flex:1 1 55%} }
   .linkbtn{border:none;background:transparent;color:var(--muted);font-size:10.5px;font-weight:700;cursor:pointer;text-decoration:underline;padding:0;font-family:var(--sans)}
   .linkbtn:hover{color:var(--ink)}
   .banner-note{display:block;margin-top:4px;font-size:11.5px;font-weight:700;color:var(--ink)}
@@ -964,6 +986,14 @@
   </div>
 </div></div>
 
+<div class="mask" id="teMask"><div class="modal">
+  <h3>소요 시간 직접 입력</h3>
+  <p id="teSub" style="margin-bottom:12px"></p>
+  <div class="terow"><input type="number" id="teMin" min="0" max="999" step="1" inputmode="numeric"><span>분</span><input type="number" id="teSec" min="0" max="59" step="1" inputmode="numeric"><span>초</span></div>
+  <div class="nbstatus" id="teStatus"></div>
+  <div class="acts"><button class="no" id="teClear" style="margin-right:auto">기록 지우기</button><button class="no" id="teCancel">취소</button><button class="yes primary" id="teSave">저장</button></div>
+</div></div>
+
 <div class="mask" id="elMask"><div class="modal wide">
   <h3 id="elTitleHeading">강의 수정</h3>
   <div class="form-row" id="elCodeRow"><label>코드</label><input type="text" id="elCode"></div>
@@ -1180,6 +1210,7 @@ function normalizeApp(app){
   if(!(app.pomo.focusMin>0)) app.pomo.focusMin=25;
   if(!(app.pomo.breakMin>0)) app.pomo.breakMin=5;
   delete app.pomo.clean; // 없어진 '깔끔 모드' 설정 정리
+  delete app.pomo.pipW; delete app.pomo.pipH; // 예전 방식(안쪽 크기 요청)의 기록 정리
   /* 옛 '색 계열'은 없어졌다 — 블록마다 포인트 컬러 하나만 남긴다.
      예전에 옐로우 계열을 쓰던 블록은 그 노랑을 포인트 컬러로 이어받는다. */
   app.blocks.forEach(b=>{
@@ -1219,7 +1250,7 @@ function applyDisplaySettings(){
 
 function captureUndoSnapshot(target){
   const control=target.closest('button,.ochk,.schk,.capinput');
-  if(!control || control.closest('.tab,.copybtn,.opromptbtn,.instruction-toggle,.toast,.setbtn,.expandall,.linkbtn')) return;
+  if(!control || control.closest('.tab,.copybtn,.opromptbtn,.instruction-toggle,.toast,.setbtn,.expandall,.linkbtn,.tmr,.runchip')) return;
   undoSnapshot=JSON.stringify(App);
 }
 document.addEventListener('click', e=>captureUndoSnapshot(e.target), true);
@@ -2614,6 +2645,7 @@ function flowCard(type, l, isPulled){
       <span class="flowbadge ${type}">${label}</span>
       <span class="flowtitle">${titleText}<span class="flowmeta">${steps.length? `${doneCount}/${steps.length} 체크됨` : (isAssign?`크레딧 ${l.credit||1}`:'')}${isPulled?' · <span class="pulledtag">미리 당겨옴</span>':''}</span></span>
       ${isPulled?'<button class="unpullbtn" title="오늘로 당긴 것을 취소하고 원래대로 되돌립니다">당김 취소</button>':''}
+      ${tWidgetHtml(tKey(App.active,type,l.id), st, type, done)}
       ${promptList.length?`<button class="flowpromptbtn" type="button">프롬포트 복사${promptList.length>1?` <span class="ppcount">${promptList.length}</span>`:''}</button>`:''}
       <button class="flowdone ${done?'done':''}" style="${done?'background:var(--inactive-soft);color:var(--inactive)':''}">${done?'완료됨':'완료'}</button>
     </div>
@@ -2621,6 +2653,7 @@ function flowCard(type, l, isPulled){
     <div class="flowbody${expandedFlowCards.has(flowKey)?' open':''}" style="display:${expandedFlowCards.has(flowKey)?'block':'none'}"></div>
   </div>`);
   if(steps.length) item.dataset.fkey=flowKey;
+  tBindWidget(item.querySelector('.tmr'));
   const body = item.querySelector('.flowbody');
   steps.forEach((label2, i)=>{
     const row = el(`<div class="substep"><span class="schk ${sc[i]?'done':''}">${sc[i]?'✓':''}</span><span class="slabel ${sc[i]?'done':''}">${esc(label2)}</span></div>`);
@@ -2671,7 +2704,7 @@ function flowCard(type, l, isPulled){
   }
   if(steps.length){
     item.querySelector('.flowhead').addEventListener('click', (e)=>{
-      if(e.target.closest('.flowdone,.unpullbtn,.flowpromptbtn')) return;
+      if(e.target.closest('.flowdone,.unpullbtn,.flowpromptbtn,.tmr')) return;
       toggleFlowBody(body, ()=>expandedFlowCards.add(flowKey), ()=>expandedFlowCards.delete(flowKey));
       if(item._syncAll) item._syncAll();
     });
@@ -2856,6 +2889,7 @@ function renderDayFlow(box, isExamDay){
   manualPlans.filter(plan=>plan.done).forEach(plan=> box.appendChild(manualPlanCard(plan)));
   if(!items.length && !manualPlans.length) box.insertBefore(el('<div class="empty">오늘 배정된 신규·복습 없음</div>'),box.children[1]);
   box.querySelector('.add-plan-btn').onclick=openManualPlanModal;
+  tRunChip(box);
   setupExpandAll(box);
 }
 /* 오늘 카드 모두 펼치기 / 접기 — 체크리스트가 있는 카드만 대상 */
@@ -3935,6 +3969,7 @@ function render(){
   document.getElementById('mainArea').style.display = has? '' : 'none';
   document.getElementById('emptyState').style.display = has? 'none' : '';
   if(!has) return;
+  tSettle();
   SCHEDULE = computeSchedule();
   renderHeader(); renderBanner(); renderLoadPanel(); renderToday(); renderPlan(); renderTimetableBar(); renderTimetableWindow(); renderList(); renderPrompts();
   pomoSyncLauncher();
@@ -3983,6 +4018,7 @@ function askConfirm(title, body, onYes, yesLabel){
   document.getElementById('mkT').textContent=title;
   document.getElementById('mkB').textContent=body;
   document.getElementById('mkYes').textContent = yesLabel || '되돌리기';
+  document.getElementById('mkNo').textContent = '취소';
   mask.classList.add('on'); _cb=onYes;
 }
 document.getElementById('mkYes').onclick=()=>{ mask.classList.remove('on'); if(_cb) _cb(); };
@@ -4200,6 +4236,227 @@ document.getElementById('resetOverrides').onclick=()=>{
   }, '재분배');
 };
 
+/* =======================================================================
+   항목별 소요 시간 측정
+   - 오늘 카드의 ▶ 로 시작, ‖ 로 일시정지. 완료를 누르면 그 시점에서 멈추고 기록이 확정된다.
+   - 한 번에 하나만 잰다. 다른 항목을 시작하면 앞의 항목은 자동으로 멈춘다.
+   - 시간은 "쌓인 ms + 시작 시각"으로 저장한다 → 새로고침·다른 기기에서도 이어서 계산된다.
+   - 뽀모도로 집중이 멈추거나(일시정지·종료·초기화) 끝나면 진행 중인 항목도 함께 멈추고,
+     뽀모도로가 멈춘 항목만 뽀모도로를 다시 시작할 때 함께 다시 간다.
+     카드에서 직접 멈춘 항목은 뽀모도로가 다시 켜지 않는다.
+   - 평균은 따로 저장하지 않고, 완료된 항목의 기록에서 매번 계산한다. 그래야 완료 취소·
+     되돌리기·직접 입력으로 기록이 바뀌어도 평균이 어긋나지 않는다.
+   ======================================================================= */
+const T_MIN_SAMPLE=60*1000;          // 1분 미만 기록은 실수로 보고 평균에서 뺀다
+const T_LONG_RUN=3*3600*1000;        // 한 번에 3시간 넘게 켜져 있으면 확인을 요청한다
+function tKey(blockId,type,lecId){ return `${blockId}:${type}:${lecId}`; }
+function parseTKey(k){ const [blockId,type,lecId]=String(k||'').split(':'); return {blockId, type, lecId:Number(lecId)}; }
+function tRec(st,type,create){
+  if(!st) return null;
+  if(!st.time || typeof st.time!=='object'){ if(!create) return null; st.time={}; }
+  let r=st.time[type];
+  if(!r || typeof r!=='object'){ if(!create) return null; r=st.time[type]={ms:0, since:null}; }
+  return r;
+}
+function tElapsed(r){ return r ? Math.max(0,(r.ms||0) + (r.since ? Date.now()-r.since : 0)) : 0; }
+function tDone(st,type){
+  if(!st) return false;
+  if(type==='r1') return !!st.r[1];
+  if(type==='r2') return !!st.r[2];
+  return st.enc!=null;
+}
+function tState(){
+  if(!App.taskTimer || typeof App.taskTimer!=='object') App.taskTimer={key:null, byPomo:false};
+  return App.taskTimer;
+}
+function tLookup(key){
+  const {blockId,type,lecId}=parseTKey(key);
+  const b=App.blocks.find(x=>x.id===blockId);
+  const st=b && b.state && b.state.lec ? b.state.lec[lecId] : null;
+  const l=b ? b.lec.find(x=>x.id===lecId) : null;
+  return {b, st, l, type, rec:tRec(st,type,false)};
+}
+function tLabel(key){
+  const {l,type}=tLookup(key); if(!l) return '';
+  if(type==='assign') return l.title;
+  return `${l.code?l.code+' ':''}${type==='new'?'신규 학습':type==='r1'?'1차 복습':'2차 복습'}`;
+}
+function fmtDur(ms){
+  const t=Math.floor(Math.max(0,ms)/1000), m=Math.floor(t/60), sec=t%60;
+  if(m<100) return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  return `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+function fmtHM(ms){
+  const m=Math.round(ms/60000), h=Math.floor(m/60);
+  return h ? `${h}시간 ${m%60}분` : `${m}분`;
+}
+function tPauseActive(byPomo){
+  const ts=tState(); if(!ts.key) return false;
+  const {rec}=tLookup(ts.key);
+  if(!rec || !rec.since) return false;
+  rec.ms=tElapsed(rec); rec.since=null; ts.byPomo=!!byPomo;
+  return true;
+}
+function tStart(key){
+  const ts=tState();
+  if(ts.key && ts.key!==key) tPauseActive(false);
+  const {st,type}=tLookup(key);
+  const r=tRec(st,type,true); if(!r) return;
+  if(!r.since) r.since=Date.now();
+  ts.key=key; ts.byPomo=false;
+}
+function tToggle(key){
+  const ts=tState();
+  const {rec,st,type}=tLookup(key);
+  if(tDone(st,type)) return;
+  if(ts.key===key && rec && rec.since) tPauseActive(false);
+  else tStart(key);
+  saveApp(); render();
+}
+/* 뽀모도로 → 항목 타이머 (한 방향). active=false: 멈춤, true: 뽀모도로가 멈췄던 항목만 다시 */
+function tOnPomoFocus(active){
+  const ts=tState(); if(!ts.key) return;
+  if(!active){ if(tPauseActive(true)){ saveApp(); render(); } return; }
+  if(!ts.byPomo) return;
+  const {rec,st,type}=tLookup(ts.key);
+  ts.byPomo=false;
+  if(rec && !rec.since && !tDone(st,type)){ rec.since=Date.now(); saveApp(); render(); }
+}
+/* 렌더 때마다: 완료된 항목의 타이머는 그 자리에서 멈추고, 없어진 항목은 놓는다.
+   (오늘 카드의 완료 버튼뿐 아니라 전체 강의 탭 칩 등 어느 경로로 완료해도 똑같이 멈춘다) */
+function tSettle(){
+  const ts=tState(); if(!ts.key) return;
+  const {st,type,rec}=tLookup(ts.key);
+  if(!st || st.excluded){ if(rec && rec.since){ rec.ms=tElapsed(rec); rec.since=null; } ts.key=null; ts.byPomo=false; saveApp(); return; }
+  if(rec && rec.since && tDone(st,type)){ rec.ms=tElapsed(rec); rec.since=null; ts.byPomo=false; saveApp(); }
+}
+function tRunning(key){ const ts=tState(); if(ts.key!==key) return false; const {rec}=tLookup(key); return !!(rec && rec.since); }
+function tWidgetHtml(key, st, type, done){
+  const rec=tRec(st,type,false);
+  const run=tRunning(key);
+  return `<span class="tmr${run?' run':''}${done?' off':''}" data-tkey="${esc(key)}">
+    <button class="tmr-btn" type="button" title="${done?'완료된 항목':run?'일시정지':'시간 측정 시작'}" aria-label="${run?'일시정지':'시작'}" ${done?'disabled':''}>${run?PW_ICON.pause:PW_ICON.play}</button>
+    <span class="tmr-time" title="두 번 눌러 직접 입력">${fmtDur(tElapsed(rec))}</span>
+  </span>`;
+}
+function tBindWidget(node){
+  if(!node) return;
+  const key=node.dataset.tkey;
+  node.addEventListener('click', e=>e.stopPropagation());
+  node.querySelector('.tmr-btn').onclick=e=>{ e.stopPropagation(); tToggle(key); };
+  /* 두 번 누르기 — 터치에서는 dblclick이 안 오는 경우가 있어 직접 잰다 */
+  const time=node.querySelector('.tmr-time');
+  let last=0;
+  time.addEventListener('pointerup', e=>{
+    e.stopPropagation();
+    const now=Date.now();
+    if(now-last<400){ last=0; openTimeEditor(key); } else last=now;
+  });
+}
+/* 진행 중인 항목의 카드가 지금 화면에 없으면(다른 날로 이동 등) 도구줄에 따로 보여준다 */
+function tRunChip(box){
+  const tools=box.querySelector('.flowtools'); if(!tools) return;
+  const ts=tState();
+  if(!ts.key || !tRunning(ts.key)) return;
+  if(box.querySelector(`.flowitem [data-tkey="${CSS.escape(ts.key)}"]`)) return;
+  const {st,type}=tLookup(ts.key);
+  const chip=el(`<span class="runchip"><span>진행 중 · ${esc(tLabel(ts.key))}</span>${tWidgetHtml(ts.key, st, type, false)}</span>`);
+  tBindWidget(chip.querySelector('.tmr'));
+  tools.insertBefore(chip, tools.querySelector('.expandall'));
+}
+setInterval(()=>{
+  const ts=App.taskTimer; if(!ts || !ts.key) return;
+  const {rec}=tLookup(ts.key); if(!rec || !rec.since) return;
+  const txt=fmtDur(tElapsed(rec));
+  document.querySelectorAll(`[data-tkey="${CSS.escape(ts.key)}"] .tmr-time`).forEach(n=>{ n.textContent=txt; });
+}, 1000);
+/* 일시정지를 잊은 채 창을 떠났다가 돌아온 경우 */
+const _longWarned=new Set();
+function tCheckLong(){
+  const ts=tState(); if(!ts.key) return;
+  const {rec}=tLookup(ts.key);
+  if(!rec || !rec.since) return;
+  const run=Date.now()-rec.since;
+  const sig=ts.key+'@'+rec.since;
+  if(run<T_LONG_RUN || _longWarned.has(sig) || document.querySelector('.mask.on')) return;
+  _longWarned.add(sig);
+  const key=ts.key;
+  askConfirm('측정 시간을 확인해 주세요', `${tLabel(key)} 타이머가 ${fmtHM(run)} 동안 멈추지 않고 켜져 있었습니다.\n일시정지를 잊으셨다면 실제로 걸린 시간을 직접 입력해 주세요.`, ()=>openTimeEditor(key, true), '직접 입력');
+  document.getElementById('mkNo').textContent='그대로 두기';
+}
+/* 직접 입력 */
+const teMask=document.getElementById('teMask');
+let _teKey=null;
+function openTimeEditor(key, pauseFirst){
+  const {rec,l}=tLookup(key); if(!l) return;
+  if(pauseFirst && tRunning(key)){ tPauseActive(false); saveApp(); render(); }
+  _teKey=key;
+  const ms=tElapsed(tLookup(key).rec);
+  document.getElementById('teSub').textContent = `${tLabel(key)}${l.title&&l.type!=='과제'?' · '+l.title:''}\n현재 기록 ${fmtDur(ms)}`;
+  document.getElementById('teMin').value=Math.floor(ms/60000);
+  document.getElementById('teSec').value=Math.floor(ms/1000)%60;
+  document.getElementById('teStatus').textContent = tRunning(key) ? '측정 중인 항목입니다. 저장하면 입력한 시간부터 이어서 측정합니다.' : '';
+  teMask.classList.add('on');
+  setTimeout(()=>{ const m=document.getElementById('teMin'); m.focus(); m.select(); }, 60);
+}
+function closeTimeEditor(){ teMask.classList.remove('on'); _teKey=null; }
+document.getElementById('teCancel').onclick=closeTimeEditor;
+document.getElementById('teSave').onclick=()=>{
+  if(!_teKey) return;
+  const m=parseInt(document.getElementById('teMin').value,10), sec=parseInt(document.getElementById('teSec').value||'0',10);
+  if(isNaN(m) || m<0 || isNaN(sec) || sec<0 || sec>59){ document.getElementById('teStatus').textContent='분은 0 이상, 초는 0~59로 입력해 주세요.'; return; }
+  undoSnapshot=JSON.stringify(App);
+  const {st,type}=tLookup(_teKey);
+  const r=tRec(st,type,true); if(!r){ closeTimeEditor(); return; }
+  r.ms=(m*60+sec)*1000;
+  if(r.since) r.since=Date.now();
+  closeTimeEditor(); saveApp(); render();
+  showToast('소요 시간을 저장했습니다.', {undo:true});
+};
+document.getElementById('teClear').onclick=()=>{
+  if(!_teKey) return;
+  undoSnapshot=JSON.stringify(App);
+  const {st,type}=tLookup(_teKey);
+  const r=tRec(st,type,false);
+  if(r){ r.ms=0; r.since=null; }
+  const ts=tState(); if(ts.key===_teKey){ ts.key=null; ts.byPomo=false; }
+  closeTimeEditor(); saveApp(); render();
+  showToast('기록을 지웠습니다.', {undo:true});
+};
+['teMin','teSec'].forEach(id=> document.getElementById(id).addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.isComposing) document.getElementById('teSave').click(); }));
+/* 단계별 평균 — 완료된 강의 중 1분 이상 기록된 것만 */
+function stageSamples(blocks){
+  const out={new:[], r1:[], r2:[]};
+  blocks.forEach(b=>{
+    if(!b || !b.state || !b.state.lec) return;
+    b.lec.forEach(l=>{
+      if(l.type==='과제') return;
+      const st=b.state.lec[l.id]; if(!st || st.excluded) return;
+      ['new','r1','r2'].forEach(t=>{
+        const r=tRec(st,t,false);
+        if(!r || !tDone(st,t)) return;
+        const ms=tElapsed(r);
+        if(ms>=T_MIN_SAMPLE) out[t].push(ms);
+      });
+    });
+  });
+  return out;
+}
+function avgHours(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length/3600000 : null; }
+function timeStatsHtml(block){
+  const cur=stageSamples(block?[block]:[]), all=stageSamples(App.blocks);
+  const base=avgHours(cur.new);
+  const cell=arr=>{ const h=avgHours(arr); return h==null ? '<td class="na">기록 없음</td>' : `<td>${h.toFixed(2)}시간<i>${arr.length}개</i></td>`; };
+  const ratio=t=>{ const h=avgHours(cur[t]); return (h==null || !base) ? '<td class="na">-</td>' : `<td>${(h/base).toFixed(2)}</td>`; };
+  return `<div class="tstat"><table>
+    <thead><tr><th>실측 평균</th><th>이 블록</th><th>전체 블록</th><th>신규 대비</th></tr></thead>
+    <tbody>
+      <tr><td>신규</td>${cell(cur.new)}${cell(all.new)}${ratio('new')}</tr>
+      <tr><td>1차</td>${cell(cur.r1)}${cell(all.r1)}${ratio('r1')}</tr>
+      <tr><td>2차</td>${cell(cur.r2)}${cell(all.r2)}${ratio('r2')}</tr>
+    </tbody></table></div>`;
+}
+
 /* ===== 강의 일괄 추가 =====
    한 줄 = 강의 하나. 칸은 탭(엑셀·시트에서 복사하면 탭으로 들어온다), | 또는 공백 두 칸 이상으로 나눈다.
    칸마다 모양을 보고 코드(3강·L3·3)·날짜(9/15·2026-09-15·9월 15일·Day5)·구분(실습/강의)을
@@ -4384,6 +4641,28 @@ body.pomo-pip{margin:0;overflow:hidden;background:#fff;color-scheme:light;
 body.pomo-pip .pw{height:100vh;width:100%;border-radius:0;border-color:transparent;
   padding:min(1.4vh,3px) min(4vw,5px) min(2vh,4px);gap:min(1.2vh,2px)}
 .pw.inpage{position:fixed;z-index:55;box-shadow:0 8px 24px rgba(0,0,0,.16),0 2px 5px rgba(0,0,0,.07);cursor:grab}
+.pw.inpage.snapping{transition:left .3s cubic-bezier(.22,1,.36,1),top .3s cubic-bezier(.22,1,.36,1),border-color .25s ease,background .25s ease}
+/* 모서리 화살표 — 앱 화면 안 위젯에서만. PiP 창은 사이트가 위치를 옮길 수 없어 숨긴다 */
+.pw{position:relative}
+.pw.inpage{position:fixed}
+.pw-snap{position:absolute;width:16px;height:16px;padding:0;border:none;border-radius:5px;background:#111;color:#fff;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;pointer-events:none;
+  transform:scale(.7);transition:opacity .15s ease,transform .15s ease}
+.pw-snap svg{width:9px;height:9px;display:block}
+.pw-snap[data-snap="tl"]{top:-7px;left:-7px}
+.pw-snap[data-snap="tr"]{top:-7px;right:-7px}
+.pw-snap[data-snap="tr"] svg{transform:rotate(90deg)}
+.pw-snap[data-snap="bl"]{bottom:-7px;left:-7px}
+.pw-snap[data-snap="bl"] svg{transform:rotate(-90deg)}
+.pw-snap[data-snap="br"]{bottom:-7px;right:-7px}
+.pw-snap[data-snap="br"] svg{transform:rotate(180deg)}
+.pw.inpage[data-corner="tl"] .pw-snap[data-snap="tl"],
+.pw.inpage[data-corner="tr"] .pw-snap[data-snap="tr"],
+.pw.inpage[data-corner="bl"] .pw-snap[data-snap="bl"],
+.pw.inpage[data-corner="br"] .pw-snap[data-snap="br"],
+.pw.inpage .pw-snap:focus-visible{opacity:1;pointer-events:auto;transform:none}
+.pw[data-phase="done"] .pw-snap{background:#fff;color:#E51E1E}
+body.pomo-pip .pw-snap{display:none}
 .pw.inpage.dragging{cursor:grabbing}
 .pw-time{font-variant-numeric:tabular-nums;font-weight:800;font-size:17px;line-height:1.08;
   letter-spacing:.2px;text-align:center;color:#111;white-space:nowrap}
@@ -4421,6 +4700,8 @@ const PW_ICON = {
   play:'<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M3 2.1 L7.9 5 L3 7.9 Z"/></svg>',
   pause:'<svg viewBox="0 0 10 10" aria-hidden="true"><rect x="3" y="2.2" width="1.5" height="5.6" rx=".45"/><rect x="5.5" y="2.2" width="1.5" height="5.6" rx=".45"/></svg>',
   stop:'<svg viewBox="0 0 10 10" aria-hidden="true"><rect x="2.9" y="2.9" width="4.2" height="4.2" rx=".9"/></svg>',
+  /* 왼쪽 위를 가리키는 화살표 — 모서리마다 CSS로 돌려서 쓴다 */
+  arrow:'<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2 H6.4 M2 2 V6.4 M2 2 L8 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 const POMO = {mode:'focus', phase:'idle', remain:25*60, endAt:null, pip:null, node:null,
                tick:null, actx:null, suppressDock:false};
@@ -4475,8 +4756,25 @@ function pomoNode(){
       <button class="pw-b" data-p="reset" type="button" title="처음으로 되돌리기">${PW_ICON.stop}</button>
       <button class="pw-b pw-close" data-p="close" type="button" title="위젯 닫기">✕</button>
     </div>
+    <button class="pw-snap" data-snap="tl" type="button" title="화면 왼쪽 위로" aria-label="화면 왼쪽 위로 옮기기">${PW_ICON.arrow}</button>
+    <button class="pw-snap" data-snap="tr" type="button" title="화면 오른쪽 위로" aria-label="화면 오른쪽 위로 옮기기">${PW_ICON.arrow}</button>
+    <button class="pw-snap" data-snap="bl" type="button" title="화면 왼쪽 아래로" aria-label="화면 왼쪽 아래로 옮기기">${PW_ICON.arrow}</button>
+    <button class="pw-snap" data-snap="br" type="button" title="화면 오른쪽 아래로" aria-label="화면 오른쪽 아래로 옮기기">${PW_ICON.arrow}</button>
   </div>`);
+  /* 모서리 근처에 커서를 올리면 그 모서리 쪽 화살표만 나타난다 */
+  const SNAP_ZONE=22;
+  w.addEventListener('pointermove', e=>{
+    if(!w.classList.contains('inpage') || w.classList.contains('dragging')) return;
+    const r=w.getBoundingClientRect();
+    const dx=e.clientX-r.left, dy=e.clientY-r.top;
+    const h = dx<SNAP_ZONE ? 'l' : (r.width-dx<SNAP_ZONE ? 'r' : '');
+    const v = dy<SNAP_ZONE ? 't' : (r.height-dy<SNAP_ZONE ? 'b' : '');
+    w.dataset.corner = (h && v) ? v+h : '';
+  });
+  w.addEventListener('pointerleave', ()=>{ w.dataset.corner=''; });
   w.addEventListener('click', e=>{
+    const snap=e.target.closest('[data-snap]');
+    if(snap){ e.stopPropagation(); pomoSnap(snap.dataset.snap); return; }
     const btn=e.target.closest('[data-p]');
     if(btn && btn.dataset.p==='close'){ pomoHideWidget(); return; }
     /* 다 끝나 빨개진 상태에서는 어디를 눌러도 앱 전체화면으로 넘어간다 */
@@ -4513,14 +4811,17 @@ function pomoRun(){
   POMO.phase='running';
   clearInterval(POMO.tick);
   POMO.tick=setInterval(pomoTick, 250);
+  if(POMO.mode==='focus') tOnPomoFocus(true);
   pomoPaint();
 }
 function pomoPause(){
   POMO.remain=pomoRemain(); POMO.phase='paused';
   clearInterval(POMO.tick); POMO.tick=null;
+  if(POMO.mode==='focus') tOnPomoFocus(false);
   pomoPaint();
 }
 function pomoReset(){
+  if(POMO.mode==='focus' && POMO.phase==='running') tOnPomoFocus(false);
   clearInterval(POMO.tick); POMO.tick=null;
   POMO.phase='idle'; POMO.remain=pomoMin(POMO.mode)*60; POMO.endAt=null;
   const full=document.getElementById('pomoFull');
@@ -4535,6 +4836,7 @@ function pomoTick(){
 function pomoComplete(){
   clearInterval(POMO.tick); POMO.tick=null;
   POMO.phase='done'; POMO.remain=0;
+  if(POMO.mode==='focus') tOnPomoFocus(false);
   pomoBeep(POMO.mode==='break'? 4 : 3);
   const full=document.getElementById('pomoFull');
   /* 휴식이 끝나면 화면 전체가 빨개진다. 집중이 끝났을 때는 위젯만 빨개지고,
@@ -4544,31 +4846,45 @@ function pomoComplete(){
   pomoPaint();
 }
 /* ---- 작은 창(PiP) ---- */
+const PIP_REQ_W=240, PIP_REQ_H=52; // 크롬 데스크톱 문서 PiP의 최소 안쪽 크기
 function pomoPipSupported(){ return 'documentPictureInPicture' in window; }
 async function pomoOpenPip(){
   if(!pomoPipSupported()) return false;
   try{
     if(POMO.pip && !POMO.pip.closed){ try{ POMO.pip.focus(); }catch(e){} pomoPaint(); return true; }
-    /* 지난번에 끌어서 맞춰 둔 창 크기가 있으면 그걸로 연다 */
+    /* 크롬은 탭마다 "직전 PiP 창의 위치·크기"를 기억해 두었다가, 사이트가 지난번과
+       '같은 크기'를 요청할 때만 그 위치·크기로 다시 연다. 예전에는 마지막으로 끌어 둔
+       크기를 요청값으로 넘겼는데, 그러면 요청 크기가 매번 달라져 기억이 무시되고 늘
+       기본 위치·기본 크기로 열렸다. 그래서 요청값은 항상 크롬의 최소 크기(240×52)로
+       고정하고, 위치·크기 기억은 크롬에 맡긴다. 창 위치는 사이트가 옮길 수 없다(스펙상 금지). */
     const cfg=pomoCfg();
-    const wantW=Math.max(40, Math.min(600, cfg.pipW||78));
-    const wantH=Math.max(30, Math.min(500, cfg.pipH||42));
-    let pip;
-    try{ pip = await documentPictureInPicture.requestWindow({width:wantW, height:wantH}); }
-    catch(e){ pip = await documentPictureInPicture.requestWindow({width:78, height:42}); } // 브라우저 최소 크기에 걸린 경우
+    const pip = await documentPictureInPicture.requestWindow({width:PIP_REQ_W, height:PIP_REQ_H, preferInitialWindowPlacement:false});
     POMO.pip=pip;
-    /* 창 크기를 바꾸면 그 크기를 기억한다 — 다음에 열 때 그대로 뜬다 */
-    let sizeTimer=null;
+    /* 크롬의 기억은 탭 단위라 새 탭에서 열면 사라진다. 이때는 마지막 크기(바깥 창 기준)를
+       기억해 두었다가, 창 안을 처음 누르는 순간 그 크기로 맞춘다(resizeTo는 창 안에서의
+       클릭이 있어야만 허용된다). 위치는 복원할 수 없다. */
+    let sizeTimer=null, restored=false;
+    const openedW=pip.outerWidth, openedH=pip.outerHeight, openedAt=Date.now();
     pip.addEventListener('resize', ()=>{
+      if(Date.now()-openedAt<800) return; // 열리는 순간의 배치 조정은 무시
       clearTimeout(sizeTimer);
       sizeTimer=setTimeout(()=>{
         if(!POMO.pip || POMO.pip.closed) return;
+        restored=true; // 사용자가 직접 맞춘 뒤에는 되돌리지 않는다
         const c=pomoCfg();
-        if(c.pipW===pip.innerWidth && c.pipH===pip.innerHeight) return;
-        c.pipW=pip.innerWidth; c.pipH=pip.innerHeight;
+        if(c.pipOW===pip.outerWidth && c.pipOH===pip.outerHeight) return;
+        c.pipOW=pip.outerWidth; c.pipOH=pip.outerHeight;
         saveApp();
       }, 400);
     });
+    pip.document.addEventListener('pointerdown', ()=>{
+      if(restored) return; restored=true;
+      const c=pomoCfg();
+      if(!(c.pipOW>0 && c.pipOH>0)) return;
+      if(pip.outerWidth!==openedW || pip.outerHeight!==openedH) return; // 크롬이 이미 기억한 크기로 열었음
+      if(Math.abs(c.pipOW-pip.outerWidth)<4 && Math.abs(c.pipOH-pip.outerHeight)<4) return;
+      try{ pip.resizeTo(c.pipOW, c.pipOH); }catch(e){}
+    }, true);
     /* 창틀(제목줄)이 다크모드에서 검게 칠해지지 않도록 밝은 테마로 선언한다 */
     const cs=pip.document.createElement('meta'); cs.name='color-scheme'; cs.content='light';
     pip.document.head.appendChild(cs);
@@ -4638,6 +4954,19 @@ function pomoBindDrag(w){
   };
   w.addEventListener('pointerup', end);
   w.addEventListener('pointercancel', end);
+}
+/* 앱 화면 안 위젯을 화면 네 모서리 중 하나로 옮기고, 그 자리를 기억한다 */
+function pomoSnap(corner){
+  const w=POMO.node; if(!w || !w.classList.contains('inpage')) return;
+  const W=w.offsetWidth, H=w.offsetHeight, M=12;
+  const x = corner[1]==='l' ? M : window.innerWidth-W-M;
+  const y = corner[0]==='t' ? M : window.innerHeight-H-M;
+  w.classList.add('snapping');
+  w.style.left=x+'px'; w.style.top=y+'px';
+  setTimeout(()=>w.classList.remove('snapping'), 320);
+  w.dataset.corner='';
+  pomoCfg().pos={x,y};
+  saveApp();
 }
 async function pomoShowWidget(){
   const ok=await pomoOpenPip();
@@ -4820,6 +5149,8 @@ function renderSettings(){
       <span class="stunit">1차</span><input class="stin num" data-tc="r1" type="number" step="0.05" min="0" value="${num(typeCost('r1'))}">
       <span class="stunit">2차</span><input class="stin num" data-tc="r2" type="number" step="0.05" min="0" value="${num(typeCost('r2'))}">
     </div></div>
+    ${timeStatsHtml(block)}
+    <p class="sethint" style="margin-top:4px">오늘 카드에서 측정한 시간 중 완료한 항목, 1분 이상 기록된 것만 계산합니다. 크레딧 값은 이 평균을 참고해 직접 조정해 주세요.</p>
     <div class="setrow"><span class="setlbl">복습 간격</span><div class="stgrp">
       <span class="stunit">1차</span><input class="stin num" data-plan="gap1" type="number" step="1" min="0" max="14" value="${G1()}"><span class="stunit">일 뒤</span>
       <span class="stunit">2차</span><input class="stin num" data-plan="gap2" type="number" step="1" min="0" max="21" value="${G2()}"><span class="stunit">일 뒤</span>
@@ -5004,7 +5335,7 @@ document.addEventListener('keydown', e=>{
 });
 
 window.addEventListener('resize', moveTabInk);
-document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') refreshApp(); });
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ refreshApp().then(()=>setTimeout(tCheckLong, 300)); } });
 (async ()=>{
   await loadApp();
   pomoInit();
@@ -5016,5 +5347,6 @@ document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==
   }
   startRealtimeSync();
   setupPullToRefresh();
+  setTimeout(tCheckLong, 800);
 })();
 </script>
