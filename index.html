@@ -771,7 +771,12 @@
   .memo-note{background:var(--memo-bg,#FFF4B8);color:#111;border-radius:4px 4px 12px 4px;padding:10px 11px 8px;
     box-shadow:0 1px 2px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:8px;min-height:84px}
   .memo-note p{margin:0;font-size:12.5px;line-height:1.5;white-space:pre-wrap;word-break:break-all;flex:1;color:#111}
-  .memo-note .mn-meta{font-size:9.5px;font-weight:700;color:rgba(0,0,0,.45)}
+  .memo-note .mn-meta{font-size:9.5px;font-weight:700;color:rgba(0,0,0,.45);display:flex;align-items:center;gap:4px}
+  .mn-edit{margin-left:auto;border:none;background:transparent;color:rgba(0,0,0,.45);cursor:pointer;padding:2px;border-radius:5px}
+  .mn-edit:hover{color:#111;background:rgba(255,255,255,.6)}
+  .mn-edit svg{width:12px;height:12px;display:block}
+  .memo-note .memo-edit-in{width:100%;border:none;border-bottom:1px solid rgba(0,0,0,.35);background:rgba(255,255,255,.55);padding:3px 4px;
+    font:12.5px/1.5 var(--sans);color:#111;outline:none;border-radius:3px 3px 0 0}
   .memo-acts{display:flex;gap:4px;flex-wrap:wrap}
   .memo-acts button{border:none;border-radius:6px;padding:4px 8px;font-size:10.5px;font-weight:700;cursor:pointer;
     background:rgba(255,255,255,.62);color:#111;font-family:var(--sans)}
@@ -4740,14 +4745,19 @@ body.pomo-pip .pw-b svg{width:clamp(7px,10cqw,16px);height:clamp(7px,10cqw,16px)
 .pw.memo-on .pw-memo{display:flex}
 .pw.inpage.memo-on{width:260px}
 body.pomo-pip .pw.memo-on .pw-memo{flex:1;min-height:0;margin:0;border-radius:0}
+/* 창이 기대만큼 안 늘어났을 때도 메모칸 자리(170px)는 남긴다 */
+body.pomo-pip .pw.memo-on .pw-main{height:min(var(--pw-h,100vh), max(40px, calc(100vh - 170px)))}
 .pwm-head{font-size:10.5px;font-weight:800;color:rgba(0,0,0,.55)}
 .pwm-list{display:flex;flex-direction:column;gap:3px;max-height:120px;overflow-y:auto}
 body.pomo-pip .pwm-list{max-height:none;flex:1;min-height:0}
 .pwm-item{display:flex;align-items:flex-start;gap:5px;font-size:11.5px;line-height:1.45;word-break:break-all}
 .pwm-item span{flex:1}
 .pwm-item span::before{content:'· ';color:rgba(0,0,0,.45)}
-.pwm-del{border:none;background:transparent;color:rgba(0,0,0,.4);font-size:11px;line-height:1;cursor:pointer;padding:2px 3px;flex-shrink:0}
-.pwm-del:hover{color:#111}
+.pwm-del,.pwm-edit{border:none;background:transparent;color:rgba(0,0,0,.4);font-size:11px;line-height:1;cursor:pointer;padding:2px 3px;flex-shrink:0}
+.pwm-del:hover,.pwm-edit:hover{color:#111}
+.pwm-edit svg{width:11px;height:11px;display:block}
+.pwm-item .memo-edit-in{flex:1;min-width:0;border:none;border-bottom:1px solid rgba(0,0,0,.35);background:rgba(255,255,255,.5);padding:1px 3px;
+  font:11.5px/1.45 'Pretendard',-apple-system,'Segoe UI','Noto Sans KR',sans-serif;color:#111;outline:none}
 .pwm-in{width:100%;border:none;border-bottom:1px solid rgba(0,0,0,.25);background:transparent;padding:4px 1px;
   font:12px/1.4 'Pretendard',-apple-system,'Segoe UI','Noto Sans KR',sans-serif;color:#111;outline:none}
 .pwm-in::placeholder{color:rgba(0,0,0,.4)}
@@ -4771,6 +4781,7 @@ const PW_ICON = {
   pause:'<svg viewBox="0 0 10 10" aria-hidden="true"><rect x="3" y="2.2" width="1.5" height="5.6" rx=".45"/><rect x="5.5" y="2.2" width="1.5" height="5.6" rx=".45"/></svg>',
   stop:'<svg viewBox="0 0 10 10" aria-hidden="true"><rect x="2.9" y="2.9" width="4.2" height="4.2" rx=".9"/></svg>',
   /* 왼쪽 위를 가리키는 화살표 — 모서리마다 CSS로 돌려서 쓴다 */
+  pencil:'<svg viewBox="0 0 12 12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"><path d="M2 10l.5-2.3L8.2 2a1 1 0 0 1 1.4 0l.4.4a1 1 0 0 1 0 1.4L4.3 9.5z"/><path d="M7.3 2.9l1.8 1.8"/></svg>',
   memo:'<svg viewBox="0 0 12 12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"><path d="M2 1.5h8v6l-3 3H2z"/><path d="M7 10.5v-3h3"/><path d="M4 4.2h4M4 6.2h2.5" stroke-linecap="round"/></svg>',
   arrow:'<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2 H6.4 M2 2 V6.4 M2 2 L8 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
@@ -4954,17 +4965,20 @@ function pomoComplete(){
 /* ---- 작은 창(PiP) ---- */
 const PIP_REQ_W=240, PIP_REQ_H=52; // 크롬 데스크톱 문서 PiP의 최소 안쪽 크기
 function pomoPipSupported(){ return 'documentPictureInPicture' in window; }
-async function pomoOpenPip(){
+/* opts.reopen: 이미 열린 창을 닫고 새로 연다(새 창을 요청하면 크롬이 기존 창을 닫는다).
+   opts.fresh : 크롬이 기억한 위치 대신 기본 위치로 연다. */
+async function pomoOpenPip(opts){
+  opts=opts||{};
   if(!pomoPipSupported()) return false;
   try{
-    if(POMO.pip && !POMO.pip.closed){ try{ POMO.pip.focus(); }catch(e){} pomoPaint(); return true; }
+    if(!opts.reopen && POMO.pip && !POMO.pip.closed){ try{ POMO.pip.focus(); }catch(e){} pomoPaint(); return true; }
     /* 크롬은 탭마다 "직전 PiP 창의 위치·크기"를 기억해 두었다가, 사이트가 지난번과
        '같은 크기'를 요청할 때만 그 위치·크기로 다시 연다. 예전에는 마지막으로 끌어 둔
        크기를 요청값으로 넘겼는데, 그러면 요청 크기가 매번 달라져 기억이 무시되고 늘
        기본 위치·기본 크기로 열렸다. 그래서 요청값은 항상 크롬의 최소 크기(240×52)로
        고정하고, 위치·크기 기억은 크롬에 맡긴다. 창 위치는 사이트가 옮길 수 없다(스펙상 금지). */
     const cfg=pomoCfg();
-    const pip = await documentPictureInPicture.requestWindow({width:PIP_REQ_W, height:PIP_REQ_H, preferInitialWindowPlacement:false});
+    const pip = await documentPictureInPicture.requestWindow({width:PIP_REQ_W, height:PIP_REQ_H, preferInitialWindowPlacement:!!opts.fresh});
     POMO.pip=pip;
     /* 크롬의 기억은 탭 단위라 새 탭에서 열면 사라진다. 이때는 마지막 크기(바깥 창 기준)를
        기억해 두었다가, 창 안을 처음 누르는 순간 그 크기로 맞춘다(resizeTo는 창 안에서의
@@ -5006,11 +5020,14 @@ async function pomoOpenPip(){
     const w=pomoNode(); w.classList.remove('inpage'); w.style.left=''; w.style.top='';
     pip.document.body.appendChild(w);
     pip.addEventListener('pagehide', ()=>{
+      if(POMO.pip && POMO.pip!==pip) return; // 새 창으로 갈아탄 뒤 늦게 닫힌 옛 창 — 무시
       if(POMO.memoOpen) memoClose(true); // 창을 그냥 닫아도 적던 내용은 남는다
       POMO.pip=null;
-      if(POMO.suppressDock){ const n=POMO.node; if(n && n.parentNode) n.parentNode.removeChild(n); }
+      const n=POMO.node;
+      const mine = n && n.ownerDocument===pip.document;
+      if(POMO.suppressDock){ if(mine && n.parentNode) n.parentNode.removeChild(n); }
       else if(POMO.phase==='running' || POMO.phase==='paused' || POMO.phase==='done') pomoDockInPage();
-      else { const n=POMO.node; if(n && n.parentNode) n.parentNode.removeChild(n); }
+      else if(mine && n.parentNode) n.parentNode.removeChild(n);
       pomoPaint();
     });
     pomoPaint();
@@ -5261,6 +5278,7 @@ function memoPaintWidget(force){
   if(w.style.getPropertyValue('--memo-bg')!==bg) w.style.setProperty('--memo-bg', bg);
   const list=memoWidgetList();
   const sig=(curSid()||'-')+'|'+list.map(m=>m.id+m.text.length).join(',');
+  if(POMO.memoEditing && !force) return; // 고치는 중에는 목록을 다시 그리지 않는다
   if(!force && sig===POMO.memoSig) return;
   POMO.memoSig=sig;
   const n=w.querySelector('.pw-memo-n');
@@ -5269,9 +5287,10 @@ function memoPaintWidget(force){
   const box=w.querySelector('[data-role="mlist"]');
   box.innerHTML='';
   list.forEach(m=>{
-    const row=el(`<div class="pwm-item"><span></span><button class="pwm-del" type="button" title="지우기" aria-label="메모 지우기">✕</button></div>`);
+    const row=el(`<div class="pwm-item"><span></span><button class="pwm-edit" type="button" title="수정" aria-label="메모 수정">${PW_ICON.pencil}</button><button class="pwm-del" type="button" title="지우기" aria-label="메모 지우기">✕</button></div>`);
     row.querySelector('span').textContent=m.text;
     row.querySelector('.pwm-del').dataset.id=m.id;
+    row.querySelector('.pwm-edit').dataset.id=m.id;
     box.appendChild(row);
   });
   box.scrollTop=box.scrollHeight;
@@ -5301,6 +5320,14 @@ function memoBindWidget(w){
     clearTimeout(POMO.draftTimer); POMO.draftTimer=setTimeout(saveApp, 500);
   });
   w.querySelector('[data-role="mlist"]').addEventListener('click', e=>{
+    const ed=e.target.closest('.pwm-edit');
+    if(ed){
+      e.stopPropagation();
+      const m=memos().find(x=>x.id===ed.dataset.id); if(!m) return;
+      POMO.memoEditing=m.id;
+      memoEditInline(ed.parentNode.querySelector('span'), m, ()=>{ memoPaintWidget(true); renderMemoBox(); renderPfMemos(); const i=w.querySelector('.pwm-in'); if(POMO.memoOpen && i) i.focus(); });
+      return;
+    }
     const b=e.target.closest('.pwm-del'); if(!b) return;
     e.stopPropagation();
     App.memos=memos().filter(m=>m.id!==b.dataset.id);
@@ -5339,8 +5366,11 @@ function memoClose(silent){
   POMO.memoOpen=false; POMO.memoAt=Date.now();
   w.classList.remove('memo-on');
   const pip=(POMO.pip && !POMO.pip.closed && w.ownerDocument===POMO.pip.document) ? POMO.pip : null;
-  if(pip && !silent && POMO.memoPrev){ try{ pip.resizeTo(POMO.memoPrev.w, POMO.memoPrev.h); }catch(e){} }
-  if(pip && POMO.memoPrev) setTimeout(()=>w.style.removeProperty('--pw-h'), 250); else w.style.removeProperty('--pw-h');
+  w.style.removeProperty('--pw-h');
+  /* 창을 키웠다 줄이면 크롬이 늘릴 때 옮긴 자리(화면 밖으로 안 나가게 위·왼쪽으로 민 자리)에
+     그대로 남는다. 사이트는 창을 옮길 수 없으므로, 창을 새로 열어 크롬의 기본 위치로 되돌린다.
+     (크롬 126부터 PiP 창 안의 클릭이 앱 창의 클릭으로도 인정돼 새 창을 열 수 있다) */
+  if(pip && !silent && POMO.memoPrev) pomoReopenPip(POMO.memoPrev);
   if(!pip && POMO.memoPrevPos){
     const W=w.offsetWidth, H=w.offsetHeight;
     w.style.left=Math.max(6, Math.min(window.innerWidth-W-6, POMO.memoPrevPos.x))+'px';
@@ -5349,10 +5379,51 @@ function memoClose(silent){
   POMO.memoPrev=null; POMO.memoPrevPos=null;
   saveApp(); memoPaintWidget(true); renderMemoBox();
 }
+async function pomoReopenPip(prev){
+  POMO.suppressDock=true;
+  const old=POMO.pip;
+  const ok=await pomoOpenPip({reopen:true, fresh:true});
+  if(ok && old && old!==POMO.pip && !old.closed){ try{ old.close(); }catch(e){} } // 옛 창이 남아 있으면 확실히 닫는다
+  setTimeout(()=>{ POMO.suppressDock=false; }, 300);
+  const p=POMO.pip;
+  if(!p || p.closed || !prev) return;
+  if(Math.abs(p.outerWidth-prev.w)>3 || Math.abs(p.outerHeight-prev.h)>3){
+    try{ p.resizeTo(prev.w, prev.h); }catch(e){} // 새로 열지 못했으면 원래 창을 원래 크기로라도
+  }
+  if(!ok) console.warn('메모칸을 닫으며 창을 새로 열지 못해 크기만 되돌렸습니다');
+}
+/* ===== 메모 수정 ===== 연필을 누르면 그 자리에서 고친다. Enter·바깥 클릭 = 저장, Esc = 취소, 비우면 삭제 */
+function memoEditInline(target, m, after){
+  if(!target || target.dataset.editing) return;
+  target.dataset.editing='1';
+  const doc=target.ownerDocument;
+  const inp=doc.createElement('input');
+  inp.type='text'; inp.maxLength=300; inp.value=m.text; inp.className='memo-edit-in';
+  target.replaceWith(inp);
+  inp.focus(); try{ inp.setSelectionRange(inp.value.length, inp.value.length); }catch(e){}
+  let done=false;
+  const finish=save=>{
+    if(done) return; done=true;
+    POMO.memoEditing=null;
+    if(save){
+      const t=inp.value.trim();
+      if(t) m.text=t; else App.memos=memos().filter(x=>x.id!==m.id);
+      saveApp();
+    }
+    after();
+  };
+  inp.addEventListener('keydown', e=>{
+    if(e.isComposing || e.keyCode===229) return;
+    if(e.key==='Enter'){ e.preventDefault(); finish(true); }
+    else if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); finish(false); }
+  });
+  inp.addEventListener('blur', ()=>finish(true));
+  ['click','pointerdown'].forEach(t=> inp.addEventListener(t, e=>e.stopPropagation()));
+}
 /* 포스트잇 한 장 */
 function memoNoteEl(m, withLater){
   const d=new Date(m.at);
-  const c=el(`<div class="memo-note"><p></p><div class="mn-meta">${hhmm(d)}${m.st==='later'?' · 나중에':''}</div>
+  const c=el(`<div class="memo-note"><p></p><div class="mn-meta">${hhmm(d)}${m.st==='later'?' · 나중에':''}<button type="button" class="mn-edit" title="수정" aria-label="메모 수정">${PW_ICON.pencil}</button></div>
     <div class="memo-acts">
       <button type="button" data-a="done">해결</button>
       <button type="button" class="mk-plan" data-a="plan" title="오늘 계획에 추가" ${S?'':'disabled'}>계획에 추가</button>
@@ -5360,6 +5431,7 @@ function memoNoteEl(m, withLater){
     </div></div>`);
   c.querySelector('p').textContent=m.text;
   c.querySelectorAll('[data-a]').forEach(b=> b.onclick=()=>memoAct(m.id, b.dataset.a));
+  c.querySelector('.mn-edit').onclick=()=> memoEditInline(c.querySelector('p'), m, ()=>{ renderMemoBox(); renderPfMemos(); memoPaintWidget(true); });
   return c;
 }
 function memoAct(id, act){
