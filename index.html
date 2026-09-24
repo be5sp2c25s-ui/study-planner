@@ -763,6 +763,13 @@
   .tstat td i{font-style:normal;font-weight:600;color:var(--faint);font-size:10px;margin-left:3px}
   .tstat td.na{color:var(--faint);font-weight:600}
   @media(max-width:560px){ .flowhead{flex-wrap:wrap} .flowhead .flowtitle{flex:1 1 55%} }
+  /* ===== 오늘 공부 시간 ===== */
+  .studyrow{display:flex;align-items:baseline;gap:7px;margin-top:7px;cursor:default;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+  .studyrow .st-l{font-size:10.5px;font-weight:700;color:var(--muted)}
+  .studyrow b{font-size:14px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+  .studyrow .st-s{font-size:9.5px;font-weight:800;color:var(--faint)}
+  .studyrow .st-s.on{color:var(--ink)}
+  .studyrow .st-s.on::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--warn);margin-right:4px;vertical-align:1px}
   /* ===== 메모 포스트잇 ===== */
   .pf-memos{margin-top:22px;text-align:left}
   .pf-memos:empty{display:none}
@@ -1260,7 +1267,7 @@ function normalizeApp(app){
 }
 
 /* ===== 사용자 설정 (블록과 무관한 전역 값) ===== */
-const SETTINGS_DEFAULTS={name:'', bdayM:0, bdayD:0, fontScale:'md', reduceMotion:false, sound:true, volume:'mid', bdayCelebrated:''};
+const SETTINGS_DEFAULTS={dayStartHour:4, name:'', bdayM:0, bdayD:0, fontScale:'md', reduceMotion:false, sound:true, volume:'mid', bdayCelebrated:''};
 function normalizeSettings(app){
   if(!app.settings || typeof app.settings!=='object') app.settings={};
   Object.keys(SETTINGS_DEFAULTS).forEach(k=>{ if(app.settings[k]===undefined) app.settings[k]=SETTINGS_DEFAULTS[k]; });
@@ -2473,6 +2480,7 @@ function renderLoadPanel(){
           <span class="badge" style="background:${bg};color:${color}">${statusText}</span>
         </div>
         <div style="font-size:10.5px;color:var(--muted);margin-top:2px">${meterText}</div>
+        <div class="studyrow" title="두 번 눌러 직접 입력"><span class="st-l">오늘 공부</span><b data-study>${fmtHMS(studyTotal())}</b><span class="st-s" data-study-state></span></div>
       </div>
     </div>
     <p class="hint" style="margin-top:10px">${esc(hint)}</p>`;
@@ -2482,6 +2490,9 @@ function renderLoadPanel(){
   if(delta>0.3) battSlosh = Math.min(1, battSlosh + 0.28 + Math.min(0.62, delta/26));
   battTarget = target;
   bindBatteryInteraction();
+  const srow=document.querySelector('#loadPanel .studyrow');
+  if(srow){ let last=0; srow.addEventListener('pointerup', ()=>{ const t=Date.now(); if(t-last<400){ last=0; openStudyEditor(); } else last=t; }); }
+  studyPaint();
   /* 오늘 배정량을 방금 다 채운 순간(남은 크레딧이 >0 → 0)에만 한 번 알린다.
      새로고침·동기화로 처음부터 100%인 화면에서는 띄우지 않는다. */
   if(!isExamEve && !blocked){
@@ -3245,6 +3256,8 @@ function historyRow(h, scale){
     ? `<div class="histpct ${pctCls}" title="그날 계획을 얼마나 지켰는지 (${prog.done.toFixed(2)} / ${prog.total.toFixed(2)} 크레딧)"><i>달성률</i><b>${pct}%</b></div>`
     : `<div class="histpct none">기록 없음</div>`;
   const missed = items.filter(it=>!it.done).length;
+  const sk=dayKeyOfBlockDay(h.d), sMs=sk ? (studyLog()[sk]||0) : 0;
+  const studyNote = sMs>=60000 ? ` · 공부 ${fmtHMshort(sMs)}` : '';
   const note = h.hasRecord
     ? (missed? `계획 ${items.length}개 중 ${missed}개는 못 지켜 다음 날로 이월됐습니다` : `그날 계획을 모두 지켰습니다`)
     : `그날의 계획 기록은 없고, 실제로 끝낸 항목만 남아 있습니다`;
@@ -3253,7 +3266,7 @@ function historyRow(h, scale){
     <div>
       ${barHtml}
       ${tagsHtml}
-      <div class="histnote">${esc(note)}${info.note?' · '+esc(info.note):''}</div>
+      <div class="histnote">${esc(note)}${esc(studyNote)}${info.note?' · '+esc(info.note):''}</div>
     </div>
     <div class="pside">
       <div class="pcount">${countCells}</div>
@@ -3279,7 +3292,7 @@ function renderHeatmap(){
   const box=document.getElementById('heatPanel'); if(!box) return;
   const first=SCHOOL_DAYS[0];
   const offset = first && DOW_IDX[first.dow]!=null ? DOW_IDX[first.dow] : 0;
-  let cells='', full=0, rated=0, sum=0;
+  let cells='', full=0, rated=0, sum=0, blockStudy=0;
   for(let i=0;i<offset;i++) cells+='<span class="hm-cell blank"></span>';
   SCHOOL_DAYS.forEach(info=>{
     const d=info.day;
@@ -3295,9 +3308,11 @@ function renderHeatmap(){
     if(d===S.cur) cls+=' today';
     if(d===S.examDay) cls+=' exam';
     const dom=String(info.date||'').split('/')[1] || d;
-    cells+=`<span class="hm-cell ${cls}" title="Day${d} · ${esc(info.date)}(${esc(info.dow)}) · ${esc(d===S.examDay?'시험일':label)}">${esc(dom)}</span>`;
+    const sk=dayKeyOfBlockDay(d), sMs = sk ? (d===S.cur ? studyTotal(sk) : (studyLog()[sk]||0)) : 0;
+    if(sMs>0) blockStudy+=sMs;
+    cells+=`<span class="hm-cell ${cls}" title="Day${d} · ${esc(info.date)}(${esc(info.dow)}) · ${esc(d===S.examDay?'시험일':label)}${sMs>=60000?` · 공부 ${fmtHMshort(sMs)}`:''}">${esc(dom)}</span>`;
   });
-  const sumTxt = rated ? `100% 달성 ${full}일 · 평균 ${Math.round(sum/rated)}%` : '아직 기록이 없습니다';
+  const sumTxt = (rated ? `100% 달성 ${full}일 · 평균 ${Math.round(sum/rated)}%` : '아직 기록이 없습니다') + (blockStudy>=60000 ? ` · 총 공부 ${fmtHMshort(blockStudy)}` : '');
   box.innerHTML=`<div class="hm-head"><h2>달성률</h2><span class="hm-sum">${sumTxt}</span></div>
     <div class="hm-grid">${['월','화','수','목','금','토','일'].map(x=>`<span class="hm-dow">${x}</span>`).join('')}${cells}</div>
     <div class="hm-legend"><span>0%</span><i></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><span>100%</span><i class="fut"></i><span>예정</span></div>`;
@@ -4009,6 +4024,7 @@ function render(){
   document.getElementById('emptyState').style.display = has? 'none' : '';
   if(!has) return;
   tSettle();
+  studySync();
   SCHEDULE = computeSchedule();
   renderHeader(); renderBanner(); renderLoadPanel(); renderToday(); renderPlan(); renderTimetableBar(); renderTimetableWindow(); renderList(); renderPrompts();
   pomoSyncLauncher();
@@ -4439,12 +4455,20 @@ function openTimeEditor(key, pauseFirst){
   teMask.classList.add('on');
   setTimeout(()=>{ const m=document.getElementById('teMin'); m.focus(); m.select(); }, 60);
 }
-function closeTimeEditor(){ teMask.classList.remove('on'); _teKey=null; }
+function closeTimeEditor(){ teMask.classList.remove('on'); _teKey=null; _teStudy=false; document.getElementById('teClear').style.display=''; }
 document.getElementById('teCancel').onclick=closeTimeEditor;
 document.getElementById('teSave').onclick=()=>{
-  if(!_teKey) return;
+  if(!_teKey && !_teStudy) return;
   const m=parseInt(document.getElementById('teMin').value,10), sec=parseInt(document.getElementById('teSec').value||'0',10);
   if(isNaN(m) || m<0 || isNaN(sec) || sec<0 || sec>59){ document.getElementById('teStatus').textContent='분은 0 이상, 초는 0~59로 입력해 주세요.'; return; }
+  if(_teStudy){
+    undoSnapshot=JSON.stringify(App);
+    const now=Date.now(), k=studyDayKey(now);
+    studyLog()[k]=Math.max(0, (m*60+sec)*1000 - studyOpenPart(k, now)); // 측정 중인 구간은 그대로 이어서 더해진다
+    closeTimeEditor(); saveApp(); render(); studyPaint();
+    showToast('오늘 공부 시간을 저장했습니다.', {undo:true});
+    return;
+  }
   undoSnapshot=JSON.stringify(App);
   const {st,type}=tLookup(_teKey);
   const r=tRec(st,type,true); if(!r){ closeTimeEditor(); return; }
@@ -4460,10 +4484,107 @@ document.getElementById('teClear').onclick=()=>{
   const r=tRec(st,type,false);
   if(r){ r.ms=0; r.since=null; }
   const ts=tState(); if(ts.key===_teKey){ ts.key=null; ts.byPomo=false; }
-  closeTimeEditor(); saveApp(); render();
+  closeTimeEditor(); saveApp(); render(); studySync();
   showToast('기록을 지웠습니다.', {undo:true});
 };
 ['teMin','teSec'].forEach(id=> document.getElementById(id).addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.isComposing) document.getElementById('teSave').click(); }));
+/* =======================================================================
+   하루 공부 시간 합산
+   - 카드 타이머나 뽀모도로 집중 중 '하나라도' 돌고 있으면 공부 중으로 본다(겹친 시간은 한 번만).
+   - 공부 중이 된 시각(App.studyRun.since)만 저장해 두고, 멈추는 순간 그 구간을 날짜별로
+     App.studyLog에 더한다. 하루는 설정의 '하루 시작 시각'(기본 새벽 4시)에서 끊는다 —
+     밤 11시~새벽 2시 공부가 두 날로 나뉘지 않게.
+   - 뽀모도로는 '언제 끝나는지'(until)를 함께 저장한다. 창을 닫아 뽀모도로가 사라져도
+     그 시각이 지나면 저절로 멈춘 것으로 계산된다.
+   - 이 기능을 넣기 전의 공부 시간은 기록이 없어 소급되지 않는다.
+   ======================================================================= */
+function studyCut(){ const v=Number(settings().dayStartHour); return (v>=0 && v<=12) ? v : 4; }
+function pad2(n){ return String(n).padStart(2,'0'); }
+function studyDayKey(ts){ const d=new Date(ts - studyCut()*3600000); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function studyNextBoundary(ts){ const d=new Date(ts - studyCut()*3600000); return new Date(d.getFullYear(), d.getMonth(), d.getDate()+1).getTime() + studyCut()*3600000; }
+function studyLog(){ if(!App.studyLog || typeof App.studyLog!=='object') App.studyLog={}; return App.studyLog; }
+function studyRun(){ if(!App.studyRun || typeof App.studyRun!=='object') App.studyRun={since:null}; return App.studyRun; }
+function studyAccrue(a,b){
+  const log=studyLog();
+  while(a<b){
+    const e=Math.min(b, studyNextBoundary(a));
+    const k=studyDayKey(a);
+    log[k]=(log[k]||0)+(e-a);
+    a=e;
+  }
+}
+function studyTaskRunning(){ const ts=App.taskTimer; if(!ts || !ts.key) return false; const {rec}=tLookup(ts.key); return !!(rec && rec.since); }
+function studyPomoUntil(){ const p=App.pomoRun; return (p && p.until) ? p.until : 0; }
+function studyActive(now){ return studyTaskRunning() || studyPomoUntil()>now; }
+/* 상태가 바뀔 수 있는 곳마다(렌더·뽀모도로 그리기·1초 틱) 부른다. 켜짐/꺼짐이 바뀔 때만 저장한다. */
+function studySync(){
+  const now=Date.now(), run=studyRun();
+  const active=studyActive(now);
+  if(active && !run.since){ run.since=now; saveApp(); }
+  else if(!active && run.since){
+    /* 뽀모도로만 켜져 있다가 시간이 다 된 경우엔 끝난 시각에서 끊는다 */
+    const u=studyPomoUntil();
+    const stopAt = (u && u<now && u>run.since) ? u : now;
+    studyAccrue(run.since, stopAt);
+    run.since=null;
+    if(u && u<=now) App.pomoRun=null;
+    saveApp();
+  }
+}
+/* 뽀모도로 쪽에서 부르는 표시 — 집중이 돌기 시작하거나 끝 시각이 바뀌면 until을 갱신 */
+function studyPomoMark(){
+  if(POMO.mode==='focus' && POMO.phase==='running' && POMO.endAt) App.pomoRun={until:POMO.endAt};
+  else App.pomoRun=null;
+  studySync();
+}
+function studyOpenPart(dayKey, now){
+  const run=studyRun(); if(!run.since) return 0;
+  const u=studyPomoUntil();
+  const end = studyTaskRunning() ? now : (u ? Math.min(now,u) : now);
+  let a=run.since, sum=0;
+  while(a<end){ const e=Math.min(end, studyNextBoundary(a)); if(studyDayKey(a)===dayKey) sum+=e-a; a=e; }
+  return sum;
+}
+function studyTotal(dayKey){
+  const now=Date.now();
+  const k=dayKey || studyDayKey(now);
+  return (studyLog()[k]||0) + studyOpenPart(k, now);
+}
+function fmtHMS(ms){
+  const t=Math.floor(Math.max(0,ms)/1000), h=Math.floor(t/3600), m=Math.floor(t/60)%60, sec=t%60;
+  return h ? `${h}시간 ${pad2(m)}분 ${pad2(sec)}초` : `${m}분 ${pad2(sec)}초`;
+}
+function fmtHMshort(ms){ const m=Math.round(ms/60000), h=Math.floor(m/60); return h ? `${h}시간 ${m%60}분` : `${m}분`; }
+/* 블록 Day → 그날 날짜 키 */
+function dayKeyOfBlockDay(d){
+  const block=App.blocks.find(b=>b.id===App.active); if(!block) return null;
+  const startStr=dateInputValue(block.startDate || (block.schoolDays[0] && block.schoolDays[0].date));
+  if(!startStr) return null;
+  const [y,mo,da]=startStr.split('-').map(Number);
+  const dt=new Date(y, mo-1, da+(d-1));
+  return `${dt.getFullYear()}-${pad2(dt.getMonth()+1)}-${pad2(dt.getDate())}`;
+}
+function studyPaint(){
+  const run=!!studyRun().since;
+  const txt=fmtHMS(studyTotal());
+  document.querySelectorAll('[data-study]').forEach(n=>{ n.textContent=txt; });
+  document.querySelectorAll('[data-study-state]').forEach(n=>{ n.textContent = run ? '측정 중' : ''; n.classList.toggle('on', run); });
+}
+/* 오늘 공부 시간 직접 고치기 — 두 번 누르기 */
+let _teStudy=false;
+function openStudyEditor(){
+  _teStudy=true; _teKey=null;
+  const ms=studyTotal();
+  document.getElementById('teSub').textContent=`오늘 공부 시간\n현재 기록 ${fmtHMS(ms)}`;
+  document.getElementById('teMin').value=Math.floor(ms/60000);
+  document.getElementById('teSec').value=Math.floor(ms/1000)%60;
+  document.getElementById('teStatus').textContent = studyRun().since ? '측정 중입니다. 저장하면 입력한 시간부터 이어서 더해집니다. 시간은 분으로 입력합니다(예: 2시간 10분 → 130).' : '시간은 분으로 입력합니다(예: 2시간 10분 → 130).';
+  document.getElementById('teClear').style.display='none';
+  teMask.classList.add('on');
+  setTimeout(()=>{ const m=document.getElementById('teMin'); m.focus(); m.select(); }, 60);
+}
+setInterval(()=>{ studySync(); studyPaint(); }, 1000);
+
 /* 단계별 평균 — 완료된 강의 중 1분 이상 기록된 것만 */
 function stageSamples(blocks){
   const out={new:[], r1:[], r2:[]};
@@ -4910,6 +5031,7 @@ function pomoAction(a){
     const delta = (a==='plus'? 1 : -1);
     if(POMO.phase==='running'){
       POMO.endAt = Math.max(Date.now()+1000, POMO.endAt + delta*60000);
+      studyPomoMark();
     } else {
       const next = Math.max(1, Math.min(180, pomoMin(POMO.mode)+delta));
       pomoSetMin(POMO.mode, next);
@@ -4926,6 +5048,7 @@ function pomoRun(){
   POMO.phase='running';
   clearInterval(POMO.tick);
   POMO.tick=setInterval(pomoTick, 250);
+  studyPomoMark();
   if(POMO.mode==='focus') tOnPomoFocus(true);
   else if(freshBreak) tOnPomoFocus(false);
   pomoPaint();
@@ -4934,12 +5057,14 @@ function pomoPause(){
   POMO.remain=pomoRemain(); POMO.phase='paused';
   clearInterval(POMO.tick); POMO.tick=null;
   if(POMO.mode==='focus') tOnPomoFocus(false);
+  studyPomoMark();
   pomoPaint();
 }
 function pomoReset(){
   if(POMO.mode==='focus' && POMO.phase==='running') tOnPomoFocus(false);
   clearInterval(POMO.tick); POMO.tick=null;
   POMO.phase='idle'; POMO.remain=pomoMin(POMO.mode)*60; POMO.endAt=null;
+  studyPomoMark();
   const full=document.getElementById('pomoFull');
   if(full) full.classList.remove('ring');
   pomoPaint();
@@ -4953,6 +5078,7 @@ function pomoComplete(){
   clearInterval(POMO.tick); POMO.tick=null;
   POMO.phase='done'; POMO.remain=0;
   if(POMO.mode==='focus'){ pomoCountFocus(); POMO.lastSid=POMO.sid; }
+  studyPomoMark();
   /* 집중 시간이 끝나도 항목 시간은 멈추지 않는다 — 휴식 화면에서 '휴식 시작'을 눌러야 멈춘다 */
   pomoBeep(POMO.mode==='break'? 4 : 3);
   const full=document.getElementById('pomoFull');
@@ -5219,7 +5345,7 @@ function pomoInit(){
   full.querySelectorAll('[data-pf]').forEach(b=>{
     b.onclick=()=>{
       const delta = b.dataset.pf==='plus'? 1 : -1;
-      if(POMO.phase==='running'){ POMO.endAt=Math.max(Date.now()+1000, POMO.endAt+delta*60000); }
+      if(POMO.phase==='running'){ POMO.endAt=Math.max(Date.now()+1000, POMO.endAt+delta*60000); studyPomoMark(); }
       else { const next=Math.max(1,Math.min(180, pomoMin(POMO.mode)+delta)); pomoSetMin(POMO.mode,next); POMO.phase='idle'; POMO.remain=next*60; }
       pomoPaint();
     };
@@ -5581,6 +5707,8 @@ function renderSettings(){
     <h4>뽀모도로</h4>
     <div class="setrow"><span class="setlbl">집중 시간</span><div class="stgrp"><input class="stin num" data-pomo="focus" type="number" min="1" max="180" step="1" value="${pomoMin('focus')}"><span class="stunit">분</span></div></div>
     <div class="setrow"><span class="setlbl">휴식 시간</span><div class="stgrp"><input class="stin num" data-pomo="break" type="number" min="1" max="180" step="1" value="${pomoCfg().breakMin}"><span class="stunit">분</span></div></div>
+    <div class="setrow"><label for="stDayStart">하루 시작 시각</label><select class="stin" id="stDayStart">${[0,1,2,3,4,5,6,7,8].map(h=>`<option value="${h}" ${h===studyCut()?'selected':''}>${h===0?'자정':`새벽 ${h}시`.replace('새벽 7시','오전 7시').replace('새벽 8시','오전 8시')}</option>`).join('')}</select></div>
+    <p class="sethint">오늘 공부 시간을 이 시각 기준으로 나눕니다. 새벽 4시로 두면 새벽 2시에 한 공부는 전날로 들어갑니다.</p>
     <div class="setrow"><span class="setlbl">긴 휴식</span><div class="stgrp"><span class="stunit">집중</span><input class="stin num" data-pomo="longEvery" type="number" min="2" max="12" step="1" value="${pomoCfg().longEvery}"><span class="stunit">회마다</span><input class="stin num" data-pomo="long" type="number" min="1" max="180" step="1" value="${pomoCfg().longMin}"><span class="stunit">분</span></div></div>
     <p class="sethint">집중을 끝까지 마친 횟수로 셉니다. 지금 ${pomoCyclePos()}/${pomoCfg().longEvery}회째입니다. 마지막 집중 뒤 오래 쉬었다가 다시 시작하면 처음부터 셉니다.</p>
     <div class="setrow"><span class="setlbl">알림음</span>${sw('sound',st.sound)}</div>
@@ -5672,6 +5800,14 @@ function renderSettings(){
     pomoPaint();
   }));
   body.querySelector('#stTest').onclick=()=> pomoBeep(2, true);
+  body.querySelector('#stDayStart').addEventListener('change', e=>{
+    studySync();
+    /* 진행 중인 구간은 새 기준으로 다시 나누도록 한 번 끊었다가 이어 간다 */
+    const run=studyRun();
+    if(run.since){ studyAccrue(run.since, Date.now()); run.since=Date.now(); }
+    settings().dayStartHour=Number(e.target.value);
+    saveApp(); render(); studyPaint();
+  });
 
   /* 데이터 */
   body.querySelector('#stExport').onclick=()=>{
