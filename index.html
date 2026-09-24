@@ -1209,6 +1209,9 @@ function normalizeApp(app){
   if(!app.pomo || typeof app.pomo!=='object') app.pomo={};
   if(!(app.pomo.focusMin>0)) app.pomo.focusMin=25;
   if(!(app.pomo.breakMin>0)) app.pomo.breakMin=5;
+  if(!(app.pomo.longMin>0)) app.pomo.longMin=15;
+  if(!(app.pomo.longEvery>=2)) app.pomo.longEvery=4;
+  if(!(app.pomo.cycles>=0)) app.pomo.cycles=0;
   delete app.pomo.clean; // 없어진 '깔끔 모드' 설정 정리
   delete app.pomo.pipW; delete app.pomo.pipH; // 예전 방식(안쪽 크기 요청)의 기록 정리
   /* 옛 '색 계열'은 없어졌다 — 블록마다 포인트 컬러 하나만 남긴다.
@@ -4704,15 +4707,33 @@ const PW_ICON = {
   arrow:'<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2 H6.4 M2 2 V6.4 M2 2 L8 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 const POMO = {mode:'focus', phase:'idle', remain:25*60, endAt:null, pip:null, node:null,
-               tick:null, actx:null, suppressDock:false};
-function pomoCfg(){ if(!App.pomo || typeof App.pomo!=='object') App.pomo={focusMin:25, breakMin:5}; return App.pomo; }
-function pomoMin(mode){ const c=pomoCfg(); return (mode==='break') ? (c.breakMin||5) : (c.focusMin||25); }
+               tick:null, actx:null, suppressDock:false, long:false};
+function pomoCfg(){ if(!App.pomo || typeof App.pomo!=='object') App.pomo={focusMin:25, breakMin:5, longMin:15, longEvery:4, cycles:0}; return App.pomo; }
+/* 휴식 모드일 때는 지금이 긴 휴식인지(POMO.long)에 따라 짧은/긴 휴식 시간을 쓴다 */
+function pomoMin(mode){
+  const c=pomoCfg();
+  if(mode==='break') return POMO.long ? (c.longMin||15) : (c.breakMin||5);
+  return c.focusMin||25;
+}
 function pomoSetMin(mode, v){
   const c=pomoCfg();
   v=Math.max(1, Math.min(180, Math.round(v)));
-  if(mode==='break') c.breakMin=v; else c.focusMin=v;
+  if(mode==='break'){ if(POMO.long) c.longMin=v; else c.breakMin=v; }
+  else c.focusMin=v;
   saveApp();
 }
+/* ===== 긴 휴식 =====
+   집중을 끝까지 마칠 때마다 1회로 센다(중간에 초기화하거나 건너뛴 건 세지 않는다).
+   longEvery번째마다 휴식이 긴 휴식이 된다. 마지막 집중 종료 후 너무 오래 지나 다시
+   시작하면(새 공부 묶음) 횟수를 처음부터 센다. */
+function pomoCountFocus(){
+  const c=pomoCfg(), now=Date.now();
+  const gapLimit=((c.focusMin||25)+Math.max(c.breakMin||5, c.longMin||15)+60)*60000;
+  if(!c.lastFocusEnd || now-c.lastFocusEnd>gapLimit) c.cycles=0;
+  c.cycles=(c.cycles||0)+1; c.lastFocusEnd=now;
+  saveApp();
+}
+function pomoCyclePos(){ const c=pomoCfg(), e=c.longEvery||4; return c.cycles>0 ? ((c.cycles-1)%e)+1 : 0; }
 function fmtClock(sec){
   sec=Math.max(0, Math.ceil(sec));
   const m=Math.floor(sec/60), s=sec%60;
@@ -4806,12 +4827,14 @@ function pomoAction(a){
   pomoPaint();
 }
 function pomoRun(){
+  const freshBreak = POMO.mode==='break' && POMO.phase==='idle'; // 휴식을 '새로' 시작하는 순간
   if(POMO.remain<=0) POMO.remain=pomoMin(POMO.mode)*60;
   POMO.endAt = Date.now() + POMO.remain*1000;
   POMO.phase='running';
   clearInterval(POMO.tick);
   POMO.tick=setInterval(pomoTick, 250);
   if(POMO.mode==='focus') tOnPomoFocus(true);
+  else if(freshBreak) tOnPomoFocus(false);
   pomoPaint();
 }
 function pomoPause(){
@@ -4836,7 +4859,8 @@ function pomoTick(){
 function pomoComplete(){
   clearInterval(POMO.tick); POMO.tick=null;
   POMO.phase='done'; POMO.remain=0;
-  if(POMO.mode==='focus') tOnPomoFocus(false);
+  if(POMO.mode==='focus') pomoCountFocus();
+  /* 집중 시간이 끝나도 항목 시간은 멈추지 않는다 — 휴식 화면에서 '휴식 시작'을 눌러야 멈춘다 */
   pomoBeep(POMO.mode==='break'? 4 : 3);
   const full=document.getElementById('pomoFull');
   /* 휴식이 끝나면 화면 전체가 빨개진다. 집중이 끝났을 때는 위젯만 빨개지고,
@@ -4992,6 +5016,8 @@ function pomoHideFull(){
   full.classList.remove('on','ring');
 }
 async function pomoGoFullFromWidget(){
+  const c=pomoCfg();
+  POMO.long = (c.cycles||0)>0 && (c.cycles % (c.longEvery||4))===0;
   POMO.mode='break'; POMO.phase='idle'; POMO.remain=pomoMin('break')*60; POMO.endAt=null;
   POMO.suppressDock=true;
   await pomoClosePip();
@@ -5001,6 +5027,7 @@ async function pomoGoFullFromWidget(){
   pomoPaint();
 }
 async function pomoStartFocus(){
+  POMO.long=false;
   POMO.mode='focus'; POMO.phase='idle'; POMO.remain=pomoMin('focus')*60; POMO.endAt=null;
   pomoHideFull();
   pomoRun();
@@ -5029,16 +5056,19 @@ function pomoPaint(){
     const breakMode = POMO.mode==='break';
     const doneNow = POMO.phase==='done';
     document.getElementById('pfTime').textContent=fmtClock(left);
-    document.getElementById('pfTag').textContent = doneNow&&breakMode? '휴식 끝' : (breakMode? '집중 완료' : '집중 중');
+    const every=pomoCfg().longEvery||4, pos=pomoCyclePos();
+    document.getElementById('pfTag').textContent = doneNow&&breakMode ? (POMO.long?'긴 휴식 끝':'휴식 끝')
+      : breakMode ? (POMO.long ? `집중 ${every}회 완료 · 긴 휴식` : (pos?`집중 완료 · ${pos}/${every}`:'집중 완료'))
+      : '집중 중';
     document.getElementById('pfSub').textContent =
       doneNow&&breakMode ? '이제 다시 집중할 시간입니다'
       : POMO.phase==='running' ? '쉬는 중 — 끝나면 이 화면이 빨개집니다'
-      : `쉬는 시간 ${pomoMin('break')}분`;
+      : `${POMO.long?'긴 휴식':'쉬는 시간'} ${pomoMin('break')}분`;
     const main=document.getElementById('pfMain');
     if(doneNow && breakMode){ main.textContent=`${pomoMin('focus')}분 공부하기`; }
     else if(POMO.phase==='running'){ main.textContent='일시정지'; }
     else if(POMO.phase==='paused'){ main.textContent='이어서 쉬기'; }
-    else { main.textContent=`${pomoMin('break')}분 휴식 시작`; }
+    else { main.textContent=`${pomoMin('break')}분 ${POMO.long?'긴 휴식':'휴식'} 시작`; }
     document.getElementById('pfBack').textContent=`${pomoMin('focus')}분 공부하기 →`;
     document.getElementById('pfBack').style.display = (doneNow&&breakMode)? 'none' : '';
     document.getElementById('pfNote').textContent = doneNow&&breakMode
@@ -5177,7 +5207,9 @@ function renderSettings(){
   <section class="setsec" data-sec="pomo">
     <h4>뽀모도로</h4>
     <div class="setrow"><span class="setlbl">집중 시간</span><div class="stgrp"><input class="stin num" data-pomo="focus" type="number" min="1" max="180" step="1" value="${pomoMin('focus')}"><span class="stunit">분</span></div></div>
-    <div class="setrow"><span class="setlbl">휴식 시간</span><div class="stgrp"><input class="stin num" data-pomo="break" type="number" min="1" max="180" step="1" value="${pomoMin('break')}"><span class="stunit">분</span></div></div>
+    <div class="setrow"><span class="setlbl">휴식 시간</span><div class="stgrp"><input class="stin num" data-pomo="break" type="number" min="1" max="180" step="1" value="${pomoCfg().breakMin}"><span class="stunit">분</span></div></div>
+    <div class="setrow"><span class="setlbl">긴 휴식</span><div class="stgrp"><span class="stunit">집중</span><input class="stin num" data-pomo="longEvery" type="number" min="2" max="12" step="1" value="${pomoCfg().longEvery}"><span class="stunit">회마다</span><input class="stin num" data-pomo="long" type="number" min="1" max="180" step="1" value="${pomoCfg().longMin}"><span class="stunit">분</span></div></div>
+    <p class="sethint">집중을 끝까지 마친 횟수로 셉니다. 지금 ${pomoCyclePos()}/${pomoCfg().longEvery}회째입니다. 마지막 집중 뒤 오래 쉬었다가 다시 시작하면 처음부터 셉니다.</p>
     <div class="setrow"><span class="setlbl">알림음</span>${sw('sound',st.sound)}</div>
     <div class="setrow"><span class="setlbl">음량</span><div class="stgrp">${seg('volume',st.volume,[['low','작게'],['mid','보통'],['high','크게']])}<button class="stbtn" type="button" id="stTest">들어보기</button></div></div>
   </section>
@@ -5255,12 +5287,15 @@ function renderSettings(){
     applyDisplaySettings(); saveApp();
   });
   body.querySelectorAll('[data-pomo]').forEach(inp=> inp.addEventListener('change', ()=>{
-    const mode=inp.dataset.pomo;
+    const kind=inp.dataset.pomo, c=pomoCfg();
+    const field={focus:'focusMin', break:'breakMin', long:'longMin', longEvery:'longEvery'}[kind];
+    const lim = kind==='longEvery' ? [2,12] : [1,180];
     const v=parseInt(inp.value,10);
-    if(isNaN(v)){ inp.value=pomoMin(mode); return; }
-    pomoSetMin(mode, v);
-    inp.value=pomoMin(mode);
-    if(POMO.mode===mode && POMO.phase==='idle') POMO.remain=pomoMin(mode)*60;
+    if(isNaN(v)){ inp.value=c[field]; return; }
+    c[field]=Math.max(lim[0], Math.min(lim[1], v));
+    inp.value=c[field];
+    saveApp();
+    if(POMO.phase==='idle') POMO.remain=pomoMin(POMO.mode)*60;
     pomoPaint();
   }));
   body.querySelector('#stTest').onclick=()=> pomoBeep(2, true);
