@@ -103,7 +103,7 @@
   .gaugebar .dnum{font-family:var(--sans);font-weight:700;font-size:27px;letter-spacing:.4px;color:var(--ink)}
   .gaugebar .msg small{display:block;font-family:var(--sans);font-weight:600;font-size:12px;color:var(--muted);margin-top:3px}
   .clover{position:absolute;font-size:15px;top:-18px;animation:fall 3.2s linear infinite}
-  @keyframes fall{ to{ transform:translateY(80px) rotate(200deg); opacity:0; } }
+  @keyframes fall{ to{ transform:translate(var(--dx,0px),80px) rotate(var(--rot,200deg)); opacity:0; } }
 
   .tabs{display:flex;gap:6px;margin:4px 0 14px;flex-wrap:wrap;position:relative}
   .tab{padding:9px 15px;border-radius:10px;border:1px solid transparent;background:transparent;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted);position:relative;z-index:1;transition:color var(--t-mid) var(--ease)}
@@ -566,8 +566,9 @@
   .pf-step{width:44px;font-size:19px;opacity:.7}
   .pf-ctl .pf-main{flex:1;max-width:240px;font-size:14px;background:var(--ink);color:#fff;border-color:var(--ink)}
   .pomo-full.ring .pf-ctl .pf-main{background:#fff;color:#E51E1E;border-color:#fff}
-  .pf-alt{margin-top:14px;border:none;background:transparent;color:inherit;opacity:.62;font-size:12.5px;font-weight:800;
-    cursor:pointer;text-decoration:underline;font-family:var(--sans)}
+  .pf-alt{margin-top:14px;border:1px solid currentColor;background:transparent;color:inherit;opacity:.72;font-size:12.5px;font-weight:800;
+    cursor:pointer;font-family:var(--sans);border-radius:11px;padding:10px 16px}
+  .pf-alt:hover{opacity:1}
   .pf-note{margin-top:18px;font-size:11px;font-weight:700;opacity:.45}
   .pf-close{position:absolute;top:16px;right:18px;border:none;background:transparent;color:inherit;opacity:.5;
     font-size:22px;line-height:1;cursor:pointer;padding:4px 8px}
@@ -585,38 +586,71 @@
   .ttbar-txt small{display:block;font-size:10.5px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ttbar-go{font-size:10.5px;font-weight:800;color:var(--accent-ink);background:var(--accent-soft);border-radius:20px;padding:3px 10px;flex-shrink:0}
 
-  #twMask .ttwrap{position:relative;width:fit-content;min-width:min(92vw,540px);max-width:min(96vw,1180px);
-    max-height:92vh;display:flex;flex-direction:column;gap:9px}
+  #twMask .ttwrap{position:relative;width:min(96vw,1080px);max-height:94vh;display:flex;flex-direction:column;gap:9px}
   #twMask.on .ttwrap{animation:popIn 280ms var(--ease-back)}
   .ttwtop{display:flex;align-items:center;gap:10px;color:#fff}
   .ttwtop .ttwtitle{font-size:14px;font-weight:800;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .ttwtop .ttwcount{font-size:11.5px;font-weight:800;opacity:.72;font-variant-numeric:tabular-nums}
   .ttwtop .ttwclose{border:none;background:rgba(255,255,255,.16);color:#fff;border-radius:9px;width:30px;height:30px;
     font-size:16px;line-height:1;cursor:pointer;padding:0;flex-shrink:0}
   .ttwtop .ttwclose:hover{background:#fff;color:var(--ink)}
-  .ttwstage{display:flex;align-items:center;justify-content:center;min-height:0;flex:1}
-  .ttwshot{position:relative;display:inline-block;max-width:100%;line-height:0}
-  .ttwstage img{max-width:100%;max-height:72vh;border-radius:12px;background:var(--surface);box-shadow:var(--sh-pop);display:block}
-  .ttwempty{padding:56px 20px;border-radius:12px;background:var(--surface);color:var(--muted);font-size:12.5px;font-weight:700;text-align:center;box-shadow:var(--sh-pop)}
-  .ttwnav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:56px;border:none;border-radius:11px;
-    background:rgba(255,255,255,.86);color:var(--ink);font-size:23px;line-height:1;cursor:pointer;padding:0;box-shadow:var(--sh-2)}
-  .ttwnav:hover{background:#fff}
-  .ttwnav.prev{left:8px} .ttwnav.next{right:8px}
-  @media(max-width:720px){.ttwstage img{max-height:62vh}}
-  .ttwdots{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
-  .ttwdot{width:38px;height:26px;border-radius:6px;overflow:hidden;border:2px solid transparent;background:rgba(255,255,255,.22);
-    cursor:pointer;padding:0;flex-shrink:0}
-  .ttwdot img{width:100%;height:100%;object-fit:cover;display:block;opacity:.6}
-  .ttwdot.on{border-color:#fff}
-  .ttwdot.on img{opacity:1}
-  .ttwbar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:center}
-  .ttwbar button,.ttwbar .ttwadd{border:none;border-radius:9px;padding:8px 14px;font-size:11.5px;font-weight:800;cursor:pointer;
-    background:rgba(255,255,255,.16);color:#fff;font-family:var(--sans);display:inline-flex;align-items:center;gap:5px}
-  .ttwbar button:hover,.ttwbar .ttwadd:hover{background:#fff;color:var(--ink)}
-  .ttwbar .ttwstar.on{background:var(--point);color:#111}
-  .ttwbar .ttwdel:hover{background:var(--warn);color:#fff}
-  .ttwstatus{text-align:center;font-size:11px;font-weight:700;color:#fff;opacity:.8;min-height:14px}
-  .ttwcap{text-align:center;font-size:11px;font-weight:700;color:#fff;opacity:.72;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ttwcard{background:var(--surface);border-radius:14px;box-shadow:var(--sh-pop);padding:12px 12px 10px;overflow:auto;min-height:0}
+
+  /* ===== 강의 시간표 (팝업 · 전체 강의 탭 공용) ===== */
+  .ttpanel{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh-1);margin-bottom:12px}
+  .ttpanel>summary{cursor:pointer;list-style:none;padding:11px 16px;font-size:13px;font-weight:800;display:flex;align-items:center;gap:6px}
+  .ttpanel>summary::-webkit-details-marker{display:none}
+  .ttpanel>summary::after{content:'▾';margin-left:auto;color:var(--faint);transition:transform var(--t-mid) var(--ease)}
+  .ttpanel:not([open])>summary::after{transform:rotate(-90deg)}
+  .ttinline{padding:0 12px 10px}
+  .tt-nav{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+  .tt-navb{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:17px;line-height:1;cursor:pointer;color:var(--ink);padding:0}
+  .tt-navb:hover:not(:disabled){background:var(--accent-soft);border-color:var(--accent-ink)}
+  .tt-navb:disabled{opacity:.3;cursor:default}
+  .tt-navt{display:flex;align-items:baseline;gap:7px;min-width:0}
+  .tt-navt b{font-size:13px;font-weight:800}
+  .tt-navt span{font-size:11px;color:var(--muted);font-weight:700}
+  .tt-navnow{margin-left:auto;border:none;background:var(--surface2);color:var(--muted);border-radius:7px;padding:5px 9px;font-size:10.5px;font-weight:800;cursor:pointer;font-family:var(--sans)}
+  .tt-navnow:hover{background:var(--accent-soft);color:var(--accent-ink)}
+  .tt-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+  .tt-grid{display:grid;grid-auto-rows:minmax(58px,auto);gap:4px;min-width:min-content;position:relative}
+  .tt-grid.compact{grid-auto-rows:minmax(50px,auto)}
+  .tt-grid>.tt-head{grid-row:1;align-self:end;text-align:center;padding:2px 0 5px;display:flex;flex-direction:column;align-items:center;line-height:1.2}
+  .tt-head b{font-size:12px;font-weight:800}
+  .tt-head span{font-size:10.5px;color:var(--muted);font-weight:700}
+  .tt-head i{font-style:normal;font-size:9.5px;color:var(--faint);font-weight:700}
+  .tt-head.today b,.tt-head.today span{color:var(--ink)}
+  .tt-head.today i{background:var(--point);color:#111;border-radius:5px;padding:0 5px}
+  .tt-head.out{opacity:.35}
+  .tt-rowlbl{grid-column:1;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;color:var(--muted);white-space:nowrap}
+  .tt-lunch{display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;color:var(--faint);
+    background:repeating-linear-gradient(135deg,var(--surface2) 0 6px,transparent 6px 12px);border-radius:7px;min-height:22px}
+  .tt-grid>.tt-lunch{height:24px;align-self:center}
+  .tt-cell{border:1px dashed var(--line);border-radius:9px;background:transparent;transition:background var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease)}
+  .tt-cell.today{background:rgba(var(--point-rgb),.08)}
+  .tt-cell.out{background:var(--surface2);border-color:transparent;opacity:.5}
+  .tt-cell.drop-ok{background:rgba(var(--point-rgb),.35);border:1.5px solid var(--ink)}
+  .tt-cell.drop-bad{background:var(--warn-soft);border:1.5px solid var(--warn)}
+  .tt-box{position:relative;z-index:1;display:flex;flex-direction:column;gap:1px;min-width:0;padding:6px 8px 7px;border-radius:9px;
+    background:var(--surface);border:1px solid #D6D6D6;box-shadow:0 1px 2px rgba(0,0,0,.05);cursor:grab;touch-action:none;
+    user-select:none;-webkit-user-select:none;transition:background var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),opacity var(--t-fast) var(--ease)}
+  .tt-box:hover,.tt-box:focus-visible{background:#EDEDED;outline:none}
+  .tt-box.lab{border-style:dashed;border-color:#9E9E9E}
+  .tt-box.excl{opacity:.45}
+  .tt-box.excl .tt-title{text-decoration:line-through}
+  .tt-code{font-size:10.5px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:4px}
+  .tt-tag{font-size:9px;font-weight:800;background:var(--surface2);color:var(--muted);border-radius:4px;padding:0 4px}
+  .tt-done{margin-left:auto;font-size:10px;color:#111;background:var(--point);border-radius:4px;padding:0 4px;font-weight:900}
+  .tt-title{font-size:11.5px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:keep-all}
+  .tt-prof{font-size:10px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tt-box.tt-dragging{opacity:.3}
+  .tt-ghost{position:fixed;z-index:200;pointer-events:none;background:#EDEDED;box-shadow:var(--sh-3);transform:rotate(-1.5deg);cursor:grabbing}
+  body.tt-dragmode,body.tt-dragmode *{cursor:grabbing !important}
+  .tt-tray{margin-top:10px;padding:9px 10px;border:1px dashed var(--faint);border-radius:10px;background:var(--surface2)}
+  .tt-traylbl{display:block;font-size:10.5px;font-weight:800;color:var(--muted);margin-bottom:6px}
+  .tt-traylist{display:flex;flex-wrap:wrap;gap:6px}
+  .tt-traylist .tt-box{width:130px}
+  .tt-hint{margin:8px 2px 0;font-size:10.5px;color:var(--faint);font-weight:600}
+  .tt-empty{padding:30px 10px;text-align:center;color:var(--muted);font-size:12px;font-weight:700}
   .ttwweek{background:var(--point);color:#111;border-radius:20px;padding:2px 9px;font-size:10px;font-weight:800;margin-left:6px}
 
   /* ===== 학습 계획 · 지난 날 기록 ===== */
@@ -902,6 +936,10 @@
     </div>
 
     <div class="panelset" id="tab-list">
+      <details class="ttpanel" id="ttPanel" open>
+        <summary>시간표</summary>
+        <div class="ttinline" id="ttInline"></div>
+      </details>
       <div class="listbox">
         <div class="lh"><h2>전체 강의</h2><button class="reset" data-a="reset">이 블록 초기화</button></div>
         <div id="fullList"></div>
@@ -918,7 +956,7 @@
         <details class="bulkadd" id="bulkAdd">
           <summary>여러 강의 한 번에 추가</summary>
           <div class="bulkbody">
-            <textarea id="bulkText" placeholder="한 줄에 강의 하나씩 입력해 주세요.&#10;칸은 탭, | 또는 두 칸 이상의 공백으로 나눕니다.&#10;&#10;3강 | 세포 손상과 적응 | 홍길동 | 9/15&#10;4강 | 염증 (1) | 김철수 | 9/16 | 실습"></textarea>
+            <textarea id="bulkText" placeholder="한 줄에 강의 하나씩 입력해 주세요.&#10;칸은 탭, | 또는 두 칸 이상의 공백으로 나눕니다.&#10;&#10;3강 | 세포 손상과 적응 | 홍길동 | 9/15 | 1교시&#10;4강 | 염증 (1) | 김철수 | 9/16 | 5-6교시 | 실습&#10;(교시를 비워 두면 그날 빈 교시에 자동으로 들어갑니다)"></textarea>
             <div class="bulkopts">날짜가 없는 줄은 <select id="bulkDay"></select> 로 넣습니다.</div>
             <div class="bulkprev" id="bulkPrev" style="display:none"></div>
             <div class="bulkbar"><button type="button" id="bulkAddBtn" disabled>추가</button><span id="bulkStat"></span></div>
@@ -952,22 +990,13 @@
   <div class="acts"><button class="yes primary" id="cbOk">닫기</button></div>
 </div></div>
 
-<!-- 시간표 팝업 — 어느 탭에서든 열리고, 좌우로 넘겨 본다 -->
+<!-- 시간표 팝업 — 어느 탭에서든 열린다. 등록한 강의로 자동으로 만들어진다 -->
 <div class="mask" id="twMask"><div class="ttwrap">
   <div class="ttwtop">
     <div class="ttwtitle" id="twTitle">시간표</div>
-    <div class="ttwcount" id="twCount"></div>
     <button class="ttwclose" id="twClose" type="button" aria-label="닫기">×</button>
   </div>
-  <div class="ttwstage" id="twStage"></div>
-  <div class="ttwcap" id="twCap"></div>
-  <div class="ttwdots" id="twDots"></div>
-  <div class="ttwbar">
-    <button class="ttwstar" id="twStar" type="button">★ 이번 주로 지정</button>
-    <label class="ttwadd">+ 사진 추가<input type="file" accept="image/*" multiple hidden id="twFile"></label>
-    <button class="ttwdel" id="twDel" type="button">삭제</button>
-  </div>
-  <div class="ttwstatus" id="twStatus"></div>
+  <div class="ttwcard" id="twStage"></div>
 </div></div>
 
 <!-- 뽀모도로 전체화면 — 집중이 끝난 뒤 휴식을 고르는 화면 -->
@@ -1042,6 +1071,7 @@
   <div class="form-row" id="elTypeRow"><label>구분</label><select id="elType"><option value="강의">강의</option><option value="실습">실습</option></select></div>
   <div class="form-row" id="elCreditRow" style="display:none"><label>크레딧(예상 소요)</label><input type="number" step="0.25" min="0" id="elCredit"></div>
   <div class="form-row"><label id="elDayLabel">Day</label><select id="elDay"></select></div>
+  <div class="form-row" id="elPeriodRow"><label>교시</label><div style="display:flex;gap:6px"><select id="elPeriod" style="flex:1"></select><select id="elSpan" style="flex:1"></select></div></div>
   <div class="form-row" id="elChecklistRow" style="display:none"><label>체크리스트 (한 줄에 하나씩)</label><textarea id="elChecklist" class="review-input" style="min-height:80px"></textarea></div>
   <div class="acts">
     <button class="no" id="elCancel">취소</button>
@@ -1202,16 +1232,32 @@ function builtinPromptEntry(p, app){
 }
 /* 콘텐츠 버전 3: 기본 프롬프트를 Ⓐ~Ⓓ로, Custom instructions를 새 지침으로 한 번 교체한다.
    직접 추가한 프롬프트는 그대로 두고, 예전 기본 프롬프트(p1~p5)와 지침 수정본만 새것으로 바꾼다. */
-const CONTENT_VERSION=3;
+const CONTENT_VERSION=5;
 const OLD_BUILTIN_IDS=['p1','p2','p3','p4','p5','pa','pb','pc','pd'];
 function migrateBuiltinPrompts(app){
   if((app.contentVersion||0) >= CONTENT_VERSION) return;
-  const mine=app.customPrompts.filter(cp=>cp && !OLD_BUILTIN_IDS.includes(cp.id));
-  app.customPrompts=PROMPTS().map(p=>builtinPromptEntry(p, null)).concat(mine);
-  OLD_BUILTIN_IDS.forEach(id=>{ delete app.promptOverrides[id]; delete app.promptDefaults[id]; });
-  app.customInstructionOverride='';
-  app.customInstructionDefault='';
-  app.promptsUnified=true;
+  if((app.contentVersion||0) < 3){
+    const mine=app.customPrompts.filter(cp=>cp && !OLD_BUILTIN_IDS.includes(cp.id) && cp.id!=='pe');
+    app.customPrompts=PROMPTS().map(p=>builtinPromptEntry(p, null)).concat(mine);
+    OLD_BUILTIN_IDS.forEach(id=>{ delete app.promptOverrides[id]; delete app.promptDefaults[id]; });
+    app.customInstructionOverride='';
+    app.customInstructionDefault='';
+    app.promptsUnified=true;
+  }
+  /* 버전 4: 교수 정보 칸·챕터 요약 박스·전날 요약본 규칙 추가, Ⓔ 전날 요약본 프롬프트 추가.
+     직접 고쳐 둔 지침은 지우지 않고 해당 줄만 고쳐 끼운다. */
+  app.customInstructionOverride=patchInstructionV4(app.customInstructionOverride);
+  app.customInstructionDefault=patchInstructionV4(app.customInstructionDefault);
+  if(!app.customPrompts.some(cp=>cp && cp.id==='pe')){
+    const pe=PROMPTS().find(p=>p.id==='pe');
+    if(pe) app.customPrompts.push(builtinPromptEntry(pe, null));
+  }
+  /* 버전 5: 압축정리본·Anki 관련 내용 전부 삭제(0단계, 매일 Anki 복습, 2차 복습의 Anki 제작 등).
+     직접 고쳐 둔 지침도 해당 문구만 찾아서 지운다. Ⓐ 블록 시작 프롬프트도 안 고쳐 뒀다면 새 문구로 바꾼다. */
+  app.customInstructionOverride=patchInstructionV5(app.customInstructionOverride);
+  app.customInstructionDefault=patchInstructionV5(app.customInstructionDefault);
+  const pa=app.customPrompts.find(cp=>cp && cp.id==='pa');
+  if(pa && pa.text===OLD_PA_TEXT) pa.text=NEW_PA_TEXT;
   app.contentVersion=CONTENT_VERSION;
 }
 function normalizeApp(app){
@@ -1240,7 +1286,8 @@ function normalizeApp(app){
       }
     }
   });
-  app.blocks.forEach(b=>{ if(b && !Array.isArray(b.timetable)) b.timetable=[]; }); // 시간표 사진 칸
+  app.blocks.forEach(b=>{ if(b && !Array.isArray(b.timetable)) b.timetable=[]; }); // (예전) 시간표 사진 칸 — 데이터만 보존
+  app.blocks.forEach(b=>{ if(b && Array.isArray(b.lec)) ttAutoPlace(b.lec); }); // 교시가 없는 강의는 빈 교시로 자동 배치
   /* 지난 날의 학습 계획 기록 — 그날 확정됐던 목록을 날짜별로 보관해 둔다.
      (계획을 세우고 다시 나누는 알고리즘 자체는 전혀 건드리지 않는다. 기록만 남긴다.) */
   app.blocks.forEach(b=>{
@@ -1267,7 +1314,7 @@ function normalizeApp(app){
 }
 
 /* ===== 사용자 설정 (블록과 무관한 전역 값) ===== */
-const SETTINGS_DEFAULTS={dayStartHour:4, name:'', bdayM:0, bdayD:0, fontScale:'md', reduceMotion:false, sound:true, volume:'mid', bdayCelebrated:''};
+const SETTINGS_DEFAULTS={dayStartHour:4, name:'', bdayM:0, bdayD:0, fontScale:'md', reduceMotion:false, sound:true, volume:'mid', notify:true, bdayCelebrated:''};
 function normalizeSettings(app){
   if(!app.settings || typeof app.settings!=='object') app.settings={};
   Object.keys(SETTINGS_DEFAULTS).forEach(k=>{ if(app.settings[k]===undefined) app.settings[k]=SETTINGS_DEFAULTS[k]; });
@@ -1432,18 +1479,18 @@ const BLOCK_EMOJIS = [
 /* ===== 3단계 체크리스트 정의 =====
    신규(당일): 필기본 업로드→Claude 인출→정리본(PDF) 생성. 이미지 삽입·레이아웃은 직접.
    1차(D+1 오전, 오프라인): 족보 풀이+해설, 정리본에 굵게 표시. Claude 개입 없음.
-   2차(D+3, 마지막): 정리본 형광펜 표시→업로드→선별 Anki 생성. 그날 밤부터 Anki. */
+   2차(D+3, 마지막): 정리본 형광펜 표시→업로드→반복 복습으로 전환. */
 const STAGE_DESC = [
   {name:'신규', desc:'필기본 업로드 → Claude 인출 → 정리본(PDF) 생성 (이미지·레이아웃은 직접)'},
   {name:'1차 복습', desc:'족보+해설 풀이 → 정리본에 굵게 표시 (직접 진행, Claude 개입 없음)'},
-  {name:'2차 복습', desc:'정리본 형광펜 표시 → 업로드 → 선별 Anki 생성, 그날 밤부터 Anki 진행'},
+  {name:'2차 복습', desc:'정리본 형광펜 표시 → 업로드 → 반복 복습으로 전환'},
 ];
 /* 각 단계 실제 작업 순서 — 메인 리스트에서 항목별로 펼쳐 보여주는 체크리스트.
    여기 체크는 순전히 개인 트래킹용이라 알고리즘(enc/r)에는 영향 없음. */
 const SUB_STEPS = {
   new: ['필기 주석 flatten','인출 & 문제 풀이','정리본 제작(사진, 그림, 암기법)'],
   r1: ['족보 해설에 2025년 족보 추가','2025 족보 해설 옮기기','족보 풀이','족보 오답','족보 해설 보완', '정리본에 출제 요소 표시'],
-  r2: ['정리본 1회독 (Highlights)','Anki 제작'],
+  r2: ['정리본 1회독 (Highlights)','헷갈리는 부분 다시 확인'],
 };
 /* 프롬프트 탭에서 직접 고친 체크리스트가 있으면 그걸 쓰고, 없으면 위 기본값을 쓴다.
    체크 기록(subCheck)은 배열 인덱스로 저장되므로, 항목 순서를 바꾸면 체크 위치도 함께 밀린다. */
@@ -1637,13 +1684,13 @@ function onboardItems(){
 }
 
 /* ===== 시험 전날 전용 루틴 (크레딧 분배 대상 아님) ===== */
-const EXAM_EVE_ITEMS = ['Anki 타임 (전체 복습)','족보 전체 풀이','족보에서 많이 틀린 부분 복습','가능하면 정리본 전체 1회독'];
+const EXAM_EVE_ITEMS = ['족보 전체 풀이','족보에서 많이 틀린 부분 복습','전날 요약본 1회독 (정리본 전체 X — 교수 정보·요약 박스·★만)'];
 function examEveItems(){
   const v=App.examEveSteps;
   return Array.isArray(v) ? v : EXAM_EVE_ITEMS;
 }
 /* ===== 매일 반복 항목 (날짜마다 새로 체크하는 고정 루틴) ===== */
-const DAILY_ITEMS = ['오늘 Anki 복습'];
+const DAILY_ITEMS = [];
 function dailyItems(){
   const v=App.dailySteps;
   return Array.isArray(v) ? v : DAILY_ITEMS;
@@ -1695,22 +1742,19 @@ const CUSTOM_INSTRUCTIONS_TEMPLATE = String.raw`### 과목 설정 (블록마다 
 아래 모든 규칙의 {과목명}은 위 설정값으로 읽어.
 
 ### 역할
-너는 {과목명}을 전공 지식이 없는 사람도 한 번에 이해하도록 쉽고 웃기고 명쾌하게 가르치는 '세계 최고의 {과목명} 교수'야. 이 프로젝트는 {과목명} 블록(2~3주 집중 학습 후 시험 1회) 공부 전용이야. 목표는 '한 번 이해하고 끝'이 아니라 장기 기억 — 재독이 아니라 인출로 공부해. 핵심 전략은 "큰 그림 먼저": 블록 시작에 압축정리본과 Anki로 뼈대를 세우고, 강의별 세부 지식은 그 뼈대에 걸어가는 방식이야.
+너는 {과목명}을 전공 지식이 없는 사람도 한 번에 이해하도록 쉽고 웃기고 명쾌하게 가르치는 '세계 최고의 {과목명} 교수'야. 이 프로젝트는 {과목명} 블록(2~3주 집중 학습 후 시험 1회) 공부 전용이야. 목표는 '한 번 이해하고 끝'이 아니라 장기 기억 — 재독이 아니라 인출로 공부해.
 
 ### 전체 학습 흐름
 | 단계 | 시점 | 담당 | 내용 |
 |---|---|---|---|
-| 0. 블록 시작 | 블록 첫날 | 너 | 선배 정리본+족보로 압축정리본 PDF + 블록 전체 Anki(.apkg) |
-| 상시 | 블록 내내 | 나 | Anki 매일 복습 |
 | 1. 신규 인코딩 | 강의록 받은 날 | 너 | 설명 → 인출 → 강의별 정리본 PDF |
 | 2. 1차 복습 | — | 나 | 족보 풀이 등 (요청받기 전엔 관여 X) |
 | 3. 2차 복습 | — | 나 | 정리본 2회독 |
-| 상시 | 정리본 읽을 때마다 | 나 | 못 외운 내용을 압축정리본에 옮겨 적기 |
-| 4. 시험 전날 | — | 나 | 압축정리본 여러 번 읽기 |
-| 수시 | 요청 시 | 너 | 족보 해설 제작, 작년↔올해 필기 비교 |
-네가 관여하는 건 0단계, 1단계, 수시 작업뿐이야. 족보 풀이·모의고사·채점·복습은 내가 직접 해.
+| 4. 시험 전날 | — | 나 | 전날 요약본 읽기 (정리본 전체 재독 X) |
+| 수시 | 요청 시 | 너 | 족보 해설 제작, 작년↔올해 필기 비교, 전날 요약본 |
+네가 관여하는 건 1단계, 수시 작업뿐이야. 족보 풀이·모의고사·채점·복습은 내가 직접 해.
 
-### 설명 말투 (설명·요약 체크리스트·오답 재설명 전부 적용)
+### 설명 말투 (설명·요약·오답 재설명 전부 적용)
 1. 웃기고 재밌게: 세포·분자·병원체·약물·장기를 캐릭터처럼 의인화하고 상황극·과장·드립을 적극 써. 교과서 문체 금지 — 친한 선배가 카페에서 썰 풀듯이.
    (예) 파상풍 독소 = 신경의 브레이크를 끊는 놈 → 브레이크 고장 난 차 → 근육이 계속 쥐어짜임 / 보툴리눔 독소 = 액셀 자체를 뜯어가는 놈 → 차가 아예 안 움직임
    (예) 경쟁적 길항제 = 열쇠 구멍에 맞는 가짜 열쇠 꽂고 버티는 놈 → 진짜 열쇠(작용제)를 잔뜩 들이부으면 밀려남
@@ -1720,37 +1764,20 @@ const CUSTOM_INSTRUCTIONS_TEMPLATE = String.raw`### 과목 설정 (블록마다 
    - 영어 그대로 쓰는 건 고유명사(균·기생충 학명, 약물명, 유전자·단백질명, 질환 고유명), 표준 약어, 족보에서 영어로 묻는 용어뿐. 첫 등장 때 쉬운 우리말 뜻을 괄호로 붙여.
    - 나머지는 우리말로 풀어. 어려운 한자어 전문용어도 쉬운 말로 먼저 설명하고 용어는 뒤에 붙여.
    - 한 문장에 영어 용어 2개 이상 섞지 마.
-4. 정리본 PDF·압축정리본·Anki·족보 해설에는 드립 빼고 압축해서 써. 기억에 도움 되는 비유만 한 줄 허용.
+4. 정리본 PDF·족보 해설에는 드립 빼고 압축해서 써. 기억에 도움 되는 비유만 한 줄 허용.
 
 ### 강의 간 비중
 5. 모든 강의는 동일 비중. 강의 간 우열·생략 없이 순서대로 처리. 실습 강의록은 인코딩 시간·인출 문제 수를 가볍게 줄여도 돼.
-
-### 0단계: 블록 시작 — 압축정리본 + Anki
-6. 입력: 선배 정리본 + 족보(+해설) + 강의 목록. 시작 전 압축정리본 범주 지도(대분류 → 중분류 → 소속 강의) 표를 먼저 보여주고 확인받은 뒤 압축정리본 PDF → Anki 순서로 진행해.
-7. 압축정리본 — 큰 그림 뼈대이자 시험 전날 여러 번 읽을 최종 자료.
-   - 구조 재구성: 강의 순서가 아니라 과목의 개념 범주·위계로 재배치. 첫 페이지는 블록 전체 범주 지도 1장.
-   - 최대 압축: 강의 간 겹치는 내용은 합쳐서 한 번만. 문장 대신 표·키워드·인과사슬 한 줄. 헷갈리는 항목끼리는 감별 비교표로.
-   - 선별: 족보 출제 개념 위주. 족보 문제 스타일 기준으로 "이 깊이까지 외워야 하는지"를 항목마다 판별해서, 족보가 묻지 않는 깊이의 세부는 빼. 족보 반복 출제는 ★.
-   - 출처: 항목 끝에 강의 번호 (예: (03강)) — 강의별 정리본과 대조하기 쉽게.
-   - 옮겨 적을 자리: 각 대분류 끝에 '추가 메모' 빈 칸(가로 전체, 세로 25mm, 얇은 검정 테두리).
-   - 교차검증: 선배 정리본이 족보·족보 해설과 어긋나면 해당 항목에 [확인필요] 표시하고 대화에서도 목록으로 알려줘.
-   - 형식은 정리본 PDF 규격(26~37) 그대로. 문서 첫 줄은 '{과목명} 압축정리본'.
-8. Anki
-   - 선별: 족보 빈출, 교수 강조(선배 정리본·족보 해설에 표시된 것), 선배 정리본 강조 중 겹치거나 출제 가능성 높은 것만. (암기 불필요)는 어떤 기준으로도 제외.
-   - 원자 단위: 개념 하나당 카드 하나. Basic과 Cloze를 적절히 섞어. 필요하면 Hint·Extra 사용, 암기법·비유는 뒷면에 작은 글씨.
-   - 카드 문제는 족보 출제 방식 반영. 수치·인명·연도는 기출·교수 강조가 아니면 제외. 풀네임 단답 출제 경향이면 직접 입력 카드.
-   - 태그: 강의 코드 + 출처(족보빈출/교수강조).
-   - 덱: "{과목명}::nn강. 강의제목" 하위 덱으로 나눠 하나의 .apkg로 제공. 분량이 많으면 몇 강씩 나눠 만들고 마지막에 합쳐.
 
 ### 1단계: 신규 인코딩
 9. 시작 전 대단원 목차와 우선순위(상/중/하) 표를 보여주고 확인받은 뒤 진행. 강의록 전체를 한 번에 쏟지 말고 대단원/주제별로 끊어서.
 10. 우선순위: 과목 설정의 스탬프가 붙은 슬라이드는 더 깊게. 스탬프 없는 슬라이드도 절대 생략 X — 강의 안에서 깊이 배분용일 뿐.
 11. 무생략: 세부 수치·분류·기전·예외까지 전부.
 12. 형식: 핵심 용어 굵게. 분류·감별·특성 비교는 표, 병태·기전·신호전달·약리작용은 인과사슬(원인→기전→결과). 줄글 최소화. 꼭 필요한 그림만 규격의 자리표시 형식으로.
-13. 챕터 시작 시 1~2줄: 이 강의 전체 흐름 + 압축정리본 큰 그림에서 이 챕터의 위치.
-14. 챕터 순서: 설명 → 3~5줄 요약 체크리스트 → 미니 인출.
-15. 필기에 "외우지 마"·"암기 불필요"류 → 내용 옆에 (암기 불필요). "시험에 낸다"·"외워라"·"중요" → 굵게+★. 강의 끝에 (암기 불필요) 내용 중 압축정리본·Anki에 이미 들어간 게 있으면 목록으로 알려줘 (내가 카드 정지·삭제).
-16. 미니 인출: 요약 체크리스트 다음, 강의록 안 보고 답할 문제 2~3개를 중요·강조 부분에서.
+13. 챕터 시작 시 1~2줄: 이 강의 전체 흐름.
+14. 챕터 순서: 설명 → 3~5줄 요약 → 미니 인출. 챕터가 하나 끝날 때마다 요약을 빠짐없이 넣고, 정리본 PDF에도 챕터마다 같은 요약을 박스로 넣어 (규격 39).
+15. 필기에 "외우지 마"·"암기 불필요"류 → 내용 옆에 (암기 불필요). "시험에 낸다"·"외워라"·"중요" → 굵게+★.
+16. 미니 인출: 요약 다음, 강의록 안 보고 답할 문제 2~3개를 중요·강조 부분에서.
 17. 강의 끝: 챕터들을 요약해 전체 흐름 재정리 → 교수 출제 형식·족보 스타일 인출 8~10문제.
 18. 문제 규칙: 단답식·객관식 위주, 여러 단계 기전 이해 확인에만 서술형. 족보 실제 출제 방식·형태 반영. 강의록 번호 나열을 그대로 묻는("3번은?") 얕은 문제 금지. 문제 안에서 답을 굵게 하는 등 힌트 노출 금지.
 19. 채점: 내가 전부 답하기 전엔 정답·해설 공개 X. 틀린 것만 인과사슬+말투 규칙으로 재설명 후 재출제. "오답만 다시" 요청 시 틀린 개념만 재설명·재출제.
@@ -1769,15 +1796,14 @@ const CUSTOM_INSTRUCTIONS_TEMPLATE = String.raw`### 과목 설정 (블록마다 
    ① 달라진 점·새 강조: 표 (슬라이드 p. | 작년 | 올해 | 출제 의미)
    ② 정리본 수정사항: 표 (정리본 위치(챕터·항목) | 유형(추가/수정/삭제/강조) | 넣을 내용 — 그대로 붙여넣을 수 있는 문장)
    ③ 누락 전수검토: 올해 필기를 첫 슬라이드부터 한 장씩 정리본과 대조해서 빠진 개념·수치·분류·예외를 전부 ②에 포함. 마지막에 대조 완료 범위(p.1~p.N) 명시. 빠진 내용이 하나라도 있으면 안 돼.
-   ④ 압축정리본 반영 필요: 새 교수 강조·새 족보 포인트만.
 
 ### 짤족 / 탈족
-24. 강의록·필기·교수 후기에서 짤족·탈족 언급을 발견하면 반드시 알려줘. 짤족 → 인출 문제에서 족보 문항 비중↑ + 압축정리본·Anki에 없는 족보 포인트 목록 제시. 탈족 → 족보 의존도↓, 개념 이해·응용 문제 강화. 과목 설정의 교수별 학습 전략이 있으면 그 교수 강의에 우선 적용.
+24. 강의록·필기·교수 후기에서 짤족·탈족 언급을 발견하면 반드시 알려줘. 짤족 → 인출 문제에서 족보 문항 비중↑ + 정리본에 없는 족보 포인트 목록 제시. 탈족 → 족보 의존도↓, 개념 이해·응용 문제 강화. 과목 설정의 교수별 학습 전략이 있으면 그 교수 강의에 우선 적용.
 
 ### 형식 · 기타
 25. 표·불릿·인과사슬 우선, 줄글 최소화. 확인한 내용은 다시 묻지 마.
 
-### 정리본 PDF 형식 (강의별 정리본·압축정리본 공통, 고정)
+### 정리본 PDF 형식 (고정)
 26. 제목: 문서 첫 줄(대제목)은 'nn강. 강의제목 (교수 이름)' (예: 01강. 총론 (1) (OOO)), 파일명은 'nn강. 강의제목.pdf'. nn은 두 자리(01, 02…). 챕터 제목은 '1.' 형식 ('Ch1.' X).
 27. 색상·글꼴: 검정(#000000)·흰색(#FFFFFF)·강조색(#FFF9D6) 세 가지만. 테두리·구분선 전부 검정, 회색 계열 금지. 글꼴은 Pretendard.
 28. 크기·위계: 본문 10.3pt / 대제목 17pt / 챕터소제목 12.5pt / 섹션소제목 11pt / 표 본문 9.5pt / 캡션·부가설명(Light) 9pt. Semibold/Light 위계 유지.
@@ -1789,7 +1815,70 @@ const CUSTOM_INSTRUCTIONS_TEMPLATE = String.raw`### 과목 설정 (블록마다 
 34. 이미지 자리표시: 실제 이미지 X. 세로 60mm 빈 사각형 + 아래 캡션 '[그림 제목(p.강의록 페이지)] 그림 설명' (예: [신호전달 경로 모식도(p.6)] 수용체 결합부터 유전자 발현까지의 단계).
 35. 표·인과사슬 박스·이미지 박스·메모 칸은 page-break-inside: avoid.
 36. 최대한 압축, 화려한 서식 X. 인출 문제 미포함.
-37. 엔진·폰트: WeasyPrint 사용, wkhtmltopdf 금지 (글자 하나하나가 별도 텍스트 객체로 찍혀 PDF-XChange 편집 시 글자 단위로 쪼개짐). Pretendard는 반드시 TTF 버전을 @font-face로 임베딩, OTF/CFF 금지 (★↓①② 등 특수기호가 PDF-XChange에서 깨진 네모로 표시됨).`;
+37. 엔진·폰트: WeasyPrint 사용, wkhtmltopdf 금지 (글자 하나하나가 별도 텍스트 객체로 찍혀 PDF-XChange 편집 시 글자 단위로 쪼개짐). Pretendard는 반드시 TTF 버전을 @font-face로 임베딩, OTF/CFF 금지 (★↓①② 등 특수기호가 PDF-XChange에서 깨진 네모로 표시됨).
+38. 교수 정보 칸 (강의별 정리본): 대제목 바로 아래, '1.' 챕터 시작 전에 딱 이 세 줄만 쓰고 바로 '1.' 챕터로 넘어가.
+   - 짤족 여부: 짤족 / 탈족 / 정보 없음
+   - 짤족 포인트: (짤족일 때만) 족보에서 반복되는 포인트 한 줄
+   - 시험 문제 포인트: (교수가 시험 문제를 알려줬을 때만) 그 문제 포인트 한 줄
+   해당 없는 줄은 '없음'. 강의 개요·학습 목표·흐름 등 이 세 가지 외의 내용은 절대 추가하지 마.
+39. 챕터 요약 박스 (강의별 정리본): 챕터가 하나 끝날 때마다 빠짐없이 요약 박스 하나. 박스 제목은 '요약' 두 글자만 ('요약 체크리스트' X). 흰색(#FFFFFF) 배경 + 얇은 검정 테두리 네 면 박스, 안에 3~5줄 불릿(-). page-break-inside: avoid.
+
+### 수시: 시험 전날 요약본
+40. 요청하면 강의별 정리본에서 시험 전날 하루에 다 읽을 수 있는 분량만 뽑아:
+   - 강의마다: 교수 정보 칸(38) 그대로 + 챕터별 요약 박스(39) + ★·족보 출제 항목만 한 줄씩.
+   - 강의당 A4 반 페이지 이내. 새 내용 추가·재설명 금지 — 정리본에 있는 문장만 줄여서 옮겨.
+   - 형식은 정리본 PDF 규격 그대로, 문서 첫 줄은 '{과목명} 전날 요약본', 파일명은 '{과목명} 전날 요약본.pdf'.`;
+/* 콘텐츠 버전 4 — 지침을 직접 고쳐 둔 경우에도 지우지 않고, 바뀐 규칙 줄만 찾아서 고쳐 끼운다.
+   (이미 고쳐진 문장은 건드리지 않으므로 여러 번 돌려도 같다) */
+const INSTR_V4_RULES = CUSTOM_INSTRUCTIONS_TEMPLATE.slice(CUSTOM_INSTRUCTIONS_TEMPLATE.indexOf('38. 교수 정보 칸'));
+function patchInstructionV4(t){
+  if(typeof t!=='string' || !t.trim()) return t;
+  t=t.replace('(설명·요약 체크리스트·오답 재설명 전부 적용)','(설명·요약·오답 재설명 전부 적용)')
+     .replace('정리본 PDF 규격(26~37)','정리본 PDF 규격(26~39)')
+     .replace(/14\. 챕터 순서: 설명 → 3~5줄 요약 체크리스트 → 미니 인출\./, '14. 챕터 순서: 설명 → 3~5줄 요약 → 미니 인출. 챕터가 하나 끝날 때마다 요약을 빠짐없이 넣고, 정리본 PDF에도 챕터마다 같은 요약을 박스로 넣어 (규격 39).')
+     .replace('16. 미니 인출: 요약 체크리스트 다음,','16. 미니 인출: 요약 다음,')
+     .replace('| 4. 시험 전날 | — | 나 | 압축정리본 여러 번 읽기 |','| 4. 시험 전날 | — | 나 | 압축정리본 + 전날 요약본 읽기 (정리본 전체 재독 X) |')
+     .replace('| 수시 | 요청 시 | 너 | 족보 해설 제작, 작년↔올해 필기 비교 |','| 수시 | 요청 시 | 너 | 족보 해설 제작, 작년↔올해 필기 비교, 전날 요약본 |');
+  if(!t.includes('38. 교수 정보 칸')) t=t.replace(/\s*$/,'')+'\n'+INSTR_V4_RULES;
+  return t;
+}
+/* 콘텐츠 버전 5 — 압축정리본·Anki 관련 내용을 전부 지운다. 직접 고쳐 둔 지침도 해당 문구만
+   찾아서 지우므로, 이미 지워졌거나 다르게 고친 부분은 그대로 둔다(여러 번 돌려도 같다). */
+function patchInstructionV5(t){
+  if(typeof t!=='string' || !t.trim()) return t;
+  t=t.replace(` 핵심 전략은 "큰 그림 먼저": 블록 시작에 압축정리본과 Anki로 뼈대를 세우고, 강의별 세부 지식은 그 뼈대에 걸어가는 방식이야.`, '')
+     .replace(`| 0. 블록 시작 | 블록 첫날 | 너 | 선배 정리본+족보로 압축정리본 PDF + 블록 전체 Anki(.apkg) |\n| 상시 | 블록 내내 | 나 | Anki 매일 복습 |\n`, '')
+     .replace(`\n| 상시 | 정리본 읽을 때마다 | 나 | 못 외운 내용을 압축정리본에 옮겨 적기 |`, '')
+     .replace(`| 4. 시험 전날 | — | 나 | 압축정리본 + 전날 요약본 읽기 (정리본 전체 재독 X) |`, `| 4. 시험 전날 | — | 나 | 전날 요약본 읽기 (정리본 전체 재독 X) |`)
+     .replace(`네가 관여하는 건 0단계, 1단계, 수시 작업뿐이야.`, `네가 관여하는 건 1단계, 수시 작업뿐이야.`)
+     .replace(`4. 정리본 PDF·압축정리본·Anki·족보 해설에는 드립 빼고 압축해서 써.`, `4. 정리본 PDF·족보 해설에는 드립 빼고 압축해서 써.`)
+     .replace(`### 0단계: 블록 시작 — 압축정리본 + Anki
+6. 입력: 선배 정리본 + 족보(+해설) + 강의 목록. 시작 전 압축정리본 범주 지도(대분류 → 중분류 → 소속 강의) 표를 먼저 보여주고 확인받은 뒤 압축정리본 PDF → Anki 순서로 진행해.
+7. 압축정리본 — 큰 그림 뼈대이자 시험 전날 여러 번 읽을 최종 자료.
+   - 구조 재구성: 강의 순서가 아니라 과목의 개념 범주·위계로 재배치. 첫 페이지는 블록 전체 범주 지도 1장.
+   - 최대 압축: 강의 간 겹치는 내용은 합쳐서 한 번만. 문장 대신 표·키워드·인과사슬 한 줄. 헷갈리는 항목끼리는 감별 비교표로.
+   - 선별: 족보 출제 개념 위주. 족보 문제 스타일 기준으로 "이 깊이까지 외워야 하는지"를 항목마다 판별해서, 족보가 묻지 않는 깊이의 세부는 빼. 족보 반복 출제는 ★.
+   - 출처: 항목 끝에 강의 번호 (예: (03강)) — 강의별 정리본과 대조하기 쉽게.
+   - 옮겨 적을 자리: 각 대분류 끝에 '추가 메모' 빈 칸(가로 전체, 세로 25mm, 얇은 검정 테두리).
+   - 교차검증: 선배 정리본이 족보·족보 해설과 어긋나면 해당 항목에 [확인필요] 표시하고 대화에서도 목록으로 알려줘.
+   - 형식은 정리본 PDF 규격(26~39) 그대로. 문서 첫 줄은 '{과목명} 압축정리본'.
+8. Anki
+   - 선별: 족보 빈출, 교수 강조(선배 정리본·족보 해설에 표시된 것), 선배 정리본 강조 중 겹치거나 출제 가능성 높은 것만. (암기 불필요)는 어떤 기준으로도 제외.
+   - 원자 단위: 개념 하나당 카드 하나. Basic과 Cloze를 적절히 섞어. 필요하면 Hint·Extra 사용, 암기법·비유는 뒷면에 작은 글씨.
+   - 카드 문제는 족보 출제 방식 반영. 수치·인명·연도는 기출·교수 강조가 아니면 제외. 풀네임 단답 출제 경향이면 직접 입력 카드.
+   - 태그: 강의 코드 + 출처(족보빈출/교수강조).
+   - 덱: "{과목명}::nn강. 강의제목" 하위 덱으로 나눠 하나의 .apkg로 제공. 분량이 많으면 몇 강씩 나눠 만들고 마지막에 합쳐.
+
+### 1단계: 신규 인코딩`, `### 1단계: 신규 인코딩`)
+     .replace(`13. 챕터 시작 시 1~2줄: 이 강의 전체 흐름 + 압축정리본 큰 그림에서 이 챕터의 위치.`, `13. 챕터 시작 시 1~2줄: 이 강의 전체 흐름.`)
+     .replace(` 강의 끝에 (암기 불필요) 내용 중 압축정리본·Anki에 이미 들어간 게 있으면 목록으로 알려줘 (내가 카드 정지·삭제).`, ``)
+     .replace(`\n   ④ 압축정리본 반영 필요: 새 교수 강조·새 족보 포인트만.`, ``)
+     .replace(`+ 압축정리본·Anki에 없는 족보 포인트 목록 제시.`, `+ 정리본에 없는 족보 포인트 목록 제시.`)
+     .replace(`### 정리본 PDF 형식 (강의별 정리본·압축정리본 공통, 고정)`, `### 정리본 PDF 형식 (고정)`);
+  return t;
+}
+const OLD_PA_TEXT = `[선배 정리본 + 족보 + 족보 해설 + 강의 목록 첨부]\n블록 시작할게. 압축정리본 범주 지도부터 보여주고 확인받은 뒤 압축정리본 PDF → Anki .apkg 순서로 만들어줘.`;
+const NEW_PA_TEXT = `[선배 정리본 + 족보 + 족보 해설 첨부]\n블록 시작할게. 커스텀 인스트럭션 참고해서 진행해줘.`;
 function customInstructionsBase(){
   const v = App.customInstructionDefault;
   return (typeof v==='string' && v.trim().length) ? v : CUSTOM_INSTRUCTIONS_TEMPLATE;
@@ -1834,7 +1923,29 @@ function professorListText(){
     return cs.length ? `${prof} (${cs.join(', ')}${allNum?'강':''})` : prof;
   }).join(', ');
 }
+/* 지침 맨 앞에 붙는 강의 목록 — 'n강. 강의제목(교수)' 한 줄씩, 강의 번호순.
+   Claude가 "이 강의 몇 강이야?"를 다시 묻지 않게 한다. 과제·시험범위 제외 강의는 뺀다. */
+function lectureCodeLabel(code){
+  const c=String(code||'').trim();
+  if(/^\d+$/.test(c)) return `${parseInt(c,10)}강`;
+  return c;
+}
+function lectureListText(){
+  if(!S || !Array.isArray(LEC)) return '';
+  const rows=LEC.filter(l=>l.type!=='과제' && !(S.lec[l.id] && S.lec[l.id].excluded))
+    .slice().sort((a,b)=>lecSeq(a)-lecSeq(b))
+    .map(l=>{
+      const code=lectureCodeLabel(l.code);
+      const prof=(l.prof||'').trim();
+      return `${code?code+'. ':''}${String(l.title||'').trim()}${prof && prof!=='미정' ? `(${prof})` : ''}`;
+    });
+  if(!rows.length) return '';
+  return `### 강의 목록 (강의 번호·제목·교수는 이 목록 기준 — 다시 묻지 마)\n${rows.join('\n')}\n\n`;
+}
 function customInstructions(){
+  return lectureListText() + customInstructionsBody();
+}
+function customInstructionsBody(){
   const block = App.blocks.find(b=>b.id===App.active);
   const subject = block?.name || '{과목명}';
   const reviews = (block?.profReviews || '').trim();
@@ -1886,12 +1997,15 @@ function lecSeq(l){
   return 1e6 + l.day*1000 + (l.id%1000);
 }
 function seqOf(lecId){ return lecSeq(byId(lecId)); }
-function usableDays(){ return Math.max(1, S.examDay-2); } // 시험 당일·전날은 분배 제외
+/* 시험 전 며칠을 크레딧 분배 없이 비워 둘지 — 블록마다 설정(기본 1 = 전날만).
+   비워 둔 날 중 마지막 날(시험 전날)은 전날 루틴, 나머지는 자유롭게 쓰는 날이다. */
+function bufferDays(){ const v=S && S.plan ? S.plan.buffer : undefined; return (typeof v==='number' && v>=1) ? Math.round(v) : 1; }
+function usableDays(){ return Math.max(1, S.examDay-1-bufferDays()); } // 시험 당일 + 비워 둔 날은 분배 제외
 const DEFAULT_TYPE_COST = {new:1, r1:0.5, r2:0.25};
 /* 블록별 계획 계수 — 설정 패널에서 바꾼다. 값이 없으면 기본값을 쓴다.
    gap1/gap2 = 1차·2차 복습 간격(일), newLead = 신규 학습 우선 시점(수업 며칠 전부터),
    rampFrac/rampLoad = 초반 적응 기간 비율 / 그 기간의 목표 비율 */
-const PLAN_DEFAULTS = {gap1:1, gap2:3, newLead:1, rampFrac:0.2, rampLoad:0.7};
+const PLAN_DEFAULTS = {gap1:1, gap2:3, newLead:1, rampFrac:0.2, rampLoad:0.7, buffer:1};
 function planCfg(k){
   const v = S && S.plan ? S.plan[k] : undefined;
   return (typeof v==='number' && isFinite(v)) ? v : PLAN_DEFAULTS[k];
@@ -2178,15 +2292,16 @@ let SCHEDULE=null; // computeSchedule() 결과 캐시 — render()에서 한 번
 
 /* ===== 프롬프트 라이브러리 (블록 무관 범용) ===== */
 function PROMPTS(){ return [
-  {id:'pa', t:'Ⓐ 블록 시작', w:'블록 첫날, 프로젝트 첫 채팅에서', x:`[선배 정리본 + 족보 + 족보 해설 + 강의 목록 첨부]\n블록 시작할게. 압축정리본 범주 지도부터 보여주고 확인받은 뒤 압축정리본 PDF → Anki .apkg 순서로 만들어줘.`},
+  {id:'pa', t:'Ⓐ 블록 시작', w:'블록 첫날, 프로젝트 첫 채팅에서', x:NEW_PA_TEXT},
   {id:'pb', t:'Ⓑ 신규 인코딩', w:'강의록 받은 날, 강의 채팅에서', x:`[필기 강의록 첨부]\n오늘 이 강의록으로 시작할게. 목차·우선순위 표부터 보여줘.`},
   {id:'pc', t:'Ⓒ 족보 해설', w:'최신 연도 족보에 해설이 없을 때', x:`[선배 족보 해설 + 이번 연도 족보 첨부]\n이번 연도 족보 문항별 정답·해설 만들어줘.`},
   {id:'pd', t:'Ⓓ 필기 비교', w:'예습해둔 강의의 실제 수업일에 필기 받으면', x:COMPARE_PROMPT},
+  {id:'pe', t:'Ⓔ 전날 요약본', w:'시험 2~3일 전, 강의별 정리본이 다 모였을 때', x:`[강의별 정리본 PDF 전부 첨부]\n시험 전날 요약본 만들어줘. 지침 40번 규칙대로 — 강의마다 교수 정보 칸 + 챕터별 요약 박스 + ★·족보 출제 항목만, 강의당 반 페이지 이내로. 새 내용은 추가하지 마.`},
 ];}
 /* 프롬프트는 단계(신규/1차/2차)에 묶인다. 오늘 할 일 카드의 프롬포트 버튼은
    그 단계에 묶인 기본 프롬프트 + 내가 추가한 프롬프트를 한 목록으로 펼쳐 보여준다. */
 const PROMPT_CATS=[{key:'new',label:'신규'},{key:'r1',label:'1차'},{key:'r2',label:'2차'},{key:'none',label:'관련없음'}];
-const BUILTIN_PROMPT_CAT={pa:'none', pb:'new', pc:'r1', pd:'none'};
+const BUILTIN_PROMPT_CAT={pa:'none', pb:'new', pc:'r1', pd:'none', pe:'none'};
 function catLabel(key){ const c=PROMPT_CATS.find(x=>x.key===key); return c? c.label : '관련없음'; }
 function customPrompts(){ if(!Array.isArray(App.customPrompts)) App.customPrompts=[]; return App.customPrompts; }
 function shortPromptName(t){ return String(t).replace(/^PROMPT\s*\d+\s*[·.]\s*/,''); }
@@ -2409,8 +2524,16 @@ function renderBanner(){
   const bday = isBirthday() ? `<span class="banner-note">${esc(nameLead())}생일을 축하드립니다.</span>` : '';
   b.innerHTML = `${svg}<div class="msg"><span class="dnum">${dnum}</span><small style="color:${statusColor}">${esc(statusLabel)} · ${esc(sub)}</small>${bday}</div>`;
   if(rem<=1 && rem>=0){
-    for(let i=0;i<5;i++){
-      const c = el(`<span class="clover" style="right:${6+i*7}%;animation-delay:${i*0.5}s">🍀</span>`);
+    /* 한 줄로 차례차례 떨어지지 않게 — 자리·출발 시각·속도·크기·기울기를 매번 무작위로 */
+    const rnd=(a,z)=>a+Math.random()*(z-a);
+    for(let i=0;i<7;i++){
+      const c = el(`<span class="clover">🍀</span>`);
+      c.style.right=rnd(2,58).toFixed(1)+'%';
+      c.style.animationDelay=rnd(0,3.2).toFixed(2)+'s';
+      c.style.animationDuration=rnd(2.4,4.4).toFixed(2)+'s';
+      c.style.fontSize=rnd(11,18).toFixed(0)+'px';
+      c.style.setProperty('--dx', rnd(-26,26).toFixed(0)+'px');
+      c.style.setProperty('--rot', (Math.random()<.5?-1:1)*rnd(120,320).toFixed(0)+'deg');
       b.appendChild(c);
     }
   }
@@ -2456,7 +2579,7 @@ function renderLoadPanel(){
     used = Math.max(0, total-remaining);
     pct = total>0 ? (used/total*100) : 100;
     meterText = `${used.toFixed(2)} / ${total.toFixed(2)} (오늘 크레딧)`;
-    if(blocked) hint = ``;
+    if(blocked) hint = `시험 전 비워 둔 날입니다. 크레딧을 배정하지 않습니다 — 필요한 건 '+ 오늘 계획 추가'로 넣어 주세요.`;
     else if(total<1e-9) hint = `오늘은 배정된 학습이 없습니다.`;
     else if(remaining<1e-9) hint = `오늘 정해진 ${total.toFixed(2)} 크레딧을 모두 완료했습니다.`;
     else hint = `오늘 배정된 크레딧은 ${total.toFixed(2)}입니다. 현재 ${Math.round(pct)}% 완료했으며, ${remaining.toFixed(2)} 크레딧이 남았습니다.`;
@@ -3428,7 +3551,7 @@ function renderPlan(){
       <div>
         ${barHtml}
         ${tagsHtml}
-        ${blocked?`<div class="pnote">분배 제외${info.note?' · '+esc(info.note):''}</div>`:(info.note?`<div class="pnote">${esc(info.note)}</div>`:'')}
+        ${blocked?`<div class="pnote">${d===S.examDay?'시험':(d===S.examDay-1?'시험 전날 · 분배 제외':'비워 둔 날 · 분배 제외')}${info.note&&d!==S.examDay?' · '+esc(info.note):''}</div>`:(info.note?`<div class="pnote">${esc(info.note)}</div>`:'')}
       </div>
       <div class="pside">
         <div class="pcount">${countCells}</div>
@@ -3467,7 +3590,7 @@ function buildRow(l, st){
   else { chipsHtml = `<div class="chips">${['신',1,2].map(k=>`<div class="chip"><span class="sq inactive"></span><span class="lbl">${k}</span></div>`).join('')}</div>`; }
 
   const row = el(`<div class="row" style="${excluded?'opacity:.45':''}">
-    <div class="rt"><div class="rn">${excluded?'<s>':''}${l.type==='실습'?'<span class="badge lab" style="margin-right:4px">실습</span>':''}${esc(l.code)}. ${esc(l.title)}${excluded?'</s>':''}</div><div class="rp">${esc(l.prof)}${excluded?' · 시험범위 제외됨':''}</div></div>
+    <div class="rt"><div class="rn">${excluded?'<s>':''}${l.type==='실습'?'<span class="badge lab" style="margin-right:4px">실습</span>':''}${esc(l.code)}. ${esc(l.title)}${excluded?'</s>':''}</div><div class="rp">${ttValidPeriod(l)?`${ttSpan(l)>1?`${l.period}~${ttCover(l.period,ttSpan(l)).slice(-1)[0]}교시`:periodLabel(l.period)} · `:'교시 미정 · '}${esc(l.prof)}${excluded?' · 시험범위 제외됨':''}</div></div>
     ${chipsHtml}
     ${excluded?'':`<span class="encpill ${enc?'':'no'}">${enc?'enc D'+st.enc:'신규 학습 미완'}</span>`}
     ${(!excluded && enc)?'<button class="undo undo-enc">되돌리기</button>':''}
@@ -3576,180 +3699,331 @@ function buildAssignRow(l, st){
   }
   return wrap;
 }
-/* ===== 시간표 사진 =====
-   블록별로 시간표·강의 일정표 사진을 올려둔다. 저장소(Firebase/로컬)에 앱 상태 전체가
-   문자열로 들어가므로, 원본을 그대로 넣으면 저장이 통째로 실패한다 → 캔버스로 긴 변을
-   줄이고 JPEG로 다시 인코딩해서 한 장당 대략 수백 KB 안으로 맞춘 뒤 보관한다. */
-const TT_STEPS=[[1600,0.82],[1280,0.74],[1000,0.66],[820,0.58]];
-const TT_MAX_BYTES=700*1024;
-function shrinkImage(file, maxSide, quality){
-  return new Promise((resolve,reject)=>{
-    const reader=new FileReader();
-    reader.onerror=()=>reject(new Error('파일을 읽지 못했습니다'));
-    reader.onload=()=>{
-      const img=new Image();
-      img.onerror=()=>reject(new Error('이미지 형식을 읽지 못했습니다'));
-      img.onload=()=>{
-        const scale=Math.min(1, maxSide/Math.max(img.width, img.height));
-        const w=Math.max(1,Math.round(img.width*scale)), h=Math.max(1,Math.round(img.height*scale));
-        const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
-        const ctx=cv.getContext('2d');
-        ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,w,h); // 투명 PNG가 검게 깔리는 것 방지
-        ctx.drawImage(img,0,0,w,h);
-        resolve(cv.toDataURL('image/jpeg', quality));
-      };
-      img.src=reader.result;
-    };
-    reader.readAsDataURL(file);
+/* ===== 시간표 (등록한 강의로 자동 생성) =====
+   강의마다 교시(period)와 길이(span, 몇 교시 동안)를 갖는다. 교시는 1·2·3교시 → 점심 → 5~8교시
+   (점심시간이 4교시 자리라 '4교시'는 없다). 강의를 추가하면 그날 비어 있는 가장 이른 교시에
+   자동으로 들어가고, 시간표에서 끌어서 교시·요일을 옮길 수 있다. 옮기면 전체 강의 탭의
+   그날 강의 순서도 교시 순서를 따라 바뀐다. 과제는 시간표에 넣지 않는다.
+   (예전 '시간표 사진' 데이터는 지우지 않고 그대로 둔다 — 화면에서만 안 쓴다) */
+const PERIODS=[1,2,3,5,6,7,8];
+const TT_ROWS=[{p:1,label:'1교시'},{p:2,label:'2교시'},{p:3,label:'3교시'},{lunch:true,label:'점심'},{p:5,label:'5교시'},{p:6,label:'6교시'},{p:7,label:'7교시'},{p:8,label:'8교시'}];
+const TT_DOW=['일','월','화','수','목','금','토'];
+function periodLabel(p){ return p ? `${p}교시` : '교시 미정'; }
+function ttOnGrid(l){ return l && l.type!=='과제'; }
+function ttSpan(l){ const n=Math.round(Number(l && l.span)); return n>=1 && n<=4 ? n : 1; }
+/* 강의가 차지하는 교시 목록 — 시작 교시부터 span개 (점심은 건너뛴다). 넘치면 null */
+function ttCover(period, span){
+  const i=PERIODS.indexOf(period);
+  if(i<0 || i+span>PERIODS.length) return null;
+  return PERIODS.slice(i, i+span);
+}
+function ttValidPeriod(l){ return PERIODS.includes(l.period) && !!ttCover(l.period, ttSpan(l)); }
+/* day 날에 exceptIds를 뺀 강의들이 차지한 교시 */
+function ttTaken(lecs, day, exceptIds){
+  const set=new Set();
+  lecs.forEach(o=>{
+    if(!ttOnGrid(o) || o.day!==day || (exceptIds && exceptIds.includes(o.id)) || !ttValidPeriod(o)) return;
+    ttCover(o.period, ttSpan(o)).forEach(p=>set.add(p));
   });
+  return set;
 }
-async function fitImage(file){
-  let last=null;
-  for(const [side,q] of TT_STEPS){
-    last=await shrinkImage(file, side, q);
-    if(last.length*0.75 <= TT_MAX_BYTES) return last;
+function ttFirstFree(lecs, day, span, exceptIds){
+  const taken=ttTaken(lecs, day, exceptIds);
+  for(const p of PERIODS){
+    const c=ttCover(p, span);
+    if(c && c.every(x=>!taken.has(x))) return p;
   }
-  return last;
+  return null;
 }
-/* ===== 시간표 =====
-   '블록 사전 준비' 바로 아래에 얇은 바 하나로 늘 떠 있고(=어느 탭에서든 보인다),
-   누르면 팝업이 열려 이번 주 시간표를 크게 본다. 등록한 사진이 여러 장이면
-   좌우로 넘겨 가며 볼 수 있고, 그중 한 장을 '이번 주'로 지정해 둘 수 있다. */
-function ttShots(){
-  const block=App.blocks.find(b=>b.id===App.active);
-  if(!block) return {block:null, shots:[]};
-  if(!Array.isArray(block.timetable)) block.timetable=[];
-  return {block, shots:block.timetable};
+/* 교시가 없거나 다른 강의와 겹치는 강의를 그날 빈 교시로 채워 넣는다(강의 번호 순서대로). */
+function ttAutoPlace(lecs){
+  if(!Array.isArray(lecs)) return false;
+  let changed=false;
+  const days=[...new Set(lecs.filter(ttOnGrid).map(l=>l.day))];
+  days.forEach(day=>{
+    const keep=[], need=[];
+    lecs.filter(l=>ttOnGrid(l) && l.day===day).forEach(l=>{
+      if(!ttValidPeriod(l)){ need.push(l); return; }
+      const cov=ttCover(l.period, ttSpan(l));
+      const clash=keep.some(k=>ttCover(k.period, ttSpan(k)).some(p=>cov.includes(p)));
+      if(clash) need.push(l); else keep.push(l);
+    });
+    need.sort((a,b)=>lecSeq(a)-lecSeq(b)).forEach(l=>{
+      const taken=new Set();
+      keep.forEach(k=>ttCover(k.period, ttSpan(k)).forEach(p=>taken.add(p)));
+      let found=null;
+      for(const p of PERIODS){ const c=ttCover(p, ttSpan(l)); if(c && c.every(x=>!taken.has(x))){ found=p; break; } }
+      if(l.period!==found){ l.period=found; changed=true; }
+      if(found!=null) keep.push(l);
+    });
+  });
+  return changed;
 }
-function ttWeekIndex(){
-  const {block, shots}=ttShots();
-  if(!block || !shots.length) return -1;
-  const i = shots.findIndex(s=>s && s.id===block.timetableWeek);
-  return i>=0 ? i : 0; // 지정이 없으면 첫 장을 이번 주로 본다
+/* 강의 하나를 (day, period)로 옮긴다. 자리에 다른 강의가 하나 있으면 서로 자리를 바꾼다.
+   dry=true면 옮기지 않고 가능한지만 본다. 결과: {ok, swap, msg} */
+function ttMove(l, day, period, dry){
+  if(!l || !ttOnGrid(l)) return {ok:false, msg:'시간표에 넣을 수 없는 항목입니다.'};
+  const span=ttSpan(l);
+  const cov=ttCover(period, span);
+  if(!cov) return {ok:false, msg:`${span}교시짜리 강의라 ${periodLabel(period)}부터는 넣을 수 없습니다.`};
+  if(l.day===day && l.period===period) return {ok:true, same:true};
+  const hits=LEC.filter(o=>o!==l && ttOnGrid(o) && o.day===day && ttValidPeriod(o) && ttCover(o.period, ttSpan(o)).some(p=>cov.includes(p)));
+  if(!hits.length){
+    if(!dry){ l.day=day; l.period=period; }
+    return {ok:true};
+  }
+  if(hits.length>1) return {ok:false, msg:'그 자리에 강의가 여러 개 겹쳐 있어 옮길 수 없습니다.'};
+  const y=hits[0];
+  if(!ttValidPeriod(l)) return {ok:false, msg:`그 자리는 ${y.code||y.title}이(가) 쓰고 있습니다.`};
+  /* 자리 바꾸기: y는 l이 있던 자리(시작 교시)로 간다 */
+  const yCov=ttCover(l.period, ttSpan(y));
+  if(!yCov) return {ok:false, msg:'자리를 바꾸면 교시가 넘쳐서 옮길 수 없습니다.'};
+  const takenNew=ttTaken(LEC, day, [l.id, y.id]);
+  const takenOld=ttTaken(LEC, l.day, [l.id, y.id]);
+  if(l.day===day) cov.forEach(p=>takenOld.add(p));
+  if(cov.some(p=>takenNew.has(p)) || yCov.some(p=>takenOld.has(p)))
+    return {ok:false, msg:'자리를 바꾸면 다른 강의와 겹쳐서 옮길 수 없습니다.'};
+  if(!dry){
+    const od=l.day, op=l.period;
+    l.day=day; l.period=period; y.day=od; y.period=op;
+  }
+  return {ok:true, swap:y};
 }
+function ttCommitMove(l, day, period){
+  const before={day:l.day, period:l.period};
+  const snapshot=JSON.stringify(App);
+  const r=ttMove(l, day, period, false);
+  if(!r.ok){ showToast(r.msg); return; }
+  if(r.same) return;
+  undoSnapshot=snapshot;
+  if(before.day!==l.day || (r.swap && r.swap.day!==before.day)) S.todayLock=null; // 수업일이 바뀌면 오늘 몫도 다시 정한다
+  saveApp(); render();
+  const name=l.code||l.title;
+  const where=`${dInfo(l.day)?.dow||''} ${periodLabel(l.period)}`;
+  showToast(r.swap ? `${name} ↔ ${r.swap.code||r.swap.title} 자리를 바꿨습니다.` : `${name}을(를) ${where}로 옮겼습니다.`, {undo:true});
+}
+
+/* ---- 주 단위로 나누기 ---- */
+function blockStartDate(){
+  const block=App.blocks.find(b=>b.id===App.active); if(!block) return null;
+  const s=dateInputValue(block.startDate || (block.schoolDays[0] && block.schoolDays[0].date));
+  if(!s) return null;
+  const [y,m,d]=s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function ttWeeks(){
+  const start=blockStartDate(); if(!start || !SCHOOL_DAYS.length) return [];
+  const off=(start.getDay()+6)%7; // 월요일 = 0
+  const weeks=[];
+  for(let w=0; ; w++){
+    const firstDay=w*7-off+1; // 이 주 월요일의 Day 번호(블록 밖이면 1보다 작거나 MAXDAY보다 큼)
+    if(firstDay>MAXDAY) break;
+    const cols=[];
+    for(let i=0;i<7;i++){
+      const dayNo=firstDay+i;
+      const dt=new Date(start.getFullYear(), start.getMonth(), start.getDate()+(dayNo-1));
+      const inBlock=dayNo>=1 && dayNo<=MAXDAY;
+      const weekend=i>=5;
+      const hasLec=inBlock && LEC.some(l=>ttOnGrid(l) && l.day===dayNo);
+      if(weekend && !hasLec) continue; // 주말은 강의가 있을 때만
+      cols.push({day:dayNo, inBlock, dt, label:`${dt.getMonth()+1}/${dt.getDate()}`, dow:TT_DOW[dt.getDay()]});
+    }
+    weeks.push({cols, from:cols[0], to:cols[cols.length-1]});
+  }
+  return weeks;
+}
+function ttWeekOfDay(weeks, day){
+  const i=weeks.findIndex(w=>w.cols.some(c=>c.day===day));
+  if(i>=0) return i;
+  const j=weeks.findIndex(w=>w.cols.some(c=>c.day>day));
+  return j>=0 ? j : Math.max(0, weeks.length-1);
+}
+let ttWeekSel={}; // 블록별로 보고 있는 주 (저장하지 않음 — 열 때마다 오늘이 있는 주)
+function ttCurWeek(weeks){
+  const k=App.active;
+  if(ttWeekSel[k]==null || ttWeekSel[k]>=weeks.length) ttWeekSel[k]=ttWeekOfDay(weeks, S.cur);
+  return ttWeekSel[k];
+}
+
+/* ---- 그리기 ---- */
+function ttBoxHtml(l){
+  const st=S.lec[l.id]||{};
+  const done=st.enc!=null, excl=!!st.excluded;
+  return `<div class="tt-box${l.type==='실습'?' lab':''}${excl?' excl':''}" data-lec="${l.id}" tabindex="0" role="button"
+      aria-label="${esc(`${l.code||''} ${l.title} ${periodLabel(l.period)} — 끌어서 옮기기, 눌러서 수정`)}">
+    <div class="tt-code">${esc(l.code||'')}${l.type==='실습'?'<span class="tt-tag">실습</span>':''}${done?'<span class="tt-done" title="신규 학습 완료">✓</span>':''}</div>
+    <div class="tt-title">${esc(l.title)}</div>
+    ${l.prof && l.prof!=='미정' ? `<div class="tt-prof">${esc(l.prof)}</div>` : ''}
+  </div>`;
+}
+/* host 안에 한 주짜리 시간표를 그린다. opts.compact: 전체 강의 탭용(조금 작게) */
+function renderTTGrid(host, opts){
+  opts=opts||{};
+  if(!host) return;
+  const weeks=ttWeeks();
+  if(!weeks.length){ host.innerHTML='<div class="tt-empty">블록 기간 정보가 없어 시간표를 만들 수 없습니다.</div>'; return; }
+  const wi=ttCurWeek(weeks);
+  const wk=weeks[wi];
+  const lecs=LEC.filter(ttOnGrid);
+  const weekLecs=lecs.filter(l=>wk.cols.some(c=>c.inBlock && c.day===l.day));
+  const unplaced=weekLecs.filter(l=>!ttValidPeriod(l)).sort((a,b)=>lecSeq(a)-lecSeq(b));
+  const colOf=day=>wk.cols.findIndex(c=>c.day===day);
+  const rowOf=p=>TT_ROWS.findIndex(r=>r.p===p);
+  const ncol=wk.cols.length;
+  let cells='';
+  wk.cols.forEach((c,ci)=>{
+    const isToday=c.day===S.cur, isExam=c.day===S.examDay;
+    cells+=`<div class="tt-head${isToday?' today':''}${c.inBlock?'':' out'}" style="grid-column:${ci+2};grid-row:1">
+      <b>${c.dow}</b><span>${c.label}</span>${c.inBlock?`<i>${isExam?'시험':'Day'+c.day}</i>`:''}</div>`;
+    TT_ROWS.forEach((r,ri)=>{
+      if(r.lunch) return;
+      cells+=`<div class="tt-cell${isToday?' today':''}${c.inBlock?'':' out'}" data-day="${c.day}" data-p="${r.p}" style="grid-column:${ci+2};grid-row:${ri+2}"></div>`;
+    });
+  });
+  TT_ROWS.forEach((r,ri)=>{
+    cells+= r.lunch
+      ? `<div class="tt-lunch" style="grid-column:1 / span ${ncol+1};grid-row:${ri+2}">점심시간</div>`
+      : `<div class="tt-rowlbl" style="grid-row:${ri+2}">${r.label}</div>`;
+  });
+  weekLecs.filter(ttValidPeriod).forEach(l=>{
+    const ci=colOf(l.day); if(ci<0) return;
+    const cov=ttCover(l.period, ttSpan(l));
+    const r0=rowOf(cov[0]), r1=rowOf(cov[cov.length-1]);
+    cells+=ttBoxHtml(l).replace('<div class="tt-box', `<div style="grid-column:${ci+2};grid-row:${r0+2} / ${r1+3}" class="tt-box`);
+  });
+  const range = wk.from && wk.to ? `${wk.from.label}(${wk.from.dow}) ~ ${wk.to.label}(${wk.to.dow})` : '';
+  const curWeek=ttWeekOfDay(weeks, S.cur);
+  host.innerHTML=`
+    <div class="tt-nav">
+      <button class="tt-navb" type="button" data-tt="prev" ${wi<=0?'disabled':''} aria-label="이전 주">‹</button>
+      <div class="tt-navt"><b>${wi+1}주차</b><span>${range}</span></div>
+      <button class="tt-navb" type="button" data-tt="next" ${wi>=weeks.length-1?'disabled':''} aria-label="다음 주">›</button>
+      ${wi!==curWeek?'<button class="tt-navnow" type="button" data-tt="now">오늘이 있는 주</button>':''}
+    </div>
+    <div class="tt-scroll"><div class="tt-grid${opts.compact?' compact':''}" style="grid-template-columns:44px repeat(${ncol}, minmax(${opts.compact?84:96}px, 1fr));grid-template-rows:auto ${TT_ROWS.map(r=>r.lunch?'26px':`minmax(${opts.compact?50:58}px,auto)`).join(' ')}">${cells}</div></div>
+    ${unplaced.length?`<div class="tt-tray"><span class="tt-traylbl">교시 미정 — 시간표로 끌어다 놓으세요</span><div class="tt-traylist">${unplaced.map(ttBoxHtml).join('')}</div></div>`:''}
+    <p class="tt-hint">강의를 끌어서 다른 교시·요일로 옮길 수 있습니다. 다른 강의 위에 놓으면 서로 자리를 바꿉니다. 누르면 수정합니다.</p>`;
+  host.querySelectorAll('[data-tt]').forEach(b=> b.onclick=()=>{
+    const a=b.dataset.tt;
+    ttWeekSel[App.active] = a==='now' ? curWeek : Math.max(0, Math.min(weeks.length-1, wi+(a==='prev'?-1:1)));
+    renderTimetableViews();
+  });
+  host.querySelectorAll('.tt-box').forEach(bx=> ttBindBox(bx));
+}
+function renderTimetableViews(){
+  renderTimetableBar();
+  renderTimetableWindow();
+  renderTTInline();
+}
+
+/* ---- 끌어서 옮기기 (마우스·터치 공용) ---- */
+let _ttDrag=null;
+function ttBindBox(bx){
+  const l=byId(Number(bx.dataset.lec)); if(!l) return;
+  bx.addEventListener('pointerdown', e=>{
+    if(e.button!=null && e.button!==0) return;
+    _ttDrag={l, bx, sx:e.clientX, sy:e.clientY, moving:false, ghost:null, target:null, id:e.pointerId};
+    try{ bx.setPointerCapture(e.pointerId); }catch(err){}
+  });
+  bx.addEventListener('pointermove', e=>{
+    const d=_ttDrag; if(!d || d.bx!==bx) return;
+    if(!d.moving){
+      if(Math.hypot(e.clientX-d.sx, e.clientY-d.sy)<6) return;
+      d.moving=true;
+      const r=bx.getBoundingClientRect();
+      d.ox=e.clientX-r.left; d.oy=e.clientY-r.top;
+      const g=bx.cloneNode(true);
+      g.classList.add('tt-ghost'); g.style.width=r.width+'px'; g.style.height=r.height+'px';
+      g.style.gridColumn=''; g.style.gridRow='';
+      document.body.appendChild(g); d.ghost=g;
+      bx.classList.add('tt-dragging');
+      document.body.classList.add('tt-dragmode');
+    }
+    e.preventDefault();
+    d.ghost.style.left=(e.clientX-d.ox)+'px'; d.ghost.style.top=(e.clientY-d.oy)+'px';
+    ttMarkTarget(e.clientX, e.clientY);
+  });
+  const finish=(e, cancel)=>{
+    const d=_ttDrag; if(!d || d.bx!==bx) return;
+    _ttDrag=null;
+    try{ bx.releasePointerCapture(d.id); }catch(err){}
+    ttClearMarks();
+    document.body.classList.remove('tt-dragmode');
+    if(d.ghost) d.ghost.remove();
+    bx.classList.remove('tt-dragging');
+    if(!d.moving){ if(!cancel) openEditLecModal(d.l); return; }
+    if(cancel || !d.target) return;
+    ttCommitMove(d.l, d.target.day, d.target.p);
+  };
+  bx.addEventListener('pointerup', e=>finish(e,false));
+  bx.addEventListener('pointercancel', e=>finish(e,true));
+  bx.addEventListener('keydown', e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); openEditLecModal(l); } });
+}
+function ttClearMarks(){ document.querySelectorAll('.tt-cell.drop-ok,.tt-cell.drop-bad').forEach(c=>c.classList.remove('drop-ok','drop-bad')); }
+function ttMarkTarget(x, y){
+  const d=_ttDrag; if(!d) return;
+  const cell=document.elementsFromPoint(x, y).find(n=>n.classList && n.classList.contains('tt-cell') && !n.classList.contains('out'));
+  const key = cell ? cell.dataset.day+':'+cell.dataset.p : '';
+  if(key===d.key) return;
+  d.key=key; ttClearMarks();
+  if(!cell){ d.target=null; return; }
+  const day=Number(cell.dataset.day), p=Number(cell.dataset.p);
+  const r=ttMove(d.l, day, p, true);
+  d.target = r.ok ? {day, p} : null;
+  const cov=ttCover(p, ttSpan(d.l)) || [p];
+  const grid=cell.closest('.tt-grid');
+  cov.forEach(q=>{ const c=grid.querySelector(`.tt-cell[data-day="${day}"][data-p="${q}"]`); if(c) c.classList.add(r.ok?'drop-ok':'drop-bad'); });
+}
+
+/* ---- 모든 탭 위의 얇은 바: 오늘 수업 요약 → 누르면 팝업 ---- */
 function renderTimetableBar(){
   const box=document.getElementById('timetableBar'); if(!box) return;
-  const {block, shots}=ttShots();
-  if(!block){ box.innerHTML=''; return; }
-  const wi=ttWeekIndex();
-  const cur = wi>=0 ? shots[wi] : null;
+  const block=App.blocks.find(b=>b.id===App.active);
+  if(!block || !S){ box.innerHTML=''; return; }
+  const today=LEC.filter(l=>ttOnGrid(l) && l.day===S.cur && !(S.lec[l.id]&&S.lec[l.id].excluded))
+    .sort((a,b)=>(ttValidPeriod(a)?a.period:99)-(ttValidPeriod(b)?b.period:99) || lecSeq(a)-lecSeq(b));
+  const total=LEC.filter(ttOnGrid).length;
+  const info=dInfo(S.cur);
+  const summary = today.length
+    ? today.map(l=>`${ttValidPeriod(l)?l.period+'교시 ':''}${l.code||l.title}`).join(' · ')
+    : (total ? '이날은 수업이 없습니다' : '전체 강의 탭에서 강의를 추가하면 시간표가 자동으로 만들어집니다');
   box.innerHTML = `<button class="ttbar" type="button" title="시간표 크게 보기">
-    <span class="ttbar-thumb">${cur?`<img src="${cur.src}" alt="">`:'🗓️'}</span>
+    <span class="ttbar-thumb">🗓️</span>
     <span class="ttbar-txt">
-      <b>${cur?'이번 주 시간표':'시간표 사진'}</b>
-      <small>${cur? `${esc(cur.name||'시간표')}${shots.length>1?` · 총 ${shots.length}장, 좌우로 넘겨 보기`:''}` : '아직 등록된 사진이 없습니다 · 눌러서 등록하기'}</small>
+      <b>시간표 · Day${S.cur}${info?` ${esc(info.date)}(${esc(info.dow)})`:''}</b>
+      <small>${esc(summary)}</small>
     </span>
-    <span class="ttbar-go">${cur?'크게 보기':'등록하기'}</span>
+    <span class="ttbar-go">크게 보기</span>
   </button>`;
   box.querySelector('.ttbar').onclick=()=>openTimetableWindow();
 }
-let twIdx=0;
 const twMask=document.getElementById('twMask');
-function openTimetableWindow(startIdx){
-  const {shots}=ttShots();
-  const wi=ttWeekIndex();
-  twIdx = (startIdx!=null? startIdx : (wi>=0? wi : 0));
-  if(twIdx<0) twIdx=0;
-  if(twIdx>=shots.length) twIdx=Math.max(0, shots.length-1);
-  document.getElementById('twStatus').textContent='';
+function openTimetableWindow(){
+  if(S) ttWeekSel[App.active]=null; // 열 때는 오늘이 있는 주부터
   twMask.classList.add('on');
   renderTimetableWindow();
 }
 function closeTimetableWindow(){ twMask.classList.remove('on'); }
-function twGo(delta){
-  const {shots}=ttShots();
-  if(shots.length<2) return;
-  twIdx=(twIdx+delta+shots.length)%shots.length;
-  renderTimetableWindow();
-}
 function renderTimetableWindow(){
-  if(!twMask.classList.contains('on')) return;
-  const {block, shots}=ttShots();
-  const stage=document.getElementById('twStage');
-  const dots=document.getElementById('twDots');
-  const star=document.getElementById('twStar');
-  const del=document.getElementById('twDel');
-  const isWeek = shots.length && block && shots[twIdx] && block.timetableWeek===shots[twIdx].id;
-  const weekIdx = ttWeekIndex();
-  document.getElementById('twTitle').innerHTML = `시간표${(shots.length && twIdx===weekIdx)?'<span class="ttwweek">이번 주</span>':''}`;
-  document.getElementById('twCount').textContent = shots.length? `${twIdx+1} / ${shots.length}` : '';
-  document.getElementById('twCap').textContent = shots.length? (shots[twIdx].name||'시간표') : '';
-  if(!shots.length){
-    stage.innerHTML = `<div class="ttwempty">등록된 시간표 사진이 없습니다.<br>아래 <b>+ 사진 추가</b>로 올려 두면<br>어느 탭에서든 바로 펼쳐 볼 수 있습니다.</div>`;
-    dots.innerHTML='';
-    star.style.display='none'; del.style.display='none';
-    return;
-  }
-  star.style.display=''; del.style.display='';
-  stage.innerHTML = `<div class="ttwshot">
-      <img src="${shots[twIdx].src}" alt="${esc(shots[twIdx].name||'시간표')}">
-      ${shots.length>1?'<button class="ttwnav prev" type="button" aria-label="이전 시간표">‹</button><button class="ttwnav next" type="button" aria-label="다음 시간표">›</button>':''}
-    </div>`;
-  const prev=stage.querySelector('.prev'), next=stage.querySelector('.next');
-  if(prev) prev.onclick=()=>twGo(-1);
-  if(next) next.onclick=()=>twGo(1);
-  dots.innerHTML = shots.length>1 ? shots.map((s,i)=>`<button class="ttwdot ${i===twIdx?'on':''}" type="button" data-i="${i}" title="${esc(s.name||'시간표')}"><img src="${s.src}" alt=""></button>`).join('') : '';
-  dots.querySelectorAll('.ttwdot').forEach(b=>{ b.onclick=()=>{ twIdx=Number(b.dataset.i); renderTimetableWindow(); }; });
-  star.classList.toggle('on', !!isWeek);
-  star.textContent = isWeek? '★ 이번 주 시간표' : '☆ 이번 주로 지정';
+  if(!twMask.classList.contains('on') || !S) return;
+  const block=App.blocks.find(b=>b.id===App.active);
+  document.getElementById('twTitle').textContent=`${block?.name||''} 시간표`;
+  renderTTGrid(document.getElementById('twStage'));
 }
-/* 터치로 넘기기 */
-(function bindTwSwipe(){
-  let x0=null;
-  const stage=document.getElementById('twStage');
-  stage.addEventListener('touchstart', e=>{ x0=e.touches[0].clientX; }, {passive:true});
-  stage.addEventListener('touchend', e=>{
-    if(x0==null) return;
-    const dx=e.changedTouches[0].clientX-x0; x0=null;
-    if(Math.abs(dx)>45) twGo(dx<0? 1 : -1);
-  }, {passive:true});
-})();
+function renderTTInline(){
+  const host=document.getElementById('ttInline'); if(!host || !S) return;
+  renderTTGrid(host, {compact:true});
+}
 document.getElementById('twClose').onclick=closeTimetableWindow;
 twMask.onclick=e=>{ if(e.target===twMask) closeTimetableWindow(); };
-document.getElementById('twStar').onclick=()=>{
-  const {block, shots}=ttShots();
-  if(!block || !shots.length) return;
-  const id=shots[twIdx].id;
-  block.timetableWeek = (block.timetableWeek===id) ? null : id;
-  saveApp(); renderTimetableBar(); renderTimetableWindow();
-  showToast(block.timetableWeek? '이번 주 시간표로 지정했습니다.' : '이번 주 지정을 해제했습니다.');
-};
-document.getElementById('twDel').onclick=()=>{
-  const {block, shots}=ttShots();
-  if(!block || !shots.length) return;
-  askConfirm('시간표 사진 삭제','이 사진을 삭제할까요?',()=>{
-    const [gone]=block.timetable.splice(twIdx,1);
-    if(gone && block.timetableWeek===gone.id) block.timetableWeek=null;
-    if(twIdx>=block.timetable.length) twIdx=Math.max(0, block.timetable.length-1);
-    saveApp(); renderTimetableBar(); renderTimetableWindow();
-    showToast('시간표 사진을 삭제했습니다.');
-  },'삭제');
-};
-document.getElementById('twFile').onchange=async(e)=>{
-  const input=e.target;
-  const {block}=ttShots(); if(!block) return;
-  const files=Array.from(input.files||[]).filter(f=>f && f.type.startsWith('image/'));
-  if(!files.length) return;
-  const status=document.getElementById('twStatus');
-  status.textContent=`사진 ${files.length}장 처리 중...`;
-  let added=0, firstNew=block.timetable.length;
-  for(const f of files){
-    try{
-      const src=await fitImage(f);
-      block.timetable.push({id:'t'+Date.now()+Math.random().toString(36).slice(2,6), name:f.name||'시간표', src});
-      added++;
-    }catch(err){ console.warn(err); }
-  }
-  input.value='';
-  if(!added){ status.textContent='사진을 등록하지 못했습니다.'; return; }
-  status.textContent=`${added}장을 등록했습니다.`;
-  twIdx=firstNew;
-  saveApp(); renderTimetableBar(); renderTimetableWindow();
-};
 function renderList(){
   const wrap=document.getElementById('fullList'); wrap.innerHTML='';
   SCHOOL_DAYS.forEach(d=>{
-    const items=LEC.filter(l=>l.day===d.day);
+    /* 그날 강의 순서 = 시간표 교시 순서 (교시 미정·과제는 뒤로) */
+    const items=LEC.filter(l=>l.day===d.day).sort((a,b)=>
+      (a.type==='과제')-(b.type==='과제')
+      || (ttValidPeriod(a)?a.period:99)-(ttValidPeriod(b)?b.period:99)
+      || lecSeq(a)-lecSeq(b));
     const grp = el(`<div class="daygrp"><div class="dayhd"><span>Day ${d.day}</span><span>${d.date}(${d.dow})</span>${d.note?`<span class="ex">${esc(d.note)}</span>`:''}</div></div>`);
     if(!items.length){ grp.appendChild(el('<div class="row"><span style="color:var(--faint);font-size:11px">강의 없음</span></div>')); }
     items.forEach(l=> grp.appendChild(l.type==='과제' ? buildAssignRow(l, S.lec[l.id]) : buildRow(l, S.lec[l.id])));
@@ -4026,7 +4300,7 @@ function render(){
   tSettle();
   studySync();
   SCHEDULE = computeSchedule();
-  renderHeader(); renderBanner(); renderLoadPanel(); renderToday(); renderPlan(); renderTimetableBar(); renderTimetableWindow(); renderList(); renderPrompts();
+  renderHeader(); renderBanner(); renderLoadPanel(); renderToday(); renderPlan(); renderTimetableViews(); renderList(); renderPrompts();
   pomoSyncLauncher();
   if(document.getElementById('pomoFull').classList.contains('on')) renderPfMemos();
   if(typeof moveTabInk==='function') requestAnimationFrame(moveTabInk);
@@ -4158,6 +4432,7 @@ document.getElementById('ebSave').onclick=()=>{
   _editingBlock.examDate=examStr;
   _editingBlock.schoolDays=buildSchoolDays(startStr,examStr,subject);
   _editingBlock.lec.forEach(l=>{ l.day=Math.min(l.day,_editingBlock.schoolDays.length); });
+  ttAutoPlace(_editingBlock.lec);
   _editingBlock.state.examDay=_editingBlock.schoolDays.length;
   _editingBlock.state.cur=Math.min(_editingBlock.state.cur,_editingBlock.state.examDay);
   _editingBlock.state.todayLock=null;
@@ -4220,6 +4495,11 @@ function openEditLecModal(l){
   const daySel=document.getElementById('elDay');
   daySel.innerHTML = SCHOOL_DAYS.map(d=>`<option value="${d.day}">Day${d.day} ${d.date}(${d.dow})</option>`).join('');
   daySel.value=l.day;
+  document.getElementById('elPeriodRow').style.display = isAssign?'none':'';
+  document.getElementById('elPeriod').innerHTML = `<option value="">자동 (빈 교시)</option>` + PERIODS.map(p=>`<option value="${p}">${p}교시</option>`).join('');
+  document.getElementById('elPeriod').value = ttValidPeriod(l) ? String(l.period) : '';
+  document.getElementById('elSpan').innerHTML = [1,2,3,4].map(n=>`<option value="${n}">${n}교시 동안</option>`).join('');
+  document.getElementById('elSpan').value = String(ttSpan(l));
   elMask.classList.add('on');
 }
 function closeEditLecModal(){ elMask.classList.remove('on'); _editingLec=null; }
@@ -4239,6 +4519,19 @@ document.getElementById('elSave').onclick=()=>{
     _editingLec.code = document.getElementById('elCode').value.trim() || _editingLec.code;
     _editingLec.prof = document.getElementById('elProf').value.trim() || '미정';
     _editingLec.type = document.getElementById('elType').value;
+    /* 교시 — 고른 자리에 다른 강의가 있으면 그 강의를 그날 빈 교시로 밀어낸다 */
+    const l=_editingLec;
+    const pv=document.getElementById('elPeriod').value;
+    l.span = Math.max(1, Math.min(4, parseInt(document.getElementById('elSpan').value,10)||1));
+    let want = pv ? parseInt(pv,10) : null;
+    if(want!=null && !ttCover(want, l.span)){ want=null; showToast(`${l.span}교시 동안이면 그 교시부터는 넣을 수 없어 빈 교시에 넣었습니다.`); }
+    if(want==null) l.period = ttFirstFree(LEC, l.day, l.span, [l.id]);
+    else {
+      l.period = want;
+      const cov=ttCover(want, l.span);
+      LEC.forEach(o=>{ if(o!==l && ttOnGrid(o) && o.day===l.day && ttValidPeriod(o) && ttCover(o.period, ttSpan(o)).some(q=>cov.includes(q))) o.period=null; });
+      ttAutoPlace(LEC);
+    }
   }
   S.todayLock=null; // 정보가 바뀌었으니 오늘 몫도 다시 정한다
   saveApp();
@@ -4274,7 +4567,7 @@ document.getElementById('alAdd').onclick=()=>{
   } else {
     const code=document.getElementById('alCode').value.trim();
     const prof=document.getElementById('alProf').value.trim();
-    LEC.push({id:newId, day, code:code||`강${newId}`, title, prof:prof||'미정', type});
+    LEC.push({id:newId, day, code:code||`강${newId}`, title, prof:prof||'미정', type, span:1, period:ttFirstFree(LEC, day, 1)});
     document.getElementById('alCode').value=''; document.getElementById('alProf').value='';
   }
   S.lec[newId]=freshLecState();
@@ -4365,9 +4658,22 @@ function tToggle(key){
   const ts=tState();
   const {rec,st,type}=tLookup(key);
   if(tDone(st,type)) return;
+  let started=false;
   if(ts.key===key && rec && rec.since) tPauseActive(false);
-  else tStart(key);
+  else { tStart(key); started=true; }
   saveApp(); render();
+  if(started) tKickPomo();
+}
+/* 카드에서 시간 측정을 시작했는데 뽀모도로가 멈춰 있으면 집중도 같이 시작한다.
+   - 집중 일시정지 중 → 이어서 / 대기(시작 전)·휴식 대기·휴식 일시정지·휴식 끝 → 새 집중
+   - 이미 돌고 있거나(집중·휴식 모두), 집중이 끝나 휴식으로 넘어가기를 기다리는 중이면 건드리지 않는다. */
+function tKickPomo(){
+  if(typeof POMO==='undefined' || POMO.phase==='running') return;
+  if(POMO.mode==='focus' && POMO.phase==='done') return;
+  pomoAskNotify();
+  if(POMO.mode==='focus' && POMO.phase==='paused'){ pomoRun(); showToast('뽀모도로 집중도 이어서 시작했습니다.'); return; }
+  pomoStartFocus();
+  showToast(`뽀모도로 ${pomoMin('focus')}분 집중도 함께 시작했습니다.`);
 }
 /* 뽀모도로 → 항목 타이머 (한 방향). active=false: 멈춤, true: 뽀모도로가 멈췄던 항목만 다시 */
 function tOnPomoFocus(active){
@@ -4534,9 +4840,25 @@ function studySync(){
 /* 뽀모도로 쪽에서 부르는 표시 — 집중이 돌기 시작하거나 끝 시각이 바뀌면 until을 갱신 */
 function studyPomoMark(){
   if(POMO.mode==='focus' && POMO.phase==='running' && POMO.endAt) App.pomoRun={until:POMO.endAt};
+  else if(pomoOvertime()) App.pomoRun={until:Date.now()+POMO_OVER_LEASE, over:true};
   else App.pomoRun=null;
   studySync();
 }
+/* ===== 집중 시간이 끝났는데 아직 휴식으로 안 넘어간 동안(초과 집중) =====
+   이 동안도 공부 중으로 센다. 끝 시각(until)을 90초 앞까지만 잡아 두고 30초마다 늘린다 —
+   창을 닫거나 새로고침해서 앱이 사라지면 늦어도 90초 안에 저절로 멈춘다. 2시간이 넘으면 멈춘다. */
+const POMO_OVER_LEASE=90*1000, POMO_OVER_MAX=2*3600*1000;
+function pomoOvertime(){
+  return POMO.mode==='focus' && POMO.phase==='done' && POMO.overSince && (Date.now()-POMO.overSince)<POMO_OVER_MAX;
+}
+function pomoOverMs(){ return pomoOvertime() ? Math.max(0, Date.now()-POMO.overSince) : 0; }
+setInterval(()=>{
+  if(typeof POMO==='undefined' || POMO.mode!=='focus' || POMO.phase!=='done') return;
+  const p=App.pomoRun;
+  if(!pomoOvertime()){ if(p && p.over){ studyPomoMark(); } return; }
+  if(!p || !p.over || p.until-Date.now()<POMO_OVER_LEASE-30000){ App.pomoRun={until:Date.now()+POMO_OVER_LEASE, over:true}; saveApp(); }
+  pomoPaint();
+}, 1000);
 function studyOpenPart(dayKey, now){
   const run=studyRun(); if(!run.since) return 0;
   const u=studyPomoUntil();
@@ -4639,12 +4961,22 @@ function bulkDayOf(tok){
 function normCode(c){ return /^\d+$/.test(c) ? `${parseInt(c,10)}강` : c.replace(/\s+/g,''); }
 function parseBulkLine(line, fallbackDay){
   const raw=String(line||'').trim(); if(!raw) return null;
-  const out={code:'', title:'', prof:'', type:'강의', day:fallbackDay, bad:''};
+  const out={code:'', title:'', prof:'', type:'강의', day:fallbackDay, bad:'', period:null, span:1};
+  /* '3교시' · '5-6교시' 칸이 있으면 그 교시로 넣는다 (없으면 그날 빈 교시에 자동으로) */
+  const takePeriod=f=>{
+    const m=String(f).trim().match(/^(\d)\s*(?:[-~]\s*(\d)\s*)?교시$/);
+    if(!m) return false;
+    const a=parseInt(m[1],10), z=m[2]?parseInt(m[2],10):a;
+    if(PERIODS.includes(a)){ out.period=a; const i=PERIODS.indexOf(a), j=PERIODS.indexOf(z); out.span = j>=i ? Math.min(4, j-i+1) : 1; }
+    return true;
+  };
   let rest=[];
   let fields=raw.split(BULK_SPLIT).map(x=>x.trim()).filter(Boolean);
   if(fields.length===1){
     /* 칸 구분 없이 한 줄로 쓴 경우: 맨 앞 코드, 어디든 있는 날짜, (실습) 표시만 떼어 내고 나머지를 강의명으로 */
     let t=fields[0];
+    const pm=t.match(/(?:^|\s)(\d\s*(?:[-~]\s*\d\s*)?교시)(?=\s|$)/);
+    if(pm && takePeriod(pm[1])) t=t.replace(pm[1],' ');
     const dm=t.match(/(?:^|\s)((?:\d{4}[-.])?\d{1,2}[\/.-]\d{1,2}|\d{1,2}월\s*\d{1,2}일|D(?:ay)?\s*\d+)(?=\s|$)/i);
     if(dm){ const r=bulkDayOf(dm[1]); if(r){ if(r.bad) out.bad=r.bad; else out.day=r.day; t=t.replace(dm[1],' '); } }
     const cm=t.match(/^\s*(\d+\s*강(?:\s*\(\d+\))?|[Ll]\d+|\d{1,3})[.)]?\s+/);
@@ -4653,6 +4985,7 @@ function parseBulkLine(line, fallbackDay){
     rest=[t.replace(/\s+/g,' ').trim()];
   } else {
     fields.forEach(f=>{
+      if(takePeriod(f)) return;
       const r=bulkDayOf(f);
       if(r){ if(r.bad) out.bad=r.bad; else out.day=r.day; return; }
       if(!out.code && RE_CODE.test(f)){ out.code=normCode(f); return; }
@@ -4676,12 +5009,12 @@ function renderBulkPreview(){
   if(!rows.length){ prev.style.display='none'; prev.innerHTML=''; btn.disabled=true; btn.textContent='추가'; stat.textContent=''; return; }
   const ok=rows.filter(r=>!r.bad);
   prev.style.display='';
-  prev.innerHTML=`<table><thead><tr><th>Day</th><th>코드</th><th>강의명</th><th>교수</th><th>구분</th></tr></thead><tbody>${
+  prev.innerHTML=`<table><thead><tr><th>Day</th><th>교시</th><th>코드</th><th>강의명</th><th>교수</th><th>구분</th></tr></thead><tbody>${
     rows.map(r=>{
       const di=r.day ? dInfo(r.day) : null;
       return r.bad
-        ? `<tr class="bad"><td colspan="5">${esc(r.bad)}${r.title?` · ${esc(r.title)}`:''}</td></tr>`
-        : `<tr><td>Day${r.day}${di?` <span style="color:var(--faint)">${esc(di.date)}</span>`:''}</td><td>${esc(r.code||'자동')}</td><td>${esc(r.title)}</td><td>${esc(r.prof||'미정')}</td><td>${esc(r.type)}</td></tr>`;
+        ? `<tr class="bad"><td colspan="6">${esc(r.bad)}${r.title?` · ${esc(r.title)}`:''}</td></tr>`
+        : `<tr><td>Day${r.day}${di?` <span style="color:var(--faint)">${esc(di.date)}</span>`:''}</td><td>${r.period?esc(r.span>1?`${r.period}~${ttCover(r.period,r.span)?.slice(-1)[0]??''}교시`:r.period+'교시'):'자동'}</td><td>${esc(r.code||'자동')}</td><td>${esc(r.title)}</td><td>${esc(r.prof||'미정')}</td><td>${esc(r.type)}</td></tr>`;
     }).join('')}</tbody></table>`;
   btn.disabled=!ok.length;
   btn.textContent= ok.length ? `${ok.length}개 추가` : '추가';
@@ -4697,7 +5030,9 @@ document.getElementById('bulkAddBtn').onclick=()=>{
   let nextId=LEC.reduce((m,l)=>Math.max(m,l.id),0);
   ok.forEach(r=>{
     const id=++nextId;
-    LEC.push({id, day:r.day, code:r.code||`강${id}`, title:r.title, prof:r.prof||'미정', type:r.type});
+    const span=r.span||1;
+    const want = r.period && ttCover(r.period, span) && !ttCover(r.period, span).some(q=>ttTaken(LEC, r.day).has(q)) ? r.period : null;
+    LEC.push({id, day:r.day, code:r.code||`강${id}`, title:r.title, prof:r.prof||'미정', type:r.type, span, period: want ?? ttFirstFree(LEC, r.day, span)});
     S.lec[id]=freshLecState();
   });
   S.todayLock=null;
@@ -4965,6 +5300,74 @@ function pomoBeep(times, force){
     }
   }catch(e){}
 }
+/* ===== 알림음 파일 =====
+   GitHub 저장소(index.html·logo.png가 있는 폴더)에 아래 이름의 파일을 올리면 그 소리로 울린다.
+   logo.png를 './logo.png'로 불러오는 것과 같은 방식이다. 파일을 바꾸고 싶으면 같은 이름으로
+   덮어 올리거나, 아래 파일 이름만 고치면 된다. (mp4·m4a·mp3·wav 모두 가능)
+   파일이 없거나 재생이 막히면 예전처럼 '삐삐' 소리로 대신한다. */
+const ALARM_FILES = {
+  focus: './alarm.mp4',   // 집중이 끝났을 때
+  break: './alarm.mp4',   // 휴식이 끝났을 때
+};
+const ALARM_VOL={low:0.3, mid:0.65, high:1};
+const _alarmEls={}, _alarmBad={};
+function alarmEl(kind){
+  const src=ALARM_FILES[kind]||ALARM_FILES.focus;
+  if(!src || _alarmBad[src]) return null;
+  if(!_alarmEls[src]){
+    const a=new Audio(); a.preload='auto'; a.src=src;
+    a.addEventListener('error', ()=>{ _alarmBad[src]=true; if(drawerOpen()) renderSettings(); });
+    a.addEventListener('canplaythrough', ()=>{ if(drawerOpen() && !a._okShown){ a._okShown=true; renderSettings(); } }, {once:true});
+    _alarmEls[src]=a;
+  }
+  return _alarmEls[src];
+}
+function alarmFileState(){
+  const src=ALARM_FILES.focus; const a=alarmEl('focus');
+  if(!a || _alarmBad[src]) return 'missing';
+  return a.readyState>=3 ? 'ok' : 'loading';
+}
+/* opts.force: 알림음 꺼짐 설정을 무시(들어보기) / opts.preview: 몇 초만 */
+function pomoAlarm(kind, opts){
+  opts=opts||{};
+  const st=settings();
+  if(!opts.force && !st.sound) return;
+  pomoStopAlarm();
+  const a=alarmEl(kind);
+  const beep=()=>pomoBeep(kind==='break'? 4 : 3, true);
+  if(!a){ beep(); return; }
+  try{
+    a.volume=ALARM_VOL[st.volume] ?? 0.65;
+    a.currentTime=0;
+    const pr=a.play();
+    POMO.alarmOn=a;
+    if(pr && pr.catch) pr.catch(()=>{ POMO.alarmOn=null; beep(); });
+    if(opts.preview){ clearTimeout(POMO.alarmPrev); POMO.alarmPrev=setTimeout(pomoStopAlarm, 3000); }
+  }catch(e){ beep(); }
+}
+function pomoStopAlarm(){
+  const a=POMO.alarmOn; POMO.alarmOn=null;
+  if(a){ try{ a.pause(); a.currentTime=0; }catch(e){} }
+  if(POMO.notif){ try{ POMO.notif.close(); }catch(e){} POMO.notif=null; }
+}
+/* ===== 바탕화면 알림 =====
+   플래너 창을 보고 있지 않을 때(다른 창·다른 프로그램·타이머 작은 창을 보고 있을 때)만 띄운다. */
+function notifySupported(){ return 'Notification' in window; }
+function pomoAskNotify(){
+  try{ if(settings().notify && notifySupported() && Notification.permission==='default') Notification.requestPermission().then(()=>{ if(drawerOpen()) renderSettings(); }); }catch(e){}
+}
+function plannerInView(){ return document.visibilityState==='visible' && document.hasFocus(); }
+function pomoNotify(title, body, onClick){
+  if(!settings().notify || !notifySupported() || Notification.permission!=='granted') return;
+  if(plannerInView()) return;
+  try{
+    if(POMO.notif){ try{ POMO.notif.close(); }catch(e){} }
+    const n=new Notification(title, {body, tag:'study-pomo', renotify:true, requireInteraction:true, icon:'./logo.png', silent:true});
+    n.onclick=()=>{ try{ n.close(); }catch(e){} if(POMO.notif===n) POMO.notif=null; if(onClick) onClick(); };
+    POMO.notif=n;
+  }catch(e){ /* 모바일 크롬 등 알림 생성자를 막는 환경 — 조용히 넘어간다 */ }
+}
+function pipOpen(){ return !!(POMO.pip && !POMO.pip.closed); }
 /* ---- 위젯 DOM (하나만 만들어 PiP 창과 앱 화면 사이를 오간다) ---- */
 function pomoNode(){
   if(POMO.node) return POMO.node;
@@ -4972,14 +5375,14 @@ function pomoNode(){
     <div class="pw-main">
       <div class="pw-time" data-role="time">25:00</div>
       <div class="pw-ctl">
-        <button class="pw-b" data-p="minus" type="button" title="1분 줄이기">−</button>
-        <button class="pw-b pw-go" data-p="toggle" type="button" title="시작"><span data-role="icon">${PW_ICON.play}</span></button>
-        <button class="pw-b" data-p="plus" type="button" title="1분 늘리기">+</button>
-        <button class="pw-b" data-p="reset" type="button" title="처음으로 되돌리기">${PW_ICON.stop}</button>
-        <button class="pw-b pw-close" data-p="close" type="button" title="위젯 닫기">✕</button>
+        <button class="pw-b" data-p="minus" type="button" aria-label="1분 줄이기">−</button>
+        <button class="pw-b pw-go" data-p="toggle" type="button" aria-label="시작"><span data-role="icon">${PW_ICON.play}</span></button>
+        <button class="pw-b" data-p="plus" type="button" aria-label="1분 늘리기">+</button>
+        <button class="pw-b" data-p="reset" type="button" aria-label="처음으로 되돌리기">${PW_ICON.stop}</button>
+        <button class="pw-b pw-close" data-p="close" type="button" aria-label="위젯 닫기">✕</button>
       </div>
     </div>
-    <button class="pw-memo-btn" type="button" title="메모" aria-label="메모 열기">${PW_ICON.memo}<span class="pw-memo-n" hidden></span></button>
+    <button class="pw-memo-btn" type="button" aria-label="메모 열기">${PW_ICON.memo}<span class="pw-memo-n" hidden></span></button>
     <div class="pw-memo">
       <div class="pwm-head" data-role="mhead">이번 집중 메모</div>
       <div class="pwm-list" data-role="mlist"></div>
@@ -5010,8 +5413,9 @@ function pomoNode(){
     if(snap){ e.stopPropagation(); pomoSnap(snap.dataset.snap); return; }
     const btn=e.target.closest('[data-p]');
     if(btn && btn.dataset.p==='close'){ pomoHideWidget(); return; }
-    /* 다 끝나 빨개진 상태에서는 어디를 눌러도 앱 전체화면으로 넘어간다 */
-    if(POMO.phase==='done'){ pomoGoFullFromWidget(); return; }
+    /* 다 끝나 빨개진 상태: 집중 끝 → 앱의 휴식 화면으로 / 휴식 끝 → 이 창에서 바로 다음 집중 시작
+       (휴식 끝에는 플래너 창을 앞으로 불러오지 않는다 — 보던 공부 창이 그대로 보이게) */
+    if(POMO.phase==='done'){ if(POMO.mode==='break') pomoStartFocus(); else pomoGoFullFromWidget(); return; }
     if(!btn) return;
     pomoAction(btn.dataset.p);
   });
@@ -5041,6 +5445,7 @@ function pomoAction(a){
   pomoPaint();
 }
 function pomoRun(){
+  pomoStopAlarm();
   const freshBreak = POMO.mode==='break' && POMO.phase==='idle'; // 휴식을 '새로' 시작하는 순간
   if(POMO.mode==='focus' && POMO.phase==='idle') POMO.sid='s'+Date.now(); // 새 집중 회차 — 메모를 이 회차에 묶는다
   if(POMO.remain<=0) POMO.remain=pomoMin(POMO.mode)*60;
@@ -5061,6 +5466,8 @@ function pomoPause(){
   pomoPaint();
 }
 function pomoReset(){
+  pomoStopAlarm();
+  POMO.overSince=null;
   if(POMO.mode==='focus' && POMO.phase==='running') tOnPomoFocus(false);
   clearInterval(POMO.tick); POMO.tick=null;
   POMO.phase='idle'; POMO.remain=pomoMin(POMO.mode)*60; POMO.endAt=null;
@@ -5077,10 +5484,18 @@ function pomoTick(){
 function pomoComplete(){
   clearInterval(POMO.tick); POMO.tick=null;
   POMO.phase='done'; POMO.remain=0;
-  if(POMO.mode==='focus'){ pomoCountFocus(); POMO.lastSid=POMO.sid; }
-  studyPomoMark();
+  if(POMO.mode==='focus'){ pomoCountFocus(); POMO.lastSid=POMO.sid; POMO.overSince=POMO.endAt||Date.now(); }
+  studyPomoMark(); // 집중이 끝나도 휴식으로 넘어가기 전까지는 공부 시간이 계속 쌓인다
   /* 집중 시간이 끝나도 항목 시간은 멈추지 않는다 — 휴식 화면에서 '휴식 시작'을 눌러야 멈춘다 */
-  pomoBeep(POMO.mode==='break'? 4 : 3);
+  pomoAlarm(POMO.mode==='break' ? 'break' : 'focus');
+  if(POMO.mode==='break'){
+    const bm=pomoMin('break');
+    pomoNotify(`${bm}분 휴식 시간이 지났습니다`, pipOpen() ? '다시 공부하러 가야 합니다. 이 알림을 누르면 바로 집중을 시작합니다.' : '다시 공부하러 가야 합니다.',
+      ()=>{ if(pipOpen()) pomoStartFocus(); else { try{ window.focus(); }catch(e){} } });
+  } else {
+    pomoNotify(`${pomoMin('focus')}분 집중이 끝났습니다`, '잠깐 쉬어 가세요. 알림을 누르면 휴식 화면으로 갑니다.',
+      ()=>{ try{ window.focus(); }catch(e){} pomoGoFullFromWidget(); });
+  }
   const full=document.getElementById('pomoFull');
   /* 휴식이 끝나면 화면 전체가 빨개진다. 집중이 끝났을 때는 위젯만 빨개지고,
      그 위젯을 눌러야 전체화면으로 넘어온다. */
@@ -5243,7 +5658,7 @@ function pomoShowFull(ring){
   const full=document.getElementById('pomoFull'); if(!full) return;
   full.classList.add('on');
   full.classList.toggle('ring', !!ring);
-  try{ window.focus(); }catch(e){}
+  if(!pipOpen()){ try{ window.focus(); }catch(e){} } // 작은 타이머 창이 떠 있으면 플래너를 앞으로 끌어오지 않는다
 }
 function pomoHideFull(){
   const full=document.getElementById('pomoFull'); if(!full) return;
@@ -5255,9 +5670,11 @@ async function pomoGoFullFromWidget(){
   /* 메모칸이 열려 있으면 조용히 닫기만 한다(silent). 보통 닫기처럼 창을 새로 열면,
      곧이어 휴식 화면으로 가며 닫은 창 대신 새 창이 다시 떠서 휴식 화면이 가려진다. */
   if(POMO.memoOpen) memoClose(true);
+  pomoStopAlarm();
   const c=pomoCfg();
   POMO.long = (c.cycles||0)>0 && (c.cycles % (c.longEvery||4))===0;
-  POMO.mode='break'; POMO.phase='idle'; POMO.remain=pomoMin('break')*60; POMO.endAt=null;
+  POMO.mode='break'; POMO.phase='idle'; POMO.remain=pomoMin('break')*60; POMO.endAt=null; POMO.overSince=null;
+  studyPomoMark(); // 초과 집중 시간은 휴식 화면으로 넘어온 이 순간까지만 센다
   POMO.suppressDock=true;
   await pomoClosePip();
   POMO.suppressDock=false;
@@ -5266,8 +5683,9 @@ async function pomoGoFullFromWidget(){
   pomoPaint();
 }
 async function pomoStartFocus(){
+  pomoStopAlarm();
   POMO.long=false;
-  POMO.mode='focus'; POMO.phase='idle'; POMO.remain=pomoMin('focus')*60; POMO.endAt=null;
+  POMO.mode='focus'; POMO.phase='idle'; POMO.remain=pomoMin('focus')*60; POMO.endAt=null; POMO.overSince=null;
   pomoHideFull();
   pomoRun();
   await pomoShowWidget();
@@ -5280,15 +5698,19 @@ function pomoPaint(){
   if(w){
     w.dataset.mode=POMO.mode; w.dataset.phase=POMO.phase;
     const q=s=>w.querySelector(s);
-    q('[data-role="time"]').textContent=fmtClock(left);
+    const over=pomoOverMs();
+    q('[data-role="time"]').textContent = over>=1000 ? '+'+fmtClock(over/1000) : fmtClock(left);
     const go=w.querySelector('[data-p="toggle"]');
     const running = POMO.phase==='running';
-    q('[data-role="icon"]').innerHTML = running? PW_ICON.pause : PW_ICON.play;
-    go.title = running? '일시정지' : (POMO.phase==='paused'? '이어서' : (POMO.phase==='done'? '다시 시작' : '시작'));
-    /* 작은 위젯이라 설명은 말풍선(title)으로만 남긴다 */
-    w.title = POMO.phase==='done'
-      ? (POMO.mode==='break'? '휴식 끝 — 눌러서 앱으로 돌아가기' : '집중 끝 — 눌러서 쉬러 가기')
+    const icon=q('[data-role="icon"]'), want=running? 'pause' : 'play';
+    if(icon.dataset.i!==want){ icon.innerHTML=PW_ICON[want]; icon.dataset.i=want; }
+    go.setAttribute('aria-label', running? '일시정지' : (POMO.phase==='paused'? '이어서' : (POMO.phase==='done'? '다시 시작' : '시작')));
+    /* 설명 말풍선(title)은 쓰지 않는다 — 작은 창(PiP)에서는 버튼 아래에 잘린 채로 떠서
+       '_ _ _' 같은 흔적처럼 보였다. 앱 화면 안 위젯에서만 전체 설명을 단다. */
+    const tip = POMO.phase==='done'
+      ? (POMO.mode==='break'? '휴식 끝 — 눌러서 바로 집중 시작' : '집중 끝 — 눌러서 쉬러 가기')
       : `${POMO.mode==='break'?'휴식':'집중'} ${pomoMin(POMO.mode)}분 · −/+ 로 시간 조정`;
+    if(w.classList.contains('inpage')) w.title=tip; else w.removeAttribute('title');
   }
   const full=document.getElementById('pomoFull');
   if(full && full.classList.contains('on')){
@@ -5308,11 +5730,14 @@ function pomoPaint(){
     else if(POMO.phase==='running'){ main.textContent='일시정지'; }
     else if(POMO.phase==='paused'){ main.textContent='이어서 쉬기'; }
     else { main.textContent=`${pomoMin('break')}분 ${POMO.long?'긴 휴식':'휴식'} 시작`; }
-    document.getElementById('pfBack').textContent=`${pomoMin('focus')}분 공부하기 →`;
+    document.getElementById('pfBack').textContent=`휴식 없이 바로 ${pomoMin('focus')}분 공부하기 →`;
     document.getElementById('pfBack').style.display = (doneNow&&breakMode)? 'none' : '';
+    const altTab = /Mac|iPhone|iPad/.test(navigator.platform||'') ? '⌘+Tab' : 'Alt+Tab';
     document.getElementById('pfNote').textContent = doneNow&&breakMode
-      ? '공부를 시작하면 다시 작은 위젯으로 돌아갑니다.'
-      : '휴식이 끝나면 이 화면 전체가 빨개집니다.';
+      ? `공부를 시작하면 다시 작은 타이머 창으로 돌아갑니다. 공부하던 창은 ${altTab}으로 바로 불러올 수 있습니다.`
+      : (POMO.phase==='running'
+          ? `휴식이 끝나면 이 화면이 빨개지고, 다른 창을 보고 있으면 알림이 뜹니다. 작은 타이머 창을 누르면 여기로 오지 않고 바로 공부를 시작합니다.`
+          : '휴식을 시작하면 작은 타이머 창이 함께 떠서 어느 창에서든 남은 시간이 보입니다.');
   }
   pomoSyncLauncher();
 }
@@ -5323,14 +5748,16 @@ function pomoSyncLauncher(){
   const left=pomoRemain();
   if(POMO.phase==='running'){ btn.dataset.live='1'; txt.textContent=`${POMO.mode==='break'?'휴식':'집중'} ${fmtClock(left)}`; }
   else if(POMO.phase==='paused'){ btn.dataset.live='1'; txt.textContent=`${fmtClock(left)} 멈춤`; }
-  else if(POMO.phase==='done'){ btn.dataset.live='done'; txt.textContent = POMO.mode==='break'? '휴식 끝!' : '집중 끝!'; }
+  else if(POMO.phase==='done'){ btn.dataset.live='done'; const ov=pomoOverMs(); txt.textContent = POMO.mode==='break'? '휴식 끝!' : (ov>=60000 ? `집중 끝! +${Math.floor(ov/60000)}분` : '집중 끝!'); }
   else { btn.dataset.live='0'; txt.textContent=`${pomoMin('focus')}분 집중`; }
 }
 function pomoInit(){
   const st=document.createElement('style'); st.textContent=POMO_CSS; document.head.appendChild(st);
   POMO.remain=pomoMin('focus')*60;
+  alarmEl('focus'); alarmEl('break'); // 알림음 파일을 미리 불러 둔다(없으면 삐 소리로 대체)
   const launch=document.getElementById('pomoLaunch');
   if(launch) launch.onclick=async()=>{
+    pomoAskNotify();
     if(POMO.mode==='break' && POMO.phase!=='idle'){ pomoShowFull(POMO.phase==='done'); pomoPaint(); return; }
     if(POMO.phase==='idle'){ await pomoStartFocus(); return; }
     await pomoShowWidget(); pomoPaint();
@@ -5338,10 +5765,16 @@ function pomoInit(){
   const full=document.getElementById('pomoFull');
   document.getElementById('pfClose').onclick=()=>{ pomoHideFull(); pomoPaint(); };
   document.getElementById('pfMain').onclick=()=>{
-    if(POMO.mode==='break' && POMO.phase==='done'){ pomoStartFocus(); return; }
-    if(POMO.phase==='running') pomoPause(); else pomoRun();
+    pomoAskNotify();
+    if(POMO.mode==='break' && POMO.phase==='done'){ pomoStartFocus(); try{ window.blur(); }catch(e){} return; }
+    if(POMO.phase==='running'){ pomoPause(); return; }
+    const freshBreak = POMO.mode==='break' && POMO.phase==='idle';
+    pomoRun();
+    /* 휴식 중에도 작은 타이머 창을 띄워 둔다 — 휴식이 끝나면 그 창이 빨개지고,
+       그 창을 누르면 플래너로 오지 않고 보던 창에서 바로 다음 집중을 시작할 수 있다. */
+    if(freshBreak && pomoPipSupported()) pomoOpenPip();
   };
-  document.getElementById('pfBack').onclick=()=>pomoStartFocus();
+  document.getElementById('pfBack').onclick=()=>{ pomoStartFocus(); try{ window.blur(); }catch(e){} };
   full.querySelectorAll('[data-pf]').forEach(b=>{
     b.onclick=()=>{
       const delta = b.dataset.pf==='plus'? 1 : -1;
@@ -5519,7 +5952,7 @@ async function pomoReopenPip(prev){
   if(ok && POMO.pip) POMO.pip._noRestore=true; // 크기는 아래에서 한 번만 맞춘다 — 다음 클릭에서 또 맞추지 않게
   if(ok && old && old!==POMO.pip && !old.closed){ try{ old.close(); }catch(e){} } // 옛 창이 남아 있으면 확실히 닫는다
   /* 새 창을 기다리는 사이 휴식 화면으로 넘어갔다면 새 창은 필요 없다 */
-  if(POMO.mode==='break' && document.getElementById('pomoFull').classList.contains('on')){
+  if(POMO.mode==='break' && POMO.phase==='idle' && document.getElementById('pomoFull').classList.contains('on')){
     POMO.suppressDock=true;
     try{ POMO.pip && POMO.pip.close(); }catch(e){}
     POMO.pip=null;
@@ -5691,6 +6124,10 @@ function renderSettings(){
       <span class="stunit">처음</span><input class="stin num" data-plan="rampFrac" data-pct="1" type="number" step="5" min="0" max="50" value="${Math.round(planCfg('rampFrac')*100)}"><span class="stunit">% 기간은 목표의</span>
       <input class="stin num" data-plan="rampLoad" data-pct="1" type="number" step="5" min="10" max="100" value="${Math.round(planCfg('rampLoad')*100)}"><span class="stunit">%</span>
     </div></div>
+    <div class="setrow"><span class="setlbl">시험 전 비워 둘 날</span><div class="stgrp">
+      <span class="stunit">시험</span><input class="stin num" data-plan="buffer" type="number" step="1" min="1" max="10" value="${bufferDays()}"><span class="stunit">일 전부터 분배 안 함</span>
+    </div></div>
+    <p class="sethint">1이면 시험 전날만 비웁니다. 3이면 시험 3일 전·2일 전·전날에는 크레딧을 배정하지 않고, 남은 강의는 그 전날까지 나눠 배정합니다.</p>
     <p class="sethint">복습 간격은 신규 학습을 한 날(아직 하지 않았다면 수업일)을 기준으로 합니다. 값을 바꾸면 오늘 배정량을 다시 계산하며, 이미 완료한 항목은 그대로 유지됩니다.</p>
     <div class="stacts"><button class="stbtn" type="button" id="stPlanReset">기본값으로</button></div>`
     : `<p class="sethint">블록을 만든 뒤 설정할 수 있습니다.</p>`}
@@ -5713,6 +6150,9 @@ function renderSettings(){
     <p class="sethint">집중을 끝까지 마친 횟수로 셉니다. 지금 ${pomoCyclePos()}/${pomoCfg().longEvery}회째입니다. 마지막 집중 뒤 오래 쉬었다가 다시 시작하면 처음부터 셉니다.</p>
     <div class="setrow"><span class="setlbl">알림음</span>${sw('sound',st.sound)}</div>
     <div class="setrow"><span class="setlbl">음량</span><div class="stgrp">${seg('volume',st.volume,[['low','작게'],['mid','보통'],['high','크게']])}<button class="stbtn" type="button" id="stTest">들어보기</button></div></div>
+    <p class="sethint">알림음 파일: <b>${esc(String(ALARM_FILES.focus).replace(/^\.\//,''))}</b> — ${({ok:'찾았습니다. 이 소리로 울립니다.', loading:'불러오는 중입니다.', missing:'아직 없습니다. 기본 삐 소리로 울립니다.'})[alarmFileState()]} GitHub에서 index.html이 있는 폴더에 이 이름으로 올리면 바로 적용됩니다.</p>
+    <div class="setrow"><span class="setlbl">바탕화면 알림</span>${sw('notify',st.notify)}</div>
+    <p class="sethint">${!notifySupported() ? '이 브라우저는 바탕화면 알림을 지원하지 않습니다.' : Notification.permission==='denied' ? '브라우저에서 알림이 차단되어 있습니다. 주소창 왼쪽 자물쇠 → 알림 → 허용으로 바꿔 주세요.' : Notification.permission==='granted' ? '다른 창을 보고 있을 때 집중·휴식이 끝나면 알림이 뜹니다. 휴식 끝 알림을 누르면 바로 집중을 시작합니다.' : '처음 타이머를 시작할 때 브라우저가 알림 허용을 물어봅니다.'}${notifySupported() && Notification.permission==='default' ? ' <button class="stbtn" type="button" id="stNotifyAsk" style="margin-left:4px">지금 허용하기</button>' : ''}</p>
   </section>
 
   <section class="setsec" data-sec="data">
@@ -5755,9 +6195,9 @@ function renderSettings(){
       let v=parseFloat(inp.value);
       if(isNaN(v)){ renderSettings(); return; }
       if(inp.dataset.pct) v=v/100;
-      const lim={gap1:[0,14], gap2:[0,21], newLead:[0,2], rampFrac:[0,0.5], rampLoad:[0.1,1]}[k];
+      const lim={gap1:[0,14], gap2:[0,21], newLead:[0,2], rampFrac:[0,0.5], rampLoad:[0.1,1], buffer:[1,Math.max(1,Math.min(10,S.examDay-2))]}[k];
       v=Math.max(lim[0], Math.min(lim[1], v));
-      if(k==='gap1'||k==='gap2'||k==='newLead') v=Math.round(v);
+      if(k==='gap1'||k==='gap2'||k==='newLead'||k==='buffer') v=Math.round(v);
       if(!S.plan) S.plan={};
       S.plan[k]=v;
       if(k==='gap1' && G2()<v) S.plan.gap2=v; // 2차는 1차보다 앞설 수 없다
@@ -5780,12 +6220,13 @@ function renderSettings(){
     g.querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b));
     applyDisplaySettings(); saveApp();
     requestAnimationFrame(moveTabInk);
-    if(g.dataset.seg==='volume') pomoBeep(1, true);
+    if(g.dataset.seg==='volume') pomoAlarm('focus', {force:true, preview:true});
   }));
   body.querySelectorAll('[data-sw]').forEach(b=> b.onclick=()=>{
     const k=b.dataset.sw; st[k]=!st[k];
     b.classList.toggle('on', !!st[k]); b.setAttribute('aria-checked', String(!!st[k]));
     applyDisplaySettings(); saveApp();
+    if(k==='notify' && st[k]) pomoAskNotify();
   });
   body.querySelectorAll('[data-pomo]').forEach(inp=> inp.addEventListener('change', ()=>{
     const kind=inp.dataset.pomo, c=pomoCfg();
@@ -5799,7 +6240,9 @@ function renderSettings(){
     if(POMO.phase==='idle') POMO.remain=pomoMin(POMO.mode)*60;
     pomoPaint();
   }));
-  body.querySelector('#stTest').onclick=()=> pomoBeep(2, true);
+  body.querySelector('#stTest').onclick=()=> pomoAlarm('focus', {force:true, preview:true});
+  const askBtn=body.querySelector('#stNotifyAsk');
+  if(askBtn) askBtn.onclick=()=>{ try{ Notification.requestPermission().then(()=>renderSettings()); }catch(e){} };
   body.querySelector('#stDayStart').addEventListener('change', e=>{
     studySync();
     /* 진행 중인 구간은 새 기준으로 다시 나누도록 한 번 끊었다가 이어 간다 */
@@ -5848,7 +6291,7 @@ document.addEventListener('keydown', e=>{
   if(e.key==='Escape'){
     if(drawerOpen()){ closeSettings(); return; }
     const top=[...document.querySelectorAll('.mask.on')].pop();
-    if(top && top.id!=='twMask') top.classList.remove('on');
+    if(top) top.classList.remove('on');
     return;
   }
   const a=document.activeElement;
