@@ -3738,7 +3738,7 @@ function ttFirstFree(lecs, day, span, exceptIds){
   }
   return null;
 }
-/* 교시가 없거나 다른 강의와 겹치는 강의를 그날 빈 교시로 채워 넣는다(강의 번호 순서대로). */
+/* 교시가 없거나 다른 강의와 겹치는 강의를 그날 빈 교시로 채워 넣는다(강의 먼저, 실습 나중). */
 function ttAutoPlace(lecs){
   if(!Array.isArray(lecs)) return false;
   let changed=false;
@@ -3751,7 +3751,7 @@ function ttAutoPlace(lecs){
       const clash=keep.some(k=>ttCover(k.period, ttSpan(k)).some(p=>cov.includes(p)));
       if(clash) need.push(l); else keep.push(l);
     });
-    need.sort((a,b)=>lecSeq(a)-lecSeq(b)).forEach(l=>{
+    need.sort((a,b)=>(a.type==='실습')-(b.type==='실습') || lecSeq(a)-lecSeq(b)).forEach(l=>{
       const taken=new Set();
       keep.forEach(k=>ttCover(k.period, ttSpan(k)).forEach(p=>taken.add(p)));
       let found=null;
