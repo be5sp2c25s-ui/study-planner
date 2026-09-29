@@ -1679,6 +1679,9 @@ function onboardItems(){
   if(!Array.isArray(custom)) return ONBOARD_ITEMS;
   return custom.map(label=>{
     const builtin = ONBOARD_ITEMS.find(it=> it.label===label);
+    if(!builtin && /^\[[^\]]+\]\s*Project 생성$/.test(label)){
+      return ONBOARD_ITEMS.find(it=>it.key==='newProject');
+    }
     return builtin || {key:labelKey(label), label};
   });
 }
@@ -5306,8 +5309,8 @@ function pomoBeep(times, force){
    덮어 올리거나, 아래 파일 이름만 고치면 된다. (mp4·m4a·mp3·wav 모두 가능)
    파일이 없거나 재생이 막히면 예전처럼 '삐삐' 소리로 대신한다. */
 const ALARM_FILES = {
-  focus: './alarm.mp4',   // 집중이 끝났을 때
-  break: './alarm.mp4',   // 휴식이 끝났을 때
+  focus: './alarm.mp3',   // 집중이 끝났을 때
+  break: './alarm.mp3',   // 휴식이 끝났을 때
 };
 const ALARM_VOL={low:0.3, mid:0.65, high:1};
 const _alarmEls={}, _alarmBad={};
