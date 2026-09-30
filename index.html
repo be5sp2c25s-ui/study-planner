@@ -162,9 +162,8 @@
      네이티브 <details open> 상태만으로 내용이 항상 보이게 한다 — 그래야 "당기기" 버튼
      같은 걸 담은 내용이 소리 없이 영구히 안 보이는 사고가 안 생긴다. */
   details.pre[open] > .panel{max-height:none;overflow:visible;opacity:1;transform:none}
-  details.pre.motion-open > .panel{animation:previewBoxIn 280ms var(--ease) both}
-  details.pre.motion-open > .panel .card{animation:flowStepIn 300ms var(--ease) both}
-  details.pre.motion-closing > .panel{animation:previewBoxOut 280ms var(--ease) both}
+  details.pre.motion-open > .panel{max-height:var(--preview-height);overflow:hidden;animation:previewBoxInMeasured 280ms var(--ease) both}
+  details.pre.motion-closing > .panel{max-height:var(--preview-height);overflow:hidden;animation:previewBoxOutMeasured 280ms var(--ease) both}
   details.pre.motion-closing > .panel .card{animation:flowStepOut 230ms var(--ease) both}
 
   .listbox{background:var(--surface);border:1px solid transparent;border-radius:16px;margin-top:18px;overflow:hidden;box-shadow:var(--sh-2)}
@@ -493,6 +492,8 @@
   @keyframes flowDetailOut{from{opacity:1;max-height:600px;transform:none}to{opacity:0;max-height:0;transform:translateY(-5px);padding-top:0;padding-bottom:0;border-top-color:transparent}}
   @keyframes previewBoxIn{from{opacity:0;max-height:0;transform:translateY(-5px)}to{opacity:1;max-height:3000px;transform:none}}
   @keyframes previewBoxOut{from{opacity:1;max-height:3000px;transform:none}to{opacity:0;max-height:0;transform:translateY(-5px)}}
+  @keyframes previewBoxInMeasured{from{opacity:0;max-height:0;transform:translateY(-5px)}to{opacity:1;max-height:var(--preview-height);transform:none}}
+  @keyframes previewBoxOutMeasured{from{opacity:1;max-height:var(--preview-height);transform:none}to{opacity:0;max-height:0;transform:translateY(-5px)}}
   @keyframes flowStepIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
   @keyframes flowStepOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-4px)}}
   @keyframes popIn{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:none}}
@@ -1222,6 +1223,7 @@ const expandedFlowCards=new Set();
 const expandedAssignLists=new Set(); // 전체 강의 탭 과제 체크리스트 펼침 상태
 let onboardingOpen=false;
 let checklistCardOpen=false;
+let instructionBodyOpen=false;
 
 /* 기본 프롬프트(p1~p5)를 한 번만 '프롬프트 목록'으로 옮긴다. 이후로는 기본/직접 추가 구분 없이
    전부 이름·단계·설명·내용을 고치고 삭제할 수 있다. 예전에 고쳐둔 문구는 그대로 이어받는다. */
@@ -1538,8 +1540,13 @@ function playFold(body, opening, after){
   void body.offsetWidth; // 같은 애니메이션을 다시 걸기 위한 리플로우
   const cls = opening ? 'fold-anim-in' : 'fold-anim-out';
   body.classList.add(cls);
-  rows.forEach((r,i)=>{ r.style.animationDelay=`${(opening? i : rows.length-1-i)*35}ms`; });
-  body._foldTimer=setTimeout(()=>{ body.classList.remove(cls); if(after) after(); }, 320+rows.length*35);
+  rows.forEach((r,i)=>{ r.style.animationDelay=foldStaggerDelay(i,rows.length,35,!opening); });
+  body._foldTimer=setTimeout(()=>{ body.classList.remove(cls); if(after) after(); }, 320+FOLD_STAGGER_MAX);
+}
+const FOLD_STAGGER_MAX=140;
+function foldStaggerDelay(index, count, step, reverse){
+  const position=reverse ? count-1-index : index;
+  return `${Math.min(position*step,FOLD_STAGGER_MAX)}ms`;
 }
 function foldOpen(body, display){ body.style.display = display || 'block'; playFold(body, true); }
 function foldClose(body, after){
@@ -1558,15 +1565,15 @@ function toggleFlowBody(body, onOpen, onClose){
   if(expanded){
     body.classList.remove('open');
     body.classList.add('closing');
-    [...body.children].forEach((row,i)=>{ row.style.animationDelay=`${(body.children.length-1-i)*45}ms`; });
-    body.closeTimer=setTimeout(()=>{ body.style.display='none'; body.classList.remove('closing'); }, 280+body.children.length*45);
+    [...body.children].forEach((row,i)=>{ row.style.animationDelay=foldStaggerDelay(i,body.children.length,45,true); });
+    body.closeTimer=setTimeout(()=>{ body.style.display='none'; body.classList.remove('closing'); }, 280+FOLD_STAGGER_MAX);
     if(onClose) onClose();
   }else{
     body.style.display='block';
     body.classList.remove('closing');
     body.classList.add('open','opening');
-    setTimeout(()=>body.classList.remove('opening'),320);
-    [...body.children].forEach((row,i)=>{ row.style.animationDelay=`${i*45}ms`; });
+    setTimeout(()=>body.classList.remove('opening'),300+FOLD_STAGGER_MAX);
+    [...body.children].forEach((row,i)=>{ row.style.animationDelay=foldStaggerDelay(i,body.children.length,45,false); });
     if(onOpen) onOpen();
   }
 }
@@ -1587,15 +1594,15 @@ function bindDetailsFold(details, ignoreSelector){
       details.open=true;
       details.classList.remove('motion-closing');
       details.classList.add('motion-open');
-      rows.forEach((r,i)=>{ r.style.animationDelay=`${i*35}ms`; });
+      rows.forEach((r,i)=>{ r.style.animationDelay=foldStaggerDelay(i,rows.length,35,false); });
     }else{
       details.classList.remove('motion-open');
       details.classList.add('motion-closing');
-      rows.forEach((r,i)=>{ r.style.animationDelay=`${(rows.length-1-i)*35}ms`; });
+      rows.forEach((r,i)=>{ r.style.animationDelay=foldStaggerDelay(i,rows.length,35,true); });
       details.closeTimer=setTimeout(()=>{
         details.open=false;
         details.classList.remove('motion-closing');
-      }, 300+rows.length*35);
+      }, 300+FOLD_STAGGER_MAX);
     }
   });
 }
@@ -2028,8 +2035,9 @@ function remainingCredits(){
   activeLectures().forEach(l=>{
     const st=S.lec[l.id];
     if(l.type==='과제'){ if(st.enc==null) sum+=itemTotalCost(l); return; }
-    if(st.enc==null) sum+=totalLecCost();
-    else sum += (st.r[1]?0:typeCost('r1')) + (st.r[2]?0:typeCost('r2'));
+    if(st.enc==null) sum+=typeCost('new');
+    if(!st.r[1]) sum+=typeCost('r1');
+    if(!st.r[2]) sum+=typeCost('r2');
   });
   return sum;
 }
@@ -2085,7 +2093,11 @@ function buildPendingPool(excludeKeys){
     const st=S.lec[l.id];
     const push=(type,original,cost)=>{ if(excludeKeys && excludeKeys.has(l.id+':'+type)) return; pool.push({type, lecId:l.id, cost:(cost!=null?cost:typeCost(type)), original, nominal:original}); };
     if(l.type==='과제'){ if(st.enc==null) push('assign', l.day, itemTotalCost(l)); return; }
-    if(st.enc==null){ push('new',l.day); push('r1',l.day+G1()); push('r2',l.day+G2()); }
+    if(st.enc==null){
+      push('new',l.day);
+      if(!st.r[1]) push('r1',l.day+G1());
+      if(!st.r[2]) push('r2',l.day+G2());
+    }
     else {
       if(!st.r[1]){ push('r1',st.enc+G1()); if(!st.r[2]) push('r2',st.enc+G2()); }
       else if(!st.r[2]){ push('r2',st.enc+G2()); }
@@ -2160,7 +2172,7 @@ function ensureTodayLock(){
       const lec=byId(lecId);
       if(!lec) return;
       let original;
-      if(type==='new') original = lec.day;
+      if(type==='new' || type==='assign') original = lec.day;
       else if(type==='r1') original = st.enc!=null ? st.enc+G1() : null;
       else original = st.enc!=null ? st.enc+G2() : null;
       S.todayLock.items.push({type, lecId, original, pulled:true});
@@ -2188,7 +2200,7 @@ function ensureTodayLock(){
     const l=byId(lecId), st=S.lec[lecId];
     if(!l || !st || st.excluded) return;
     let original;
-    if(type==='new') original=l.day;
+    if(type==='new' || type==='assign') original=l.day;
     else if(type==='r1') original = st.enc!=null ? st.enc+G1() : l.day+G1();
     else original = st.enc!=null ? st.enc+G2() : l.day+G2();
     pinned.push({type, lecId, original, pulled:true});
@@ -2352,7 +2364,7 @@ function savePromptAsDefault(id, text, fallback){
 
 /* ===== 파생 쿼리 (SCHEDULE 기반) ===== */
 function slots(l){
-  const st=S.lec[l.id]; if(st.enc==null) return [];
+  const st=S.lec[l.id];
   const bl = SCHEDULE.byLecture[l.id] || {r1:null,r2:null};
   return [1,2].map(k=>{
     const type = k===1?'r1':'r2';
@@ -2360,9 +2372,14 @@ function slots(l){
   });
 }
 function preQueue(){
-  return activeLectures().filter(l=> l.type!=='과제' && S.lec[l.id].enc==null && SCHEDULE.byLecture[l.id].new!==S.cur)
+  return activeLectures().filter(l=>{
+    const type=l.type==='과제'?'assign':'new';
+    const planned=SCHEDULE.byLecture[l.id][type];
+    return S.lec[l.id].enc==null && planned!==S.cur;
+  })
     .sort((a,b)=>{
-      const da=SCHEDULE.byLecture[a.id].new, db=SCHEDULE.byLecture[b.id].new;
+      const da=SCHEDULE.byLecture[a.id][a.type==='과제'?'assign':'new'];
+      const db=SCHEDULE.byLecture[b.id][b.type==='과제'?'assign':'new'];
       if(da==null && db!=null) return 1;
       if(db==null && da!=null) return -1;
       return lecSeq(a)-lecSeq(b); // 미리 할 신규도 강의 번호 순서
@@ -2713,7 +2730,9 @@ function countUp(node, from, to, dur){
    실제 상태는 건드리지 않는 시뮬레이션이라 매번 새로 계산해도 안전하다. */
 function encCard(l){
   const bl = SCHEDULE.byLecture[l.id];
-  const plannedDay = bl ? bl.new : null;
+  const isAssign=l.type==='과제';
+  const type=isAssign?'assign':'new';
+  const plannedDay = bl ? bl[type] : null;
   const d = dInfo(l.day);
   const isToday = plannedDay===S.cur;
   let badge='', leftColor='var(--line)';
@@ -2729,23 +2748,30 @@ function encCard(l){
       ${badge}
     </div>
     <div class="t">${esc(l.title)}</div>
-    <div class="m">${esc(l.prof)} · ${d.date}(${d.dow})</div>
+    <div class="m">${isAssign?`과제 · 기한 Day${l.day} (${d.date}) · 크레딧 ${l.credit||1}`:`${esc(l.prof)} · ${d.date}(${d.dow})`}</div>
     <button class="go amber compact pull">오늘로 당기기</button>
-    <button class="go compact">인코딩 완료</button>
+    <button class="go compact">${isAssign?'과제 완료':'인코딩 완료'}</button>
   </div>`);
   c.querySelector('.pull').onclick=()=>{
     if(!S.pulledReviews) S.pulledReviews={};
-    S.pulledReviews[l.id+':new']=S.cur;
+    S.pulledReviews[l.id+':'+type]=S.cur;
     ensureTodayLock();
-    const alreadyLocked=S.todayLock.items.some(it=>it.lecId===l.id && it.type==='new');
+    const alreadyLocked=S.todayLock.items.some(it=>it.lecId===l.id && it.type===type);
     if(!alreadyLocked){
-      const original=SCHEDULE.byLecture[l.id] ? SCHEDULE.byLecture[l.id].new : null;
-      S.todayLock.items.push({type:'new', lecId:l.id, original, pulled:true});
+      const original=SCHEDULE.byLecture[l.id] ? SCHEDULE.byLecture[l.id][type] : null;
+      S.todayLock.items.push({type, lecId:l.id, original, pulled:true});
     }
     saveApp(); render();
     showToast('오늘 목록으로 옮겼습니다.', {undo:true});
   };
-  c.querySelector('.go:not(.pull)').onclick=()=>{ S.lec[l.id].enc=S.cur; saveApp(); render(); toastUndo('신규 학습을 완료로 표시했습니다.'); };
+  c.querySelector('.go:not(.pull)').onclick=()=>{
+    if(!S.pulledReviews) S.pulledReviews={};
+    S.pulledReviews[l.id+':'+type]=S.cur;
+    ensureTodayLock();
+    S.lec[l.id].enc=S.cur;
+    saveApp(); render();
+    toastUndo(isAssign?'과제를 완료로 표시했습니다.':'신규 학습을 완료로 표시했습니다.');
+  };
   return c;
 }
 function reviewPreviewCard(o){
@@ -2778,6 +2804,12 @@ function bindPreviewDetailMotion(){
     const summary=detail.querySelector('summary');
     const panel=detail.querySelector('.panel');
     if(!summary || !panel) return;
+    panel.addEventListener('animationend', e=>{
+      if(e.target===panel && e.animationName==='previewBoxInMeasured' && detail.open){
+        detail.classList.remove('motion-open');
+        panel.style.removeProperty('--preview-height');
+      }
+    });
     summary.addEventListener('click', e=>{
       e.preventDefault();
       const cards=[...panel.querySelectorAll('.card')];
@@ -2785,17 +2817,26 @@ function bindPreviewDetailMotion(){
       clearTimeout(detail.closeTimer);
       if(opening){
         detail.open=true;
+        panel.style.setProperty('--preview-height',`${panel.scrollHeight}px`);
         detail.classList.remove('motion-closing');
         detail.classList.add('motion-open');
-        cards.forEach((card,i)=>{ card.style.animationDelay=`${i*35}ms`; });
+        cards.forEach((card,i)=>{
+          card.style.animation=`flowStepIn 300ms var(--ease) both`;
+          card.style.animationDelay=foldStaggerDelay(i,cards.length,35,false);
+        });
       }else{
+        panel.style.setProperty('--preview-height',`${panel.scrollHeight}px`);
         detail.classList.remove('motion-open');
         detail.classList.add('motion-closing');
-        cards.forEach((card,i)=>{ card.style.animationDelay=`${(cards.length-1-i)*35}ms`; });
+        cards.forEach((card,i)=>{
+          card.style.animation='';
+          card.style.animationDelay=foldStaggerDelay(i,cards.length,35,true);
+        });
         detail.closeTimer=setTimeout(()=>{
           detail.open=false;
           detail.classList.remove('motion-closing');
-        },280+cards.length*35);
+          panel.style.removeProperty('--preview-height');
+        },280+FOLD_STAGGER_MAX);
       }
     });
   });
@@ -2862,8 +2903,8 @@ function flowCard(type, l, isPulled){
       clearTimeout(pick.closeTimer);
       pick.classList.remove('open','opening');
       pick.classList.add('closing');
-      [...pick.children].forEach((r,i)=>{ r.style.animationDelay=`${(pick.children.length-1-i)*40}ms`; });
-      pick.closeTimer=setTimeout(()=>{ pick.style.display='none'; pick.classList.remove('closing'); }, 280+pick.children.length*40);
+      [...pick.children].forEach((r,i)=>{ r.style.animationDelay=foldStaggerDelay(i,pick.children.length,40,true); });
+      pick.closeTimer=setTimeout(()=>{ pick.style.display='none'; pick.classList.remove('closing'); }, 280+FOLD_STAGGER_MAX);
     };
     promptBtn.onclick=e=>{
       e.stopPropagation();
@@ -2873,8 +2914,8 @@ function flowCard(type, l, isPulled){
       pick.style.display='block';
       pick.classList.remove('closing');
       pick.classList.add('open','opening');
-      [...pick.children].forEach((r,i)=>{ r.style.animationDelay=`${i*40}ms`; });
-      setTimeout(()=>pick.classList.remove('opening'), 330);
+      [...pick.children].forEach((r,i)=>{ r.style.animationDelay=foldStaggerDelay(i,pick.children.length,40,false); });
+      setTimeout(()=>pick.classList.remove('opening'), 300+FOLD_STAGGER_MAX);
     };
   }
   if(steps.length){
@@ -3142,15 +3183,15 @@ function bindOnboardMotion(onboard){
       onboard.open=true;
       onboard.classList.remove('motion-closing');
       onboard.classList.add('motion-open');
-      rows.forEach((row,i)=>{ row.style.animationDelay=`${i*35}ms`; });
+      rows.forEach((row,i)=>{ row.style.animationDelay=foldStaggerDelay(i,rows.length,35,false); });
     }else{
       onboard.classList.remove('motion-open');
       onboard.classList.add('motion-closing');
-      rows.forEach((row,i)=>{ row.style.animationDelay=`${(rows.length-1-i)*35}ms`; });
+      rows.forEach((row,i)=>{ row.style.animationDelay=foldStaggerDelay(i,rows.length,35,true); });
       onboard.closeTimer=setTimeout(()=>{
         onboard.open=false;
         onboard.classList.remove('motion-closing');
-      }, 280+rows.length*35);
+      }, 280+FOLD_STAGGER_MAX);
     }
   });
 }
@@ -3307,7 +3348,7 @@ function renderToday(){
 
   const pq=preQueue(); const pbox=document.getElementById('preQ'); pbox.innerHTML='';
   pbox.appendChild(el('<p class="hint"></p>'));
-  pq.length? pq.forEach(l=>pbox.appendChild(encCard(l))) : pbox.appendChild(el('<div class="empty">아직 안 배운 강의 없음</div>'));
+  pq.length? pq.forEach(l=>pbox.appendChild(encCard(l))) : pbox.appendChild(el('<div class="empty">미리 할 강의나 과제 없음</div>'));
 
   const prq=previewReviewQueue(); const prbox=document.getElementById('preRQ'); prbox.innerHTML='';
   prbox.appendChild(el('<p class="hint"></p>'));
@@ -3319,19 +3360,7 @@ function slotChip(l, slot){
   const cls = slot.done ? 'done' : (slot.due==null ? 'na' : (slot.due===S.cur ? 'due' : 'inactive'));
   const label = slot.key;
   const title = `${slot.key}차: ${STAGE_DESC[slot.key].desc}` + (slot.due!=null? ` (예정 Day${slot.due})` : (slot.done? '' : ' — 남은 기간 안에 배정하지 못했습니다.'));
-  const clickable = S.lec[l.id].enc!=null && (slot.done || slot.due===S.cur);
-  if(clickable){
-    const b = el(`<button class="${cls}" title="${title}">${label}</button>`);
-    b.onclick=()=>{
-      const nv = !S.lec[l.id].r[slot.key];
-      S.lec[l.id].r[slot.key] = nv;
-      if(!S.lec[l.id].rDay) S.lec[l.id].rDay={1:null,2:null};
-      S.lec[l.id].rDay[slot.key] = nv ? S.cur : null;
-      saveApp(); render();
-    };
-    return `<div class="chip">${b.outerHTML}<span class="lbl">${slot.key}</span></div>`;
-  }
-  return `<div class="chip"><span class="sq ${S.lec[l.id].enc==null?'inactive':cls}" title="${title}"></span><span class="lbl">${slot.key}</span></div>`;
+  return `<div class="chip"><button type="button" class="review-complete-btn ${cls}" data-stage="${label}" title="${esc(title)}">${label}</button><span class="lbl">${label}</span></div>`;
 }
 /* ===== 학습 계획 탭: 오늘부터 시험일까지 일별 계획 ===== */
 /* 단계별 크레딧 값은 설정 패널에서 바꾼다. 학습 계획 탭에는 현재 값만 보여준다. */
@@ -3581,7 +3610,8 @@ function renderPlan(){
 }
 function stage0Chip(l){
   const enc = S.lec[l.id].enc!=null;
-  return `<div class="chip"><span class="sq ${enc?'done-static':'inactive'}" title="신규: ${STAGE_DESC[0].desc}" style="${enc?'background:var(--done);color:var(--on-accent)':''}"></span><span class="lbl">신</span></div>`;
+  const title=enc?`신규 완료 (Day${S.lec[l.id].enc}) · 완료 취소`:'신규 학습 완료로 표시';
+  return `<div class="chip"><button type="button" class="new-complete-btn ${enc?'done':'due'}" title="${title}" aria-label="${title}">신</button><span class="lbl">신</span></div>`;
 }
 function buildRow(l, st){
   const excluded = !!st.excluded;
@@ -3589,8 +3619,7 @@ function buildRow(l, st){
   const ss = slots(l);
   let chipsHtml='';
   if(excluded){ chipsHtml=''; }
-  else if(enc){ chipsHtml = `<div class="chips">${stage0Chip(l)}${ss.map(s=>slotChip(l,s)).join('')}</div>`; }
-  else { chipsHtml = `<div class="chips">${['신',1,2].map(k=>`<div class="chip"><span class="sq inactive"></span><span class="lbl">${k}</span></div>`).join('')}</div>`; }
+  else { chipsHtml = `<div class="chips">${stage0Chip(l)}${ss.map(s=>slotChip(l,s)).join('')}</div>`; }
 
   const row = el(`<div class="row" style="${excluded?'opacity:.45':''}">
     <div class="rt"><div class="rn">${excluded?'<s>':''}${l.type==='실습'?'<span class="badge lab" style="margin-right:4px">실습</span>':''}${esc(l.code)}. ${esc(l.title)}${excluded?'</s>':''}</div><div class="rp">${ttValidPeriod(l)?`${ttSpan(l)>1?`${l.period}~${ttCover(l.period,ttSpan(l)).slice(-1)[0]}교시`:periodLabel(l.period)} · `:'교시 미정 · '}${esc(l.prof)}${excluded?' · 시험범위 제외됨':''}</div></div>
@@ -3603,6 +3632,29 @@ function buildRow(l, st){
   </div>`);
 
   if(!excluded){
+    const newBtn=row.querySelector('.new-complete-btn');
+    if(newBtn) newBtn.onclick=()=>{
+      if(st.enc!=null){
+        askConfirm(`"${l.title}" 인코딩을 취소하시겠습니까?`, '해당 강의의 복습 진도도 함께 초기화됩니다.', ()=>{
+          st.enc=null; st.r={1:false,2:false}; st.rDay={1:null,2:null}; S.todayLock=null; saveApp(); render();
+          toastUndo('인코딩을 취소했습니다.');
+        }, '취소하기');
+      }else{
+        st.enc=S.cur; S.todayLock=null; saveApp(); render();
+        toastUndo('신규 학습을 완료로 표시했습니다.');
+      }
+    };
+    row.querySelectorAll('.review-complete-btn').forEach(btn=>{
+      btn.onclick=()=>{
+        const key=Number(btn.dataset.stage);
+        const done=!!st.r[key];
+        st.r[key]=!done;
+        if(!st.rDay) st.rDay={1:null,2:null};
+        st.rDay[key]=done?null:S.cur;
+        S.todayLock=null; saveApp(); render();
+        if(!done) toastUndo(`${l.code} ${key}차 복습을 완료로 표시했습니다.`);
+      };
+    });
     const undoBtn = row.querySelector('.undo-enc');
     if(undoBtn) undoBtn.onclick=()=> askConfirm(`"${l.title}" 인코딩을 취소하시겠습니까?`, '해당 강의의 복습 진도도 함께 초기화됩니다.', ()=>{
       st.enc=null; st.r={1:false,2:false}; st.rDay={1:null,2:null}; saveApp(); render();
@@ -4093,13 +4145,18 @@ function renderPrompts(){
   const preview=instructionCard.querySelector('.instruction-preview');
   const refreshPreview=()=>{ preview.textContent=customInstructions(); };
   const instrToggle=instructionCard.querySelector('.instruction-toggle');
-  body.style.display = body.classList.contains('on') ? 'block' : 'none';
+  if(instructionBodyOpen) refreshPreview();
+  body.classList.toggle('on',instructionBodyOpen);
+  body.style.display = instructionBodyOpen ? 'block' : 'none';
+  instrToggle.textContent=instructionBodyOpen?'지침 닫기':'지침 열기';
   instrToggle.onclick=()=>{
-    const open=body.classList.contains('on');
+    const open=instructionBodyOpen;
     if(open){
+      instructionBodyOpen=false;
       instrToggle.textContent='지침 열기';
       foldClose(body, ()=>body.classList.remove('on'));
     }else{
+      instructionBodyOpen=true;
       body.classList.add('on');
       instrToggle.textContent='지침 닫기';
       refreshPreview();
