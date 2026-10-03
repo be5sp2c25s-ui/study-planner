@@ -1436,6 +1436,19 @@ function startRealtimeSync(){
       if(!latest || !Array.isArray(latest.blocks)) return;
       if(typeof latest.rev==='number' && typeof App.rev==='number' && latest.rev<=App.rev) return; // 방금 한 로컬 조작보다 오래된 에코 — 무시
       if(JSON.stringify(latest)===JSON.stringify(App)) return;
+      /* 글을 쓰는 중에는 화면을 다시 그리지 않는다 — render()가 입력칸을 새로 만들어
+         커서·포커스가 튕기기 때문. 다른 기기(포모도로 초과 집중 등)가 30초마다 저장해도
+         입력이 끊기지 않게, 이번 스냅샷은 건너뛰고 rev만 따라잡아 내 다음 저장이
+         "더 최신"으로 인정되게 한다. 포커스가 빠지면 최신 상태를 한 번 가져온다. */
+      const ae=document.activeElement;
+      if(ae && ae.matches('input,textarea,[contenteditable="true"]') && !ae.closest('.mask')){
+        App.rev=Math.max(App.rev||0, latest.rev||0);
+        if(!startRealtimeSync._pending){
+          startRealtimeSync._pending=true;
+          ae.addEventListener('blur',()=>{ startRealtimeSync._pending=false; refreshApp(); },{once:true});
+        }
+        return;
+      }
       App=normalizeApp(latest);
       const active=App.blocks.find(b=>b.id===App.active) || App.blocks[0];
       if(active) activateBlock(active.id);
