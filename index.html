@@ -430,9 +430,9 @@
   .flowobs:hover{background:var(--point-soft)}
   .flowgrip{cursor:grab;color:var(--faint);font-size:13px;line-height:1;padding:2px 0;user-select:none;flex-shrink:0;letter-spacing:-2px}
   .flowgrip:hover{color:var(--ink)}
-  .flowitem.dragging{opacity:.45}
-  .flowitem.drop-before{box-shadow:0 -3px 0 0 var(--ink), var(--sh-1)}
-  .flowitem.drop-after{box-shadow:0 3px 0 0 var(--ink), var(--sh-1)}
+  .flowitem.dragging,.pcard.pdrag.dragging{opacity:.45}
+  .flowitem.drop-before,.pcard.pdrag.drop-before{box-shadow:0 -3px 0 0 var(--ink), var(--sh-1)}
+  .flowitem.drop-after,.pcard.pdrag.drop-after{box-shadow:0 3px 0 0 var(--ink), var(--sh-1)}
   .deferred-note{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:10.5px;font-weight:700;color:var(--muted);padding:2px 4px}
   .deferred-chip{border:1px dashed var(--line);background:var(--surface);color:var(--muted);border-radius:8px;padding:3px 8px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:var(--sans)}
   .deferred-chip:hover{color:var(--ink);border-color:var(--ink)}
@@ -706,6 +706,7 @@
   .histpct.none{color:var(--faint);font-size:10.5px;font-weight:700}
   .histnote{font-size:9.5px;font-weight:700;color:var(--faint);grid-column:1/-1}
   .planstrip .plancell.missed{opacity:.55}
+  .planstrip .plancell.waiting{opacity:.6;text-decoration:underline dotted}
 
   /* ===== 상단 줄 · 설정 버튼 ===== */
   .topbar{display:flex;align-items:flex-start;gap:10px;margin-bottom:14px}
@@ -1269,70 +1270,23 @@ function builtinPromptEntry(p, app){
   return {id:p.id, name:shortPromptName(p.t), cat:BUILTIN_PROMPT_CAT[p.id]||'none', when:p.w,
           text:(app && (pick(app.promptOverrides) || pick(app.promptDefaults))) || p.x};
 }
-/* 콘텐츠 버전 3: 기본 프롬프트를 Ⓐ~Ⓓ로, Custom instructions를 새 지침으로 한 번 교체한다.
-   직접 추가한 프롬프트는 그대로 두고, 예전 기본 프롬프트(p1~p5)와 지침 수정본만 새것으로 바꾼다. */
-const CONTENT_VERSION=8;
-const OLD_BUILTIN_IDS=['p1','p2','p3','p4','p5','pa','pb','pc','pd'];
+/* 콘텐츠 버전 9: 공부 흐름을 사용설명서대로(Claude Code + 옵시디언) 바꾼다. 예전 기본 프롬프트(블록 시작·
+   시험 회고·필기 비교 등)는 지우고, 기본 프롬프트는 새 문구·새 순서로, 지침·상세 체크리스트는 새 흐름
+   기본값으로 되돌린다. 직접 추가한 프롬프트는 그대로 맨 뒤에 남긴다(이름 앞 Ⓐ~Ⓜ 기호만 뗀다). */
+const CONTENT_VERSION=9;
+const OLD_BUILTIN_IDS=['p1','p2','p3','p4','p5','pa','pd','pf','pm'];
 function migrateBuiltinPrompts(app){
   if((app.contentVersion||0) >= CONTENT_VERSION) return;
-  if((app.contentVersion||0) < 3){
-    const mine=app.customPrompts.filter(cp=>cp && !OLD_BUILTIN_IDS.includes(cp.id) && cp.id!=='pe');
-    app.customPrompts=PROMPTS().map(p=>builtinPromptEntry(p, null)).concat(mine);
-    OLD_BUILTIN_IDS.forEach(id=>{ delete app.promptOverrides[id]; delete app.promptDefaults[id]; });
-    app.customInstructionOverride='';
-    app.customInstructionDefault='';
-    app.promptsUnified=true;
-  }
-  /* 버전 4: 교수 정보 칸·챕터 요약 박스·전날 요약본 규칙 추가, Ⓔ 전날 요약본 프롬프트 추가.
-     직접 고쳐 둔 지침은 지우지 않고 해당 줄만 고쳐 끼운다. */
-  app.customInstructionOverride=patchInstructionV4(app.customInstructionOverride);
-  app.customInstructionDefault=patchInstructionV4(app.customInstructionDefault);
-  if(!app.customPrompts.some(cp=>cp && cp.id==='pe')){
-    const pe=PROMPTS().find(p=>p.id==='pe');
-    if(pe) app.customPrompts.push(builtinPromptEntry(pe, null));
-  }
-  /* 버전 5: 압축정리본·Anki 관련 내용 전부 삭제(0단계, 매일 Anki 복습, 2차 복습의 Anki 제작 등).
-     직접 고쳐 둔 지침도 해당 문구만 찾아서 지운다. Ⓐ 블록 시작 프롬프트도 안 고쳐 뒀다면 새 문구로 바꾼다. */
-  app.customInstructionOverride=patchInstructionV5(app.customInstructionOverride);
-  app.customInstructionDefault=patchInstructionV5(app.customInstructionDefault);
-  const pa=app.customPrompts.find(cp=>cp && cp.id==='pa');
-  if(pa && pa.text===OLD_PA_TEXT) pa.text=NEW_PA_TEXT;
-  /* 버전 6: 재구성·앵커·역인출 원칙(41~49)을 지침에 추가하고, Ⓕ~Ⓚ 프롬프트(작년 필기 인코딩·
-     예습 인출·강의록 보완·족보 노트·족보 분석·앵커 인출 훈련)를 한 번만 넣는다. */
-  if((app.contentVersion||0) < 6){
-    app.customInstructionOverride=patchInstructionV6(app.customInstructionOverride);
-    app.customInstructionDefault=patchInstructionV6(app.customInstructionDefault);
-    PROMPTS().filter(p=>['pf','pg','ph','pi','pj','pk'].includes(p.id)).forEach(p=>{
-      if(!app.customPrompts.some(cp=>cp && cp.id===p.id)) app.customPrompts.push(builtinPromptEntry(p, null));
-    });
-  }
-  /* 버전 7: 정리본이 옵시디언 노트로 바뀜 — 지침에 노트 형식·예상 기출문제·족보 노트 규격 추가,
-     안 고친 기본 프롬프트는 새 문구로, Ⓛ 예상 기출문제·Ⓜ 시험 회고 추가, Ⓕ(작년 필기만으로 인코딩)는 삭제. */
-  if((app.contentVersion||0) < 7){
-    app.customInstructionOverride=patchInstructionV7(app.customInstructionOverride);
-    app.customInstructionDefault=patchInstructionV7(app.customInstructionDefault);
-    app.customPrompts=app.customPrompts.filter(cp=>!(cp && cp.id==='pf' && cp.text===PF_TEXT_V6));
-    const fresh=PROMPTS();
-    app.customPrompts.forEach(cp=>{
-      const olds=cp && PROMPT_V7_OLD[cp.id];
-      if(!olds || !olds.includes(cp.text)) return;
-      const p=fresh.find(x=>x.id===cp.id); if(!p) return;
-      cp.text=p.x; cp.name=shortPromptName(p.t); cp.when=p.w;
-    });
-    ['pl','pm'].forEach(id=>{
-      if(app.customPrompts.some(cp=>cp && cp.id===id)) return;
-      const entry=builtinPromptEntry(fresh.find(x=>x.id===id), null);
-      const at=id==='pl' ? app.customPrompts.findIndex(cp=>cp && cp.id==='pb') : -1;
-      if(at>=0) app.customPrompts.splice(at+1, 0, entry); else app.customPrompts.push(entry);
-    });
-  }
-  /* 버전 8: Vault 하위 폴더 이름을 실제 Vault에 맞춤 — 01 강의 → 정리본, 02 족보 → 족보, 03 분석 → 분석 */
-  if((app.contentVersion||0) < 8){
-    const fix=t=> typeof t==='string' ? t.replaceAll('01 강의','정리본').replaceAll('02 족보','족보').replaceAll('03 분석','분석') : t;
-    app.customInstructionOverride=fix(app.customInstructionOverride);
-    app.customInstructionDefault=fix(app.customInstructionDefault);
-    app.customPrompts.forEach(cp=>{ if(cp) cp.text=fix(cp.text); });
-  }
+  const fresh=PROMPTS();
+  const fixFolders=t=> typeof t==='string' ? t.replaceAll('01 강의','정리본').replaceAll('02 족보','족보').replaceAll('03 분석','분석') : t;
+  const mine=app.customPrompts.filter(cp=>cp && !OLD_BUILTIN_IDS.includes(cp.id) && !fresh.some(p=>p.id===cp.id));
+  mine.forEach(cp=>{ cp.name=String(cp.name||'').replace(/^[Ⓐ-Ⓩ]\s*/,''); cp.text=fixFolders(cp.text); });
+  app.customPrompts=fresh.map(p=>builtinPromptEntry(p, null)).concat(mine);
+  [...OLD_BUILTIN_IDS, ...fresh.map(p=>p.id), 'profReview'].forEach(id=>{ delete app.promptOverrides[id]; delete app.promptDefaults[id]; });
+  app.customInstructionOverride=''; app.customInstructionDefault='';
+  app.subSteps={};
+  delete app.onboardSteps; delete app.examEveSteps; delete app.examEveD2Steps; delete app.examEveD3Steps;
+  app.promptsUnified=true;
   app.contentVersion=CONTENT_VERSION;
 }
 function normalizeApp(app){
@@ -1567,21 +1521,21 @@ const BLOCK_EMOJIS = [
 ];
 
 /* ===== 3단계 체크리스트 정의 =====
-   신규(당일): 필기본 업로드→Claude 인출→정리본(PDF) 생성. 이미지 삽입·레이아웃은 직접.
-   1차(D+1 오전, 오프라인): 족보 풀이+해설, 정리본에 굵게 표시. Claude 개입 없음.
-   2차(D+3, 마지막): 정리본 형광펜 표시→업로드→반복 복습으로 전환. */
+   신규(당일): 강의록 → Claude Code가 옵시디언 정리본 노트 작성 → 내가 1회독 → 예상 기출문제.
+   1차(D+1): 족보를 직접 풀고(인출), 틀린 건 Claude Code가 오답 태그·정리본 보강, 앵커 인출 훈련 → 카드.
+   2차(D+3): 카드 복습 + 정리본을 덮고 백지 인출 + 오답 족보 다시 풀기. */
 const STAGE_DESC = [
-  {name:'신규', desc:'필기본 업로드 → Claude 인출 → 정리본(PDF) 생성 (이미지·레이아웃은 직접)'},
-  {name:'1차 복습', desc:'족보+해설 풀이 → 정리본에 굵게 표시 (직접 진행, Claude 개입 없음)'},
-  {name:'2차 복습', desc:'정리본 형광펜 표시 → 업로드 → 반복 복습으로 전환'},
+  {name:'신규', desc:'강의록 → Claude Code 정리본 노트 → 1회독 → 예상 기출문제'},
+  {name:'1차 복습', desc:'족보 풀이 → 오답 정리 → 앵커 인출 훈련 (카드 만들기)'},
+  {name:'2차 복습', desc:'카드 복습 → 백지 인출 점검 → 오답 족보 다시 풀기'},
 ];
 /* 각 단계 실제 작업 순서 — 메인 리스트에서 항목별로 펼쳐 보여주는 체크리스트.
    여기 체크는 순전히 개인 트래킹용이라 알고리즘(enc/r)에는 영향 없음. */
 const SUB_STEPS = {
-  new: ['필기 주석 flatten','인출 & 문제 풀이','정리본 제작(사진, 그림, 암기법)'],
-  r1: ['족보 해설에 2025년 족보 추가','2025 족보 해설 옮기기','족보 풀이','족보 오답','족보 해설 보완', '정리본에 출제 요소 표시'],
-  r2: ['정리본 1회독 (Highlights)','헷갈리는 부분 다시 확인'],
-  sup: ['정리본 먼저 읽기','올해 강의록 필기 보며 정리본 보완','족보 해설 갱신 (근거 없는 선지 표시)','요약 박스 갱신'],
+  new: ['강의록(+작년 필기) PDF를 블록 자료 폴더에 저장','인코딩 프롬프트 → Claude Code (목차 확인 후 정리본 노트 생성)','정리본 1회독 — 그림 붙여넣기, 궁금한 건 메모','예상 기출문제 풀이 → 채점 · 정리본에 넣을 것 반영'],
+  r1: ['정리본을 열기 전, 개요(챕터 제목)만 보고 핵심 떠올리기 (2~3분)','이 강의 족보 노트 풀기 → 정답 펼쳐 선지별 해설 확인','틀린 문항 → 족보 오답 정리 프롬프트 (오답 태그 · 정리본 보강)','앵커 인출 훈련 → 카드를 정리본 ## 카드에'],
+  r2: ['이 강의 카드 복습 (Spaced Repetition)','백지 인출 점검 프롬프트 — 정리본 덮고 챕터별로 말하기','오답 태그 족보 다시 풀기','막힌 챕터만 요약 → 본문 회독'],
+  sup: ['정리본 먼저 읽기','강의록 보완 프롬프트 → 달라진 점·수정안 확인 → 반영','바뀐 부분 다시 읽기'],
 };
 /* 프롬프트 탭에서 직접 고친 체크리스트가 있으면 그걸 쓰고, 없으면 위 기본값을 쓴다.
    체크 기록(subCheck)은 배열 인덱스로 저장되므로, 항목 순서를 바꾸면 체크 위치도 함께 밀린다. */
@@ -1715,53 +1669,40 @@ function hideEditBox(view, viewActions, editInput, editActions){
 }
 /* ===== 새 블록 온보딩 체크리스트 ===== */
 
-const PROF_REVIEW_PROMPT_TEMPLATE = String.raw`[선배 후기 첨부]
-업로드한 엑셀은 [과목명] 선배들의 후기야.
-이 후기를 바탕으로 아래 두 가지 산출물을 각각 만들어줘.
-1) [행동 규칙] Custom Instructions용 텍스트
-   - 형식: 붙여넣기 쉬운 코드블록, 800~1500자 이내
-   - 내용: "내가 강의자료/필기를 넣고 설명·인출을 요청할 때 네가 지켜야 할 규칙"만 담아줘.
-     예) 강조·별표만 다루면 되는지 / 세부·예외·수치까지 다뤄야 하는지 /
-         개념 흐름 위주인지 / 지엽 선지 감별까지 필요한지 /
-         족보를 못 믿을 사정이 있는지 / 시간을 많이 써야 할 파트 vs 빠르게 넘어갈 파트
-   - 교수/파트별로 "설명 깊이 + 인출 방향 + 주의점"을 한두 문장씩 압축해서 써줘.
-   - 여기에는 구체적 사실·수치·팁은 넣지 마. (2번 파일로 분리)
-2) [사실 정보] 참고자료 파일 (.md)
-   - Custom Instructions에서 뺀 구체적인 내용을 전부 담아줘:
-     시험 형식/문항 수/시간 배정, 자료 위치(안키·드라이브 등),
-     출제 이력이 있는 구체적 사례·수치·계산법, 실습/땡시 요령,
-     교수별 특이 에피소드나 힌트 등.
-   - 후기에 나온 내용은 절대 누락하지 말고 전부 반영해줘 (요약해서 빼지 말 것).
-   - 파일로 만들어서 다운로드할 수 있게 해줘.
-공통 규칙:
-- 후기 근거가 1명뿐이거나 서로 충돌하면 "확실하지 않음"이라고 표시해.
-- 엑셀에 없는 내용은 추측해서 만들지 마.
-- 다 만든 후에, 내가 "이거 다 담은 거 맞아?"라고 물어보면 스스로 누락된 항목이 있는지 점검하고 알려줘.
+const PROF_REVIEW_PROMPT_TEMPLATE = String.raw`[읽을 파일: {블록폴더}/자료/ 에 넣은 교수 후기 엑셀 — 파일 이름을 여기에]
+이 엑셀은 [과목명] 교수님 후기(친구·동아리 선배가 정리한 것)야. 이걸로 이 블록의 학습 전략을 만들어줘.
+1) 학습 전략 — 스터디플래너 '학습 전략' 칸에 그대로 붙여넣을 코드블록 하나, 800~1500자
+   - 내가 정리본을 만들고 예상 기출문제를 풀 때 네가 지켜야 할 규칙만: 교수/파트별 "설명 깊이 + 출제 방향 + 주의점"을 한두 문장씩
+     예) 강조·별표만 다루면 되는지 / 세부·예외·수치까지 필요한지 / 개념 흐름 위주인지 / 지엽 선지 감별까지 필요한지 /
+         짤족·탈족 / 족보를 못 믿을 사정이 있는지 / 시간을 많이 쓸 파트 vs 빠르게 넘길 파트
+   - 구체적인 사실·수치·에피소드는 넣지 마 (2번으로)
+2) 사실 정보 — '{블록폴더}/분석/교수 후기 정리.md' 노트
+   - 1번에서 뺀 구체적인 내용 전부: 시험 형식·문항 수·시간 배정, 출제 이력이 있는 사례·수치·계산법, 실습·땡시 요령, 교수별 특이 에피소드·힌트
+   - 후기에 나온 내용은 하나도 빼지 마 (요약하면서 빼지 말 것)
+공통:
+- 근거가 1명뿐이거나 후기끼리 충돌하면 "확실하지 않음" 표시. 엑셀에 없는 내용은 지어내지 마.
+- 1번을 먼저 보여주고, 2번 노트는 내가 확인한 뒤 저장해. 저장한 뒤 빠진 항목이 없는지 스스로 점검해서 알려줘.
 `;
 function profReviewPromptTemplate(){
   return promptOverrideText('profReview', PROF_REVIEW_PROMPT_TEMPLATE);
 }
+/* 블록 사전 준비 — 사용설명서 5부 '블록 시작' 순서. prompt는 복사, action은 그 자리에서 실행한다 */
+const builtinPromptText = (id, fallback)=> fillPromptVars((promptById(id)||{}).text || fallback);
 const ONBOARD_ITEMS = [
+  {key:'lectures', label:'강의 한 번에 추가 (시간표 PDF → Claude → 전체 강의 탭에 붙여넣기)', get prompt(){ return timetablePromptText(); }},
+  {key:'vaultFolder', label:'Vault에 블록 폴더 만들기 (Claude Code)', get prompt(){ return builtinPromptText('pv', PV_TEXT); }},
   {
-  key:'newProject',
-
-  get label() {
-    const subject = App.blocks.find(b => b.id === App.active)?.name || '[과목명]';
-    return `[${subject}] Project 생성`;
-  }
-},
-  {
-    key:'profReview', 
-    label:'학습 전략 Instruction 생성 및 삽입',
+    key:'profReview',
+    label:'교수 후기 엑셀을 자료 폴더에 넣고 → 학습 전략 생성',
     get prompt() {
-     const subject = App.blocks.find(b => b.id === App.active)?.name || '[과목명]';
-     return profReviewPromptTemplate().replaceAll('[과목명]', subject);
-}
-},
-  {key:'pasteInstructions', label:'Custom Instruction 붙여넣기', action:'openPrompts'},
-  {key:'uploadKnowledge', label:'Project Knowledge 업로드'},
-  {key:'jokboNotes', label:'족보 노트 만들기 (옵시디언, 해설 없이 문항만)', get prompt(){ return (promptById('pi')||{}).text || PI_TEXT; }},
-  {key:'jokboAnalysis', label:'족보 출제 패턴 분석 → 교수별 학습 전략에 반영', get prompt(){ return (promptById('pj')||{}).text || PJ_TEXT; }},
+      const subject = App.blocks.find(b => b.id === App.active)?.name || '[과목명]';
+      return fillPromptVars(profReviewPromptTemplate().replaceAll('[과목명]', subject));
+    }
+  },
+  {key:'pasteStrategy', label:'학습 전략을 프롬프트 모음 탭 \'학습 전략 붙여넣기\'에 저장', action:'openPrompts', btn:'열기'},
+  {key:'claudeMd', label:'지침을 블록 폴더 CLAUDE.md에 저장 (이후 바뀌면 자동 갱신)', action:'saveClaudeMd', btn:'저장'},
+  {key:'jokboNotes', label:'족보 노트 만들기 (해설 없이 문항만)', get prompt(){ return builtinPromptText('pi', PI_TEXT); }},
+  {key:'jokboAnalysis', label:'족보 출제 패턴 분석 → 교수별 한 줄 요약을 학습 전략에 추가', get prompt(){ return builtinPromptText('pj', PJ_TEXT); }},
 ];
 function defaultOnboardLabels(){ return ONBOARD_ITEMS.map(it=>it.label); }
 /* 라벨 문자열에서 만든 안정적인 체크 키 — 문구가 그대로면 체크 기록도 유지된다 */
@@ -1775,20 +1716,14 @@ function labelKey(label){
 function onboardItems(){
   const custom = App.onboardSteps;
   if(!Array.isArray(custom)) return ONBOARD_ITEMS;
-  return custom.map(label=>{
-    const builtin = ONBOARD_ITEMS.find(it=> it.label===label);
-    if(!builtin && /^\[[^\]]+\]\s*Project 생성$/.test(label)){
-      return ONBOARD_ITEMS.find(it=>it.key==='newProject');
-    }
-    return builtin || {key:labelKey(label), label};
-  });
+  return custom.map(label=> ONBOARD_ITEMS.find(it=> it.label===label) || {key:labelKey(label), label});
 }
 
-/* ===== 시험 전날 전용 루틴 (크레딧 분배 대상 아님) ===== */
-const EXAM_EVE_ITEMS = ['족보 전체 풀이','족보에서 많이 틀린 부분 복습','전날 요약본 1회독 (정리본 전체 X — 교수 정보·요약 박스·★만)'];
+/* ===== 시험 전 총정리 루틴 (크레딧 분배 대상 아님) ===== */
+const EXAM_EVE_ITEMS = ['전날 요약 노트로 전 강의 요약 콜아웃 1회독 (정리본 전체 X)','전체 예상 기출 · 족보에서 틀린 것만 다시','카드 복습'];
 /* 비워 둔 날이 여러 날이면 날마다 루틴이 다르다 — D-1(전날)·D-2·D-3 이전 */
-const EXAM_EVE_D2_ITEMS = ['족보 오답 다시 풀기','헷갈리는 감별·한 방에 가르는 기준 회독','예상 기출문제 틀린 것 다시 풀기'];
-const EXAM_EVE_D3_ITEMS = ['족보 전체 1회독 풀이','틀린 족보 문항 → 정리본에서 근거 확인','요약 콜아웃 + ★ 회독'];
+const EXAM_EVE_D2_ITEMS = ['전체 예상 기출문제(CBT) 프롬프트 → HTML 파일로 시험처럼 풀기','틀린 문항 → 출처 강의 정리본에서 근거 확인','헷갈리는 감별 · 한 방에 가르는 기준 회독'];
+const EXAM_EVE_D3_ITEMS = ['시험 전 요약 점검 프롬프트 → 요약 콜아웃 보강','족보 전체 1회독 풀이 (틀리면 오답 태그)','카드 복습'];
 function examEveItems(day){
   const dLeft = (day==null || !S) ? 1 : S.examDay-day;
   if(dLeft>=3){ const v=App.examEveD3Steps; return Array.isArray(v) ? v : EXAM_EVE_D3_ITEMS; }
@@ -1848,8 +1783,6 @@ function checklistSections(){
      reset: ()=>{ delete App.dailySteps; }},
   ];
 }
-/* ===== 예습(전년도 필기) vs 실제(올해 필기) 비교 ===== */
-const COMPARE_PROMPT = `[이번 연도 필기 + 기존 정리본 첨부]\n작년 필기로 인코딩한 강의야. 이번 연도 필기랑 비교해서 정리본 수정사항 뽑아줘.`;
 const CUSTOM_INSTRUCTIONS_TEMPLATE = `### 과목 설정 (블록마다 이 부분만 수정)
 - 과목명: {과목명}          ← 예: 감염의 기초 - 미생물학
 - 블록 기간: {시작일} ~ {시험일}
@@ -1859,19 +1792,25 @@ const CUSTOM_INSTRUCTIONS_TEMPLATE = `### 과목 설정 (블록마다 이 부분
 아래 모든 규칙의 {과목명}은 위 설정값으로 읽어.
 
 ### 역할
-너는 {과목명}을 전공 지식이 없는 사람도 한 번에 이해하도록 쉽고 웃기고 명쾌하게 가르치는 '세계 최고의 {과목명} 교수'야. 이 프로젝트는 {과목명} 블록(2~3주 집중 학습 후 시험 1회) 공부 전용이야. 목표는 '한 번 이해하고 끝'이 아니라 장기 기억 — 재독이 아니라 인출로 공부해.
+너는 {과목명}을 전공 지식이 없는 사람도 한 번에 이해하도록 쉽고 웃기고 명쾌하게 가르치는 '세계 최고의 {과목명} 교수'야. 이 블록 폴더는 {과목명} 블록(2~3주 집중 학습 후 시험 1회) 공부 전용이야. 나는 VS Code의 Claude Code로 옵시디언 Vault를 열고 너와 작업해 — 이 지침은 블록 폴더의 CLAUDE.md야. 목표는 '한 번 이해하고 끝'이 아니라 장기 기억 — 재독이 아니라 인출로 공부해.
 
 ### 전체 학습 흐름
 | 단계 | 시점 | 담당 | 내용 |
 |---|---|---|---|
-| 1. 신규 인코딩 | 올해 강의록이 올라온 날 | 너 | 강의록·필기 → 옵시디언 정리본 노트 + 강의록 뒤 족보 문항 해설 |
-| 1-2. 예상 기출문제 | 내가 정리본 노트를 읽고 돌아오면 | 너 | 강의별 '예상 기출' 문제 수만큼 출제·채점 |
+| 블록 시작 | 블록 첫날 | 너 | 블록 폴더 · 교수 후기로 학습 전략 · 족보 노트(해설 없이 문항만) · 족보 출제 패턴 분석 |
+| 1. 신규 인코딩 | 올해 강의록이 올라온 날 (보통 수업 전, 작년 필기와 함께) | 너 | 강의록 → 옵시디언 정리본 노트 + 강의록 뒤 족보 문항 해설 |
+| 1-2. 예상 기출문제 | 내가 정리본을 한 번 읽고 돌아오면 | 너 | 강의별 '예상 기출' 문제 수만큼 출제·채점 → 정리본 보강 |
 | 보완 | 미리 인코딩한 강의의 올해 필기가 올라온 날 | 너 | 정리본·족보 해설 보완 |
-| 2. 1차 복습 | — | 나 | 족보 풀이 (요청받기 전엔 관여 X) |
-| 3. 2차 복습 | — | 나 | 정리본 회독 |
-| 4. 시험 전 | — | 나 | 요약 콜아웃 회독 (정리본 전체 재독 X) |
-| 수시 | 요청 시 | 너 | 족보 노트·족보 분석, 작년↔올해 필기 비교, 요약 점검, 시험 회고 |
-올해 강의록이 올라오지 않은 강의는 인코딩하지 않아. 족보 풀이·채점·복습은 내가 직접 해.
+| 2. 1차 복습 | 신규 다음 날 | 나 (+요청 시 너) | 족보 풀이 → 오답 정리(오답 태그·정리본 보강) → 앵커 인출 훈련 → 카드 |
+| 3. 2차 복습 | 신규 3일 뒤 | 나 (+요청 시 너) | 카드 복습 → 백지 인출 점검 → 오답 족보 다시 풀기 |
+| 4. 시험 전 총정리 | 시험 전 비워 둔 날 | 너 + 나 | 요약 점검 · 전체 예상 기출문제(CBT HTML) · 요약 콜아웃 회독 |
+| 수시 | 요청 시 | 너 | 족보 해설, 작년↔올해 필기 비교 |
+올해 강의록이 올라오지 않은 강의는 인코딩하지 않아. 족보·문제 풀이와 회독은 내가 직접 해.
+
+### 작업 원칙 (Claude Code)
+- 노트를 새로 만들거나 고칠 때는 먼저 무엇을 할지(목차·대조표·수정 표) 보여주고, 내가 확인하면 반영해. 반영한 뒤에는 바뀐 파일 목록을 알려줘.
+- 이미 있는 노트는 필요한 부분만 고쳐. 통째로 다시 쓰지 마 — 내가 붙인 그림·메모·카드가 지워져.
+- 경로는 Vault 기준 '{과목 폴더}/정리본 · 족보 · 분석 · 자료'. 강의록·필기·엑셀은 자료 폴더에 있어.
 
 ### 설명 말투 (설명·요약·오답 재설명 전부 적용)
 1. 웃기고 재밌게: 세포·분자·병원체·약물·장기를 캐릭터처럼 의인화하고 상황극·과장·드립을 적극 써. 교과서 문체 금지 — 친한 선배가 카페에서 썰 풀듯이.
@@ -1905,7 +1844,7 @@ const CUSTOM_INSTRUCTIONS_TEMPLATE = `### 과목 설정 (블록마다 이 부분
 18. 끝나면 '정리본에 넣을 것' 목록(내가 넣어달라고 한 것 포함) → 내가 확인하면 정리본 노트에 반영.
 
 ### 수시: 족보
-19. 족보 노트는 '족보 노트 규격'대로. 블록 시작 때는 문항 노트만 만들고(해설 X), 해설은 강의 인코딩 때 그 강의록 기준으로 채워.
+19. 족보 노트는 '족보 노트 규격'대로. 블록 시작 때는 문항 노트만 만들고(해설 X), 해설은 강의 인코딩 때 그 강의록 기준으로 채워. 따로 해설을 요청하면 먼저 표(문항 | 정답 | 핵심 근거)로 보여주고, 내가 확인하면 족보 노트에 채우고 상태를 '해설 완료'로.
 20. 복원 족보라 문항·선지가 불완전해 정답 확정이 어려우면 [정답 불확실] + 이유 + 가능한 답 후보. 선배 해설과 판단이 다르면 [선배 해설과 다름] + 근거. 확신 없는 답을 확정처럼 쓰지 마.
 
 ### 수시: 작년↔올해 필기 비교 · 보완
@@ -1953,75 +1892,15 @@ const CUSTOM_INSTRUCTIONS_TEMPLATE = `### 과목 설정 (블록마다 이 부분
 46. 압축 + 무생략: 시험에 나올 수 있는 내용(수치·분류·예외·족보 출제 포인트·교수 강조)은 하나도 빼지 마. 대신 같은 말 반복, 배경 설명, 출제 가능성이 없는 참고 사항·작은 글씨는 빼거나 한 줄로 줄여. 참고 사항이 넘쳐서 핵심이 눈에 안 들어오면 실패야.
 47. 분류·암기 항목은 이유까지: "A는 X다"로 끝내지 말고 "A는 ~해서 → ~이고 → 그래서 X다". 예) 베타락탐은 농도를 올려도 살균이 더 늘지 않음 → 시간 의존적 → MIC 아래로 떨어지면 곧 다시 자람 → 그래서 PAE가 없다.
 48. 앵커 → 기억 사슬 → 역인출: 핵심 개념마다 '키워드 앵커'(문제에서 보이는 단서 단어)와 그 앵커에서 떠올려야 할 기억 사슬을 함께 써. 역방향(특징 → 개념)으로도 떠올릴 수 있게. 문제를 풀 때 실제로 쓰는 사고 회로("이 단서가 보이면 → 이걸 떠올리고 → 그래서 이 선지")를 그대로 모방해.
-49. 내 추가 요청: 내가 "이거 정리본에 넣어줘"라고 한 내용은 빠짐없이 기억해 두었다가 정리본에 반드시 넣어.`;
-const INSTR_V6_RULES = CUSTOM_INSTRUCTIONS_TEMPLATE.slice(CUSTOM_INSTRUCTIONS_TEMPLATE.indexOf('### 재구성·인출 원칙'));
-/* 콘텐츠 버전 6 — 직접 고쳐 둔 지침도 지우지 않고, 41~49가 없을 때만 끝에 덧붙인다 */
-function patchInstructionV6(t){
-  if(typeof t!=='string' || !t.trim()) return t;
-  if(!t.includes('### 재구성·인출 원칙')) t=t.replace(/\s*$/,'')+'\n\n'+INSTR_V6_RULES;
-  return t;
-}
-/* 콘텐츠 버전 7 — 옵시디언 정리본 노트·예상 기출문제·족보 노트 규격. 직접 고쳐 둔 지침은 지우지 않고
-   새 규칙 묶음을 끝에 덧붙인다(위 규칙보다 우선). 깔끔한 새 지침은 프롬프트 탭 '기본값으로'. */
-const tmplPart=(from, to)=>{ const a=CUSTOM_INSTRUCTIONS_TEMPLATE.indexOf(from), b=CUSTOM_INSTRUCTIONS_TEMPLATE.indexOf(to); return a<0 ? '' : CUSTOM_INSTRUCTIONS_TEMPLATE.slice(a, b>a ? b : undefined).trim(); };
-const INSTR_V7_BLOCK = `### v7 변경 사항 (아래 규칙이 위 규칙보다 우선 — 정리본은 PDF가 아니라 옵시디언 노트, 챕터별 미니 인출 대신 예상 기출문제)\n\n`
-  + [tmplPart('### 1단계: 신규 인코딩 (정리본 노트)', '### 수시: 작년↔올해'), tmplPart('### 옵시디언 정리본 노트 형식', '### 재구성·인출 원칙')].join('\n\n');
-function patchInstructionV7(t){
-  if(typeof t!=='string' || !t.trim()) return t;
-  if(!t.includes('### 옵시디언 정리본 노트 형식')) t=t.replace(/\s*$/,'')+'\n\n'+INSTR_V7_BLOCK;
-  return t;
-}
-/* 콘텐츠 버전 4 — 지침을 직접 고쳐 둔 경우에도 지우지 않고, 바뀐 규칙 줄만 찾아서 고쳐 끼운다.
-   (이미 고쳐진 문장은 건드리지 않으므로 여러 번 돌려도 같다) */
-const INSTR_V4_RULES = CUSTOM_INSTRUCTIONS_TEMPLATE.includes('38. 교수 정보 칸') ? CUSTOM_INSTRUCTIONS_TEMPLATE.slice(CUSTOM_INSTRUCTIONS_TEMPLATE.indexOf('38. 교수 정보 칸')) : '';
-function patchInstructionV4(t){
-  if(typeof t!=='string' || !t.trim()) return t;
-  t=t.replace('(설명·요약 체크리스트·오답 재설명 전부 적용)','(설명·요약·오답 재설명 전부 적용)')
-     .replace('정리본 PDF 규격(26~37)','정리본 PDF 규격(26~39)')
-     .replace(/14\. 챕터 순서: 설명 → 3~5줄 요약 체크리스트 → 미니 인출\./, '14. 챕터 순서: 설명 → 3~5줄 요약 → 미니 인출. 챕터가 하나 끝날 때마다 요약을 빠짐없이 넣고, 정리본 PDF에도 챕터마다 같은 요약을 박스로 넣어 (규격 39).')
-     .replace('16. 미니 인출: 요약 체크리스트 다음,','16. 미니 인출: 요약 다음,')
-     .replace('| 4. 시험 전날 | — | 나 | 압축정리본 여러 번 읽기 |','| 4. 시험 전날 | — | 나 | 압축정리본 + 전날 요약본 읽기 (정리본 전체 재독 X) |')
-     .replace('| 수시 | 요청 시 | 너 | 족보 해설 제작, 작년↔올해 필기 비교 |','| 수시 | 요청 시 | 너 | 족보 해설 제작, 작년↔올해 필기 비교, 전날 요약본 |');
-  if(!t.includes('38. 교수 정보 칸')) t=t.replace(/\s*$/,'')+'\n'+INSTR_V4_RULES;
-  return t;
-}
-/* 콘텐츠 버전 5 — 압축정리본·Anki 관련 내용을 전부 지운다. 직접 고쳐 둔 지침도 해당 문구만
-   찾아서 지우므로, 이미 지워졌거나 다르게 고친 부분은 그대로 둔다(여러 번 돌려도 같다). */
-function patchInstructionV5(t){
-  if(typeof t!=='string' || !t.trim()) return t;
-  t=t.replace(` 핵심 전략은 "큰 그림 먼저": 블록 시작에 압축정리본과 Anki로 뼈대를 세우고, 강의별 세부 지식은 그 뼈대에 걸어가는 방식이야.`, '')
-     .replace(`| 0. 블록 시작 | 블록 첫날 | 너 | 선배 정리본+족보로 압축정리본 PDF + 블록 전체 Anki(.apkg) |\n| 상시 | 블록 내내 | 나 | Anki 매일 복습 |\n`, '')
-     .replace(`\n| 상시 | 정리본 읽을 때마다 | 나 | 못 외운 내용을 압축정리본에 옮겨 적기 |`, '')
-     .replace(`| 4. 시험 전날 | — | 나 | 압축정리본 + 전날 요약본 읽기 (정리본 전체 재독 X) |`, `| 4. 시험 전날 | — | 나 | 전날 요약본 읽기 (정리본 전체 재독 X) |`)
-     .replace(`네가 관여하는 건 0단계, 1단계, 수시 작업뿐이야.`, `네가 관여하는 건 1단계, 수시 작업뿐이야.`)
-     .replace(`4. 정리본 PDF·압축정리본·Anki·족보 해설에는 드립 빼고 압축해서 써.`, `4. 정리본 PDF·족보 해설에는 드립 빼고 압축해서 써.`)
-     .replace(`### 0단계: 블록 시작 — 압축정리본 + Anki
-6. 입력: 선배 정리본 + 족보(+해설) + 강의 목록. 시작 전 압축정리본 범주 지도(대분류 → 중분류 → 소속 강의) 표를 먼저 보여주고 확인받은 뒤 압축정리본 PDF → Anki 순서로 진행해.
-7. 압축정리본 — 큰 그림 뼈대이자 시험 전날 여러 번 읽을 최종 자료.
-   - 구조 재구성: 강의 순서가 아니라 과목의 개념 범주·위계로 재배치. 첫 페이지는 블록 전체 범주 지도 1장.
-   - 최대 압축: 강의 간 겹치는 내용은 합쳐서 한 번만. 문장 대신 표·키워드·인과사슬 한 줄. 헷갈리는 항목끼리는 감별 비교표로.
-   - 선별: 족보 출제 개념 위주. 족보 문제 스타일 기준으로 "이 깊이까지 외워야 하는지"를 항목마다 판별해서, 족보가 묻지 않는 깊이의 세부는 빼. 족보 반복 출제는 ★.
-   - 출처: 항목 끝에 강의 번호 (예: (03강)) — 강의별 정리본과 대조하기 쉽게.
-   - 옮겨 적을 자리: 각 대분류 끝에 '추가 메모' 빈 칸(가로 전체, 세로 25mm, 얇은 검정 테두리).
-   - 교차검증: 선배 정리본이 족보·족보 해설과 어긋나면 해당 항목에 [확인필요] 표시하고 대화에서도 목록으로 알려줘.
-   - 형식은 정리본 PDF 규격(26~39) 그대로. 문서 첫 줄은 '{과목명} 압축정리본'.
-8. Anki
-   - 선별: 족보 빈출, 교수 강조(선배 정리본·족보 해설에 표시된 것), 선배 정리본 강조 중 겹치거나 출제 가능성 높은 것만. (암기 불필요)는 어떤 기준으로도 제외.
-   - 원자 단위: 개념 하나당 카드 하나. Basic과 Cloze를 적절히 섞어. 필요하면 Hint·Extra 사용, 암기법·비유는 뒷면에 작은 글씨.
-   - 카드 문제는 족보 출제 방식 반영. 수치·인명·연도는 기출·교수 강조가 아니면 제외. 풀네임 단답 출제 경향이면 직접 입력 카드.
-   - 태그: 강의 코드 + 출처(족보빈출/교수강조).
-   - 덱: "{과목명}::nn강. 강의제목" 하위 덱으로 나눠 하나의 .apkg로 제공. 분량이 많으면 몇 강씩 나눠 만들고 마지막에 합쳐.
+49. 내 추가 요청: 내가 "이거 정리본에 넣어줘"라고 한 내용은 빠짐없이 기억해 두었다가 정리본에 반드시 넣어.
 
-### 1단계: 신규 인코딩`, `### 1단계: 신규 인코딩`)
-     .replace(`13. 챕터 시작 시 1~2줄: 이 강의 전체 흐름 + 압축정리본 큰 그림에서 이 챕터의 위치.`, `13. 챕터 시작 시 1~2줄: 이 강의 전체 흐름.`)
-     .replace(` 강의 끝에 (암기 불필요) 내용 중 압축정리본·Anki에 이미 들어간 게 있으면 목록으로 알려줘 (내가 카드 정지·삭제).`, ``)
-     .replace(`\n   ④ 압축정리본 반영 필요: 새 교수 강조·새 족보 포인트만.`, ``)
-     .replace(`+ 압축정리본·Anki에 없는 족보 포인트 목록 제시.`, `+ 정리본에 없는 족보 포인트 목록 제시.`)
-     .replace(`### 정리본 PDF 형식 (강의별 정리본·압축정리본 공통, 고정)`, `### 정리본 PDF 형식 (고정)`);
-  return t;
-}
-const OLD_PA_TEXT = `[선배 정리본 + 족보 + 족보 해설 + 강의 목록 첨부]\n블록 시작할게. 압축정리본 범주 지도부터 보여주고 확인받은 뒤 압축정리본 PDF → Anki .apkg 순서로 만들어줘.`;
-const NEW_PA_TEXT = `[선배 정리본 + 족보 + 족보 해설 첨부]\n블록 시작할게. 커스텀 인스트럭션 참고해서 진행해줘.`;
+### 복습 도우미 (1차·2차, 요청할 때만)
+50. 족보 오답 정리: 내가 틀린 문항을 알려주면 문항마다 고른 선지가 왜 끌렸는지 + 정답으로 가는 단서 → 앵커 → 기억 사슬. 정리본이 약한 곳은 보강안 표 → 내가 확인하면 족보 노트 tags에 '오답' 추가 + 정리본 반영.
+51. 앵커 인출 훈련·백지 인출 점검: 한 번에 한 문제(한 챕터)씩, 내가 답하기 전엔 답 공개 X. 끝에 카드 목록 — Spaced Repetition 형식 '앞 :: 뒤'(역인출은 '앞 ::: 뒤'), 내가 확인하면 정리본 맨 아래 '## 카드'에.
+
+### 시험 전 총정리: 전체 예상 기출문제 (CBT)
+52. 요청하면 전 강의 정리본·족보·족보 분석을 읽고, 강의 목록의 '시험 n문항'만큼(실제 시험 문항 수·비중 그대로) 전체 예상 기출문제를 내. 출제 우선순위는 15번, 강의별 예상 기출 때 낸 문제와 똑같은 문제는 피하고 같은 개념은 다른 각도로.
+53. 결과물은 '{과목 폴더}/분석/전체 예상 기출.html' 파일 하나 — 컴퓨터 시험(CBT) 화면(NSDevil 시험 프로그램 모방): 한 화면 한 문제, 문항 번호판, 남은 시간 타이머, 제출하면 채점·문항별 해설·출처 강의. 외부 라이브러리 없이 오프라인으로 열려야 해. 먼저 강의별 문항 수 표를 보여주고 확인받은 뒤 만들어.`;
 function customInstructionsBase(){
   const v = App.customInstructionDefault;
   return (typeof v==='string' && v.trim().length) ? v : CUSTOM_INSTRUCTIONS_TEMPLATE;
@@ -2141,9 +2020,9 @@ function lecSeq(l){
   return 1e6 + l.day*1000 + (l.id%1000);
 }
 function seqOf(lecId){ return lecSeq(byId(lecId)); }
-/* 시험 전 며칠을 크레딧 분배 없이 비워 둘지 — 블록마다 설정(기본 1 = 전날만).
-   비워 둔 날 중 마지막 날(시험 전날)은 전날 루틴, 나머지는 자유롭게 쓰는 날이다. */
-function bufferDays(){ const v=S && S.plan ? S.plan.buffer : undefined; return (typeof v==='number' && v>=1) ? Math.round(v) : 1; }
+/* 시험 전 며칠을 크레딧 분배 없이 비워 둘지 — 블록마다 설정(기본 2 = 전전날·전날, 총정리).
+   비워 둔 날은 D-1·D-2·D-3 이전 루틴이 따로 뜬다(전체 예상 기출문제는 D-2). */
+function bufferDays(){ const v=S && S.plan ? S.plan.buffer : undefined; return (typeof v==='number' && v>=1) ? Math.round(v) : 2; }
 function usableDays(){ return Math.max(1, S.examDay-1-bufferDays()); } // 시험 당일 + 비워 둔 날은 분배 제외
 const DEFAULT_TYPE_COST = {new:1, r1:0.5, r2:0.25, sup:0.5};
 /* ===== 단계 완료 여부 =====
@@ -2180,7 +2059,7 @@ function deferredKeysToday(){
 /* 블록별 계획 계수 — 설정 패널에서 바꾼다. 값이 없으면 기본값을 쓴다.
    gap1/gap2 = 1차·2차 복습 간격(일), newLead = 신규 학습 우선 시점(수업 며칠 전부터),
    rampFrac/rampLoad = 초반 적응 기간 비율 / 그 기간의 목표 비율 */
-const PLAN_DEFAULTS = {gap1:1, gap2:3, newLead:1, rampFrac:0.2, rampLoad:0.7, buffer:1};
+const PLAN_DEFAULTS = {gap1:1, gap2:3, newLead:1, rampFrac:0.2, rampLoad:0.7, buffer:2};
 function planCfg(k){
   const v = S && S.plan ? S.plan[k] : undefined;
   return (typeof v==='number' && isFinite(v)) ? v : PLAN_DEFAULTS[k];
@@ -2266,8 +2145,8 @@ function blockHomeMarkdown(){
 
 ## 바로가기
 - [[족보 분석]]
+- [[교수 후기 정리]]
 - [[전날 요약]]
-- [[시험 회고]]
 
 ## 진도
 | 강의 | 교수 | 수업일 | 시험 문항 | 강의록 | 신규 | 보완 | 1차 | 2차 |
@@ -2283,6 +2162,96 @@ function downloadText(filename, text){
   a.download=filename; document.body.appendChild(a); a.click();
   setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
+/* ===== Vault에 직접 쓰기 (블록 CLAUDE.md) =====
+   Chrome·Edge의 File System Access API로 Vault 폴더를 한 번 연결해 두면, 블록 폴더(정리본·족보·분석·자료)를
+   만들고 지침을 '{블록 폴더}/CLAUDE.md'에 바로 저장한다. 연결한 폴더 정보는 이 브라우저(IndexedDB)에만 남는다.
+   한 번 저장한 블록은 지침(강의 목록·학습 전략 포함)이 바뀔 때마다 조용히 다시 저장한다 — 브라우저가 이미
+   쓰기 권한을 준 상태일 때만. 권한을 다시 물어야 하면 다음에 저장 버튼을 누를 때 묻는다. */
+const CLAUDE_MD_MARK='<!-- 스터디플래너가 저장한 파일 -->';
+const VAULT_SUBFOLDERS=['정리본','족보','분석','자료'];
+function vaultSupported(){ return typeof window.showDirectoryPicker==='function' && typeof indexedDB!=='undefined'; }
+function vaultDb(){
+  return new Promise((res,rej)=>{
+    const rq=indexedDB.open('sp-vault',1);
+    rq.onupgradeneeded=()=>rq.result.createObjectStore('h');
+    rq.onsuccess=()=>res(rq.result); rq.onerror=()=>rej(rq.error);
+  });
+}
+async function vaultHandle(){
+  try{
+    const db=await vaultDb();
+    return await new Promise(res=>{ const r=db.transaction('h').objectStore('h').get('root'); r.onsuccess=()=>res(r.result||null); r.onerror=()=>res(null); });
+  }catch(e){ return null; }
+}
+async function setVaultHandle(h){
+  const db=await vaultDb();
+  await new Promise((res,rej)=>{ const tx=db.transaction('h','readwrite'); tx.objectStore('h').put(h,'root'); tx.oncomplete=res; tx.onerror=()=>rej(tx.error); });
+}
+/* interactive: 버튼으로 부른 경우 — 연결이 없으면 폴더를 고르게 하고, 권한도 물어본다. repick: 다시 고르기 */
+async function vaultRoot(interactive, repick){
+  let h = repick ? null : await vaultHandle();
+  if(!h){
+    if(!interactive) return null;
+    h=await window.showDirectoryPicker({id:'vault', mode:'readwrite'});
+    if(obsVault() && h.name!==obsVault()){
+      showToast(`고른 폴더(${h.name})가 설정의 Vault 이름(${obsVault()})과 다릅니다. Vault 폴더를 골라 주세요.`, {long:true});
+      return null;
+    }
+    await setVaultHandle(h);
+  }
+  let perm=await h.queryPermission({mode:'readwrite'});
+  if(perm!=='granted' && interactive) perm=await h.requestPermission({mode:'readwrite'});
+  return perm==='granted' ? h : null;
+}
+async function vaultDir(root, path){
+  let d=root;
+  for(const part of String(path).split('/').map(s=>s.trim()).filter(Boolean)) d=await d.getDirectoryHandle(part, {create:true});
+  return d;
+}
+function claudeMdText(){
+  const block=App.blocks.find(b=>b.id===App.active);
+  return `${CLAUDE_MD_MARK}\n# ${block?.name||''} 블록 지침\n\n> 스터디플래너가 저장한 파일입니다. 여기서 고치지 말고 플래너의 프롬프트 모음 탭(학습 전략 · Custom instruction 템플릿)에서 고치면 다시 저장됩니다.\n\n${customInstructions()}`;
+}
+async function writeVaultFile(fh, text){ const w=await fh.createWritable(); await w.write(text); await w.close(); }
+const _claudeMdSaved={}; // 블록별로 마지막에 저장한 내용 — 같으면 다시 쓰지 않는다
+async function saveClaudeMd(interactive){
+  const block=App.blocks.find(b=>b.id===App.active);
+  if(!S || !block || !obsFolder(block)) return false;
+  if(!interactive && !block.claudeMdOn) return false; // 버튼으로 한 번 저장한 블록만 자동 갱신
+  if(!vaultSupported()){
+    if(interactive) showToast('이 브라우저에서는 Vault에 직접 저장할 수 없습니다. Chrome·Edge에서 열거나, 전체 지침 복사 후 CLAUDE.md에 붙여넣어 주세요.', {long:true});
+    return false;
+  }
+  const folder=obsFolder(block), text=claudeMdText(), sig=folder+'\n'+text;
+  if(!interactive && _claudeMdSaved[block.id]===sig) return false;
+  try{
+    const root=await vaultRoot(interactive);
+    if(!root){ if(interactive) showToast('Vault 폴더에 쓸 권한이 없습니다.'); return false; }
+    const dir=await vaultDir(root, folder);
+    for(const sub of VAULT_SUBFOLDERS) await dir.getDirectoryHandle(sub, {create:true});
+    const fh=await dir.getFileHandle('CLAUDE.md', {create:true});
+    const prev=await (await fh.getFile()).text();
+    const done=async()=>{
+      await writeVaultFile(fh, text);
+      _claudeMdSaved[block.id]=sig;
+      if(!block.claudeMdOn){ block.claudeMdOn=true; saveApp(); }
+      if(interactive) showToast(`${folder}/CLAUDE.md에 지침을 저장했습니다. 이제 지침이 바뀌면 자동으로 다시 저장됩니다.`, {long:true});
+    };
+    if(prev.trim() && !prev.startsWith(CLAUDE_MD_MARK)){
+      if(!interactive) return false; // 직접 쓴 CLAUDE.md는 몰래 덮어쓰지 않는다
+      askConfirm('CLAUDE.md를 덮어쓸까요?', `${folder}/CLAUDE.md에 플래너가 만들지 않은 내용이 있습니다. 덮어쓰면 그 내용은 사라집니다.`,
+        ()=>{ done().then(()=>{ if(S.onboarding){ S.onboarding.claudeMd=true; saveApp(); render(); } }).catch(e=>showToast('저장하지 못했습니다: '+e.message)); }, '덮어쓰기');
+      return false;
+    }
+    await done();
+    return true;
+  }catch(e){
+    if(interactive && e && e.name!=='AbortError') showToast('저장하지 못했습니다: '+(e.message||e));
+    return false;
+  }
+}
+let _claudeMdTimer=null;
+function scheduleClaudeMdSync(){ clearTimeout(_claudeMdTimer); _claudeMdTimer=setTimeout(()=>{ saveClaudeMd(false); }, 1200); }
 async function copyPlain(text, msg){
   try{ await navigator.clipboard.writeText(text); }
   catch(e){
@@ -2310,13 +2279,23 @@ function rampDays(){ const f=planCfg('rampFrac'); return f>0 ? Math.max(1, Math.
 function dayWeight(d){ return d<=rampDays() ? Math.max(0.1, Math.min(1, planCfg('rampLoad'))) : 1.0; }
 /* remainingCred를 fromDay~시험 전날 사이에, 초반 램프 가중치를 반영해서 나눈 값 중
    day d의 몫. 총합은 항상 remainingCred로 보존된다. */
+/* 직접 조정한 날(capOverride)은 그 값만큼 먼저 떼고, 나머지를 조정 안 한 날끼리 나눈다 —
+   그래야 어떤 날을 낮춰도 그 몫이 사라지지 않고 다른 날로 넘어간다. (오늘은 오늘 몫을
+   정할 때 따로 처리하므로 여기서는 내일 이후 조정만 뗀다) */
+function capOverridden(d){ return !!(S.capOverride && S.capOverride[d]!=null); }
 function defaultCapacityFor(d, remainingCred, fromDay){
   const uEnd=usableDays();
-  let wsum=0;
-  for(let x=fromDay; x<=uEnd; x++) wsum+=dayWeight(x);
+  let wsum=0, fixed=0;
+  for(let x=fromDay; x<=uEnd; x++){
+    if(x!==S.cur && capOverridden(x)) fixed+=S.capOverride[x];
+    else wsum+=dayWeight(x);
+  }
   if(wsum<=0) wsum=1;
-  return (remainingCred/wsum)*dayWeight(d);
+  return (Math.max(0, remainingCred-fixed)/wsum)*dayWeight(d)*(d>S.cur ? CAP_SCALE : 1);
 }
+/* 그래도 시험 전까지 다 못 넣으면 computeSchedule이 조정 안 한 날들의 몫을 이 배율만큼 늘려
+   남는 항목 없이 전부 끼워 넣는다 (기본 1) */
+let CAP_SCALE=1;
 /* 오늘 크레딧은 "코인"이다 — 하루가 시작될 때 한 번 정해지면 그날 안에서는 바뀌지
    않는다. 체크(완료)를 해서 코인을 쓰는 것과, 새로 코인이 배정되는 것(=오늘 할 일
    목록이 다시 계산되는 것)은 완전히 별개다. S.todayLock에 "오늘 하기로 확정된 목록"을
@@ -2418,13 +2397,16 @@ function scheduleSortFor(day){
 /* 그날 목표 크레딧(cap)이 남아 있는 한(used<cap) 다음 항목을 마저 진행한다 — 정확히
    맞아떨어지지 않아 살짝 넘어가도 OK. 여유가 완전히 없어지면(used>=cap) 그 시점에서
    멈추고 나머지는 전부 다음 날로 이월한다. */
-function fillDay(pool, cap, day){
+/* assumeUploaded: 내일 이후 미리보기용 — 강의록은 제때 올라온다고 보고 '강의록 대기' 규칙을
+   적용하지 않는다. 그래야 강의록이 올라오기 전에도 하루 공부량이 고르게 보인다.
+   (오늘 몫을 정할 때는 규칙을 그대로 지킨다 — 실제로 할 수 없는 건 오늘 카드에 넣지 않는다) */
+function fillDay(pool, cap, day, assumeUploaded){
   pool.sort(scheduleSortFor(day==null?null:day));
   const placed=[], rest=[]; let used=0, full=false;
   const blocked=new Set(); // 그날 배정 못 하는 단계가 있는 강의 — 뒤 단계도 같이 미룬다
   for(const it of pool){
     if(!full && used >= cap-1e-9) full=true;
-    if(full || blocked.has(it.lecId) || !itemEligible(it, day)){ rest.push(it); blocked.add(it.lecId); continue; }
+    if(full || blocked.has(it.lecId) || (!assumeUploaded && !itemEligible(it, day))){ rest.push(it); blocked.add(it.lecId); continue; }
     placed.push(it); used+=it.cost;
   }
   return {placed, rest};
@@ -2554,13 +2536,30 @@ function computeSchedule(){
     byDay[startDay].push({type:it.type, lecId:it.lecId, cost:itemCost(it), original:it.original, day:startDay, done, pulled:!!it.pulled});
   });
 
-  let pool = buildPendingPool(lockedKeys);
-  for(let d=startDay+1; d<=uEnd; d++){
-    const {placed, rest} = fillDay(pool, dayCapacity(d), d);
-    placed.forEach(it=>{ it.day=d; byDay[d].push(it); });
-    pool = rest;
+  /* 내일부터 시험 전 비워 둔 날 전까지 채운다. 남는 항목이 있으면 조정 안 한 날들의 몫을
+     남은 양만큼 늘려서 다시 채운다 — 순서(신규 → 1차 → 2차)만 지키고 전부 끼워 넣는다. */
+  const fillFuture = ()=>{
+    let pool = buildPendingPool(lockedKeys);
+    const days={};
+    for(let d=startDay+1; d<=uEnd; d++){
+      const {placed, rest} = fillDay(pool, dayCapacity(d), d, true);
+      days[d]=placed;
+      pool = rest;
+    }
+    return {days, pool};
+  };
+  CAP_SCALE=1;
+  let res = fillFuture();
+  for(let tries=0; tries<20 && res.pool.length; tries++){
+    let base=0;
+    for(let d=startDay+1; d<=uEnd; d++) if(!capOverridden(d)) base+=dayCapacity(d);
+    if(base<=1e-9) break; // 조정 안 한 날이 하나도 없으면 늘릴 곳이 없다
+    const left=res.pool.reduce((a,it)=>a+it.cost,0);
+    CAP_SCALE*=1+left/base;
+    res = fillFuture();
   }
-  const unscheduled = pool; // 크레딧이 부족하게 조정된 경우에만 남음
+  Object.entries(res.days).forEach(([d,placed])=> placed.forEach(it=>{ it.day=+d; byDay[d].push(it); }));
+  const unscheduled = res.pool; // 모든 날을 직접 조정해서 늘릴 곳이 없을 때만 남음
   const byLecture={};
   activeLectures().forEach(l=>{ byLecture[l.id]={new:null,sup:null,r1:null,r2:null,assign:null}; });
   Object.values(byDay).flat().forEach(it=>{ byLecture[it.lecId][it.type]=it.day; });
@@ -2621,48 +2620,6 @@ function toggleUploaded(l){
 }
 
 /* ===== 프롬프트 라이브러리 (블록 무관 범용) ===== */
-const PF_TEXT_V6 = `[작년 필기 강의록 첨부]
-올해 강의록이 아직 안 올라와서 작년 필기로 먼저 인코딩할게. 목차·우선순위 표부터 보여줘.
-- 재구성·인출 원칙(지침 41~49) 그대로.
-- 작년 기준이라 올해와 다를 수 있는 부분(교수 교체 가능성, 작년에만 있던 슬라이드)은 정리본에 [작년 기준] 표시.
-- 정리본 맨 끝에 '올해 강의록에서 확인할 것' 목록: 작년 필기의 스탬프·강조·교수 코멘트 위치(슬라이드 제목 기준). 올해 강의록이 올라오면 보완 세션에서 이 목록부터 대조할 거야.`;
-const PG_TEXT_V6 = `[올해 강의록(원본) + 작년 필기 강의록 첨부]
-수업 전에 예습 인출할게. 올해 강의록이 기준이고, 작년 필기의 강조·스탬프·교수 코멘트를 겹쳐서 설명해줘.
-1) 먼저 올해 vs 작년 슬라이드 차이표: 추가 / 삭제 / 순서 변경 / 내용 변경 (슬라이드 제목 | 작년 | 올해)
-2) 목차·우선순위 표 → 내가 확인하면 진행
-3) 작년에 강조됐고 올해도 그대로 있는 내용 = ★ 후보, 올해 새로 생긴 슬라이드 = [신규] 표시
-4) 재구성·인출 원칙(지침 41~49)대로 설명 → 요약 → 인출
-5) 정리본 끝에 '수업 때 확인할 것' 목록 (교수가 강조하는지 볼 부분)`;
-const PH_TEXT_V6 = `[올해 필기 강의록 + 기존 정리본 첨부]
-작년 필기(또는 원본)로 미리 인코딩해 둔 강의야. 나는 정리본을 먼저 읽고 올해 필기를 보면서 보완할 거야. 아래 순서로 텍스트로 줘 (PDF·노트 새로 만들지 말 것).
-① 달라진 점·새 강조: 표 (슬라이드 p. | 작년/정리본 | 올해 | 출제 의미)
-② 정리본 수정사항: 표 (위치(챕터·항목) | 추가/수정/삭제/강조 | 그대로 붙여넣을 문장)
-③ 누락 전수검토: 올해 필기를 첫 슬라이드부터 정리본과 대조해 빠진 개념·수치·분류·예외를 전부 ②에 포함. 끝에 대조 완료 범위(p.1~p.N).
-④ 강의록 뒤에 붙은 족보 문항: 올해 필기 기준으로 해설 갱신. 이 강의록에서 근거를 찾을 수 없는 선지는 ~~취소선~~ + (근거 없음). 필기에 '올해 필기로 풀 수 없음'·'풀 수 있는 선지만 표시'가 있으면 족보 노트에도 똑같이.
-⑤ 바뀐 내용이 들어간 챕터의 요약 박스를 새로 써줘.`;
-const PI_TEXT_V6 = `[족보 PDF(여러 연도) + 선배 해설(있으면) 첨부]
-족보를 옵시디언 노트로 나눠줘. 이번에는 해설은 쓰지 말고 문항 노트 생성까지만 (해설은 강의 인코딩 때 그 강의록 기준으로 채울 거야).
-0) 족보 첫 페이지의 강의 구성·교수 목록을 먼저 확인하고, 지침 맨 위 '강의 목록'(올해)과 대조표를 보여줘. 작년과 강의 순서·번호·교수가 다를 수 있으니 문항은 전부 올해 강의 번호 기준으로 배정. 애매하면 [배정 확인 필요]. 대조표를 내가 확인한 뒤 진행.
-1) 문항 하나 = 노트 하나. 파일명은 '연도-번호' (예: 2025-07). '#'은 옵시디언 링크를 깨뜨리므로 파일명에 쓰지 마.
-2) 동일 문항(연도만 다르고 같은 문제)은 한 노트로 합치고, 파일명은 최신 연도, 나머지 번호는 aliases에 (예: 파일 2026-01 / aliases: [2025-03]). 유사 문항(같은 개념, 다른 형태)은 합치지 말고 '유사 문항' 줄에 서로 링크.
-3) 노트 구조: frontmatter(연도·번호·강의·교수·출제 개념·정답(선배 해설에 있을 때만)·상태: 해설 전) → 문제 원문과 선지 그대로 → 접힌 해설 칸(비워 둠).
-4) 선배 필기에 '올해 필기로 풀 수 없음'·'풀 수 있는 선지만 표시' 같은 표시가 있으면 그대로 옮겨.
-5) 강의별 족보 목록 노트도 하나씩: 그 강의 문항 링크 목록.
-6) 분량이 많으면 강의 몇 개씩 끊어서 주고, 내가 '계속'이라고 하면 이어서.
-※ 콜아웃·태그 등 세부 형식은 내 옵시디언 템플릿 규칙을 따라. VS Code의 Claude Code에서 실행 중이면 Vault의 족보 폴더에 바로 파일로 써줘.`;
-const PJ_TEXT_V6 = `[족보 전체 + 선배 해설 첨부]
-족보 출제 패턴을 분석해서 '족보 분석' 노트 하나로 만들어줘. 문항 번호는 반드시 '연도-번호'(예: 2025-07)로, 족보 노트로 링크되게.
-1) 강의별·교수별: 연도별 문항 수, 반복 출제 개념(몇 년 연속인지), 주로 나오는 유형(단답/객관식/감별/기전/수치/그림), 선지 함정 패턴, 짤족/탈족 판단과 근거
-2) 반복 유형 표: 출제 개념 | 출제 연도-번호 | 정답 | 묻는 방식이 어떻게 바뀌었는지
-3) 연도별 경향: 새로 등장한 개념, 사라진 개념
-4) 교수별 출제 스타일 한 줄 요약 — 지침 '교수별 학습 전략' 칸에 그대로 붙여넣을 수 있게 코드블록으로
-족보 첫 페이지의 강의 구성·교수 목록을 올해 강의 목록과 대조해서 올해 강의 번호 기준으로 묶어줘.`;
-const PK_TEXT_V6 = `[이 강의 정리본 + 이 강의 족보 문항 첨부]
-앵커 인출 훈련 해줘. 한 번에 한 문제씩, 내가 답하기 전엔 답 공개 X.
-1) 정방향: 족보·기출 스타일 문제에서 '단서 문구'만 보여줘 → 내가 떠오르는 개념(앵커)과 기억 사슬을 말하면 채점.
-2) 역방향: 개념 이름만 줘 → 특징·기전·감별점을 최대한 많이 인출하게. 빠뜨린 특징을 알려줘.
-3) 틀리거나 빠뜨린 것은 '단서 → 앵커 → 기억 사슬 → 그래서 이 선지' 형태로 다시 설명하고 재출제.
-4) 끝나면 Anki 카드 목록: 앞면=단서(앵커), 뒷면=기억 사슬. 정방향은 '앞면 :: 뒷면', 양방향(역인출)이 필요한 건 '앞면 ::: 뒷면'으로 한 줄씩.`;
 /* 시간표 PDF → 강의 일괄 추가 칸에 그대로 붙여넣을 줄글 — 블록 기간을 채워서 만든다 */
 function timetablePromptText(){
   const block=App.blocks.find(b=>b.id===App.active);
@@ -2682,34 +2639,35 @@ function timetablePromptText(){
 - 시험·OT·자율학습·공휴일처럼 강의가 아닌 칸은 빼고, 뺀 칸은 코드블록 밖에 목록으로 따로 알려줘.
 - 날짜·교시를 읽기 애매한 칸은 코드블록 밖에 [확인 필요]로 따로 알려줘.`;
 }
-/* 버전 7 프롬프트 — 옵시디언 정리본 노트 흐름. {강의} 등은 오늘 카드에서 복사할 때 자동으로 채워진다 */
-const PB_TEXT_OLD = `[필기 강의록 첨부]\n오늘 이 강의록으로 시작할게. 목차·우선순위 표부터 보여줘.`;
-const PE_TEXT_OLD = `[강의별 정리본 PDF 전부 첨부]\n시험 전날 요약본 만들어줘. 지침 40번 규칙대로 — 강의마다 교수 정보 칸 + 챕터별 요약 박스 + ★·족보 출제 항목만, 강의당 반 페이지 이내로. 새 내용은 추가하지 마.`;
-const PB_TEXT = `[올해 강의록 + 필기 첨부]
-{강의} ({교수}) 인코딩할게. 목차·우선순위 표부터 보여주고, 내가 확인하면 옵시디언 정리본 노트를 한 번에 만들어줘. 챕터마다 인출 문제는 내지 마 (나중에 예상 기출문제로 따로 할게).
-- 파일: {블록폴더}/정리본/{강의}.md — 지침의 '옵시디언 정리본 노트 형식' 그대로
-- 강의록 뒤에 붙은 족보 문항: 이 강의록 기준으로 해설을 써서 족보 노트({블록폴더}/족보)에 채우고, 정리본의 해당 개념 옆에 문항 라벨을 달아줘. 근거가 없는 선지는 ~~취소선~~ (근거 없음)
-- VS Code의 Claude Code면 Vault에 바로 저장, claude.ai면 .md 파일로`;
-const PE_TEXT = `[전날 요약 노트 내용 첨부 — Claude Code면 {블록폴더}/정리본 폴더를 직접 읽어]
+/* 기본 프롬프트 — 블록 폴더의 CLAUDE.md를 읽는 Claude Code 기준. {강의} 등은 오늘 카드에서 복사할 때 채워진다.
+   노트를 만들거나 고치는 프롬프트는 전부 "먼저 보여주고 → 내가 확인하면 → 노트에 반영" 순서다. */
+const PB_TEXT = `[읽을 파일: {블록폴더}/자료/ 의 올해 강의록 필기 — 파일 이름을 여기에]
+{강의} ({교수}) 올해 필기로 인코딩할게.
+1. 대단원 목차·우선순위 표부터 보여줘. 내가 확인하면 정리본 노트를 한 번에 만들어 — {블록폴더}/정리본/{강의}.md, 지침의 '옵시디언 정리본 노트 형식' 그대로. 챕터마다 인출 문제는 내지 마 (예상 기출문제로 따로 할게)
+2. 강의록 뒤 족보 문항: 이 강의록 기준으로 족보 노트({블록폴더}/족보) 해설을 채우고, 정리본의 해당 개념에 ==하이라이트== + 문항 라벨. 근거 없는 선지는 ~~취소선~~ (근거 없음)
+3. 끝나면 바뀐 파일 목록 · '족보 해설 채운 문항' 목록`;
+const PE_TEXT = `[{블록폴더}/정리본 폴더를 직접 읽어]
 시험 전 요약 점검할게. 모든 강의 노트의 요약 콜아웃(> [!summary])만 읽고:
 1. 요약만으로 강의 흐름이 이어지는지, 족보 출제(==하이라이트==)·★ 핵심이 요약에 빠졌는지 강의별로 점검
 2. 빠진 것은 그 강의 요약 콜아웃에 넣을 문장으로 제안 (정리본에 있는 문장만 압축, 새 내용 금지)
-3. 내가 확인하면 반영`;
-const PG_TEXT = `[올해 강의록(필기 없는 원본) + 작년 필기 첨부]
-올해 필기는 아직인데 올해 강의록은 올라왔어. {강의} ({교수})를 올해 강의록 기준으로 인코딩하고, 작년 필기의 강조·스탬프·교수 코멘트를 겹쳐줘.
-1. 먼저 올해 vs 작년 슬라이드 차이표: 추가 / 삭제 / 순서 변경 / 내용 변경 (슬라이드 제목 | 작년 | 올해)
-2. 목차·우선순위 표 → 내가 확인하면 정리본 노트를 한 번에 ({블록폴더}/정리본/{강의}.md, 지침의 노트 형식 그대로)
-3. 작년 필기에서만 확인되는 강조는 [작년 필기] 표시, 올해 새로 생긴 슬라이드는 [신규] 표시
-4. 노트 맨 끝에 '올해 필기에서 확인할 것' 목록 — 올해 필기가 올라오면 보완 세션에서 이것부터 대조할 거야`;
-const PH_TEXT = `[올해 필기 + 기존 정리본 노트 — Claude Code면 {블록폴더}/정리본/{강의}.md 직접 읽어]
+3. 내가 확인하면 반영 (요약 콜아웃만 고치고, 끝나면 바뀐 파일 목록)`;
+const PG_TEXT = `[읽을 파일: {블록폴더}/자료/ 의 올해 강의록 + 작년 필기 — 파일 이름을 여기에]
+{강의} ({교수}) 수업 전에 인코딩할게. 올해 강의록이 기준이고, 작년 필기의 강조·스탬프·교수 코멘트를 겹쳐줘.
+1. 먼저 올해 vs 작년 슬라이드 차이표 (슬라이드 제목 | 작년 | 올해 — 추가/삭제/순서 변경/내용 변경)와 대단원 목차·우선순위 표를 보여줘. 내가 확인하면 진행
+2. 정리본 노트를 한 번에: {블록폴더}/정리본/{강의}.md — 지침의 '옵시디언 정리본 노트 형식' 그대로. 챕터마다 인출 문제는 내지 마 (예상 기출문제로 따로 할게)
+3. 작년 필기에서만 확인되는 강조는 [작년 필기], 올해 새로 생긴 슬라이드는 [신규] 표시
+4. 강의록 뒤 족보 문항: 이 강의록 기준으로 족보 노트({블록폴더}/족보) 해설을 채우고, 정리본의 해당 개념에 ==하이라이트== + 문항 라벨. 근거 없는 선지는 ~~취소선~~ (근거 없음)
+5. 노트 맨 끝에 '올해 필기에서 확인할 것' 목록 — 올해 필기가 올라오면 보완 때 이것부터 대조할 거야
+6. 끝나면 바뀐 파일 목록 · '족보 해설 채운 문항' 목록`;
+const PH_TEXT = `[읽을 파일: {블록폴더}/자료/ 의 올해 필기 — 파일 이름을 여기에 · 정리본은 {블록폴더}/정리본/{강의}.md]
 {강의}는 올해 강의록(필기 전)이나 작년 필기로 미리 인코딩해 둔 강의야. 나는 정리본을 먼저 읽고 올해 필기를 보며 보완할 거야. 순서대로:
 1. 달라진 점·새 강조: 표 (슬라이드 p. | 정리본 | 올해 필기 | 출제 의미)
 2. 정리본 수정사항: 표 (위치(챕터·항목) | 추가/수정/삭제/강조 | 그대로 붙여넣을 문장)
 3. 누락 전수검토: 올해 필기를 첫 슬라이드부터 정리본과 대조해 빠진 개념·수치·분류·예외를 전부 2에 포함. 끝에 대조 완료 범위(p.1~p.N)
 4. 강의록 뒤 족보 문항: 올해 필기 기준으로 족보 노트 해설 갱신. 근거 없는 선지 ~~취소선~~ (근거 없음). 필기에 '올해 필기로 풀 수 없음'·'풀 수 있는 선지만 표시'가 있으면 족보 노트에도 똑같이
 5. 바뀐 챕터의 요약 콜아웃을 새로
-내가 확인하면 노트에 반영 (Claude Code면 직접 수정).`;
-const PI_TEXT = `[족보 PDF(여러 연도) + 선배 해설(있으면) 첨부]
+여기까지 보여주고, 내가 확인하면 정리본·족보 노트에 반영 (필요한 부분만 고치고, 끝나면 바뀐 파일 목록).`;
+const PI_TEXT = `[읽을 파일: {블록폴더}/자료/ 의 족보 PDF(여러 연도) + 선배 해설(있으면) — 파일 이름을 여기에]
 족보를 옵시디언 족보 노트로 나눠줘 ({블록폴더}/족보). 이번에는 해설은 쓰지 말고 문항 노트까지만 — 해설은 강의 인코딩 때 그 강의록 기준으로 채울 거야. 지침의 '족보 노트 규격' 그대로.
 0. 족보 첫 페이지의 강의 구성·교수 목록을 먼저 확인하고, 지침 맨 위 강의 목록(올해)과 대조표를 보여줘. 작년과 강의 순서·번호·교수가 다를 수 있으니 문항은 올해 강의 기준으로 배정. 애매하면 [배정 확인 필요]. 대조표를 내가 확인한 뒤 진행.
 1. 파일 이름은 '2026 Q01' (연도 Q두자리번호). 주관식은 '2020 R3'.
@@ -2718,22 +2676,21 @@ const PI_TEXT = `[족보 PDF(여러 연도) + 선배 해설(있으면) 첨부]
 4. 정답은 선배 해설에 있을 때만 frontmatter에, 상태는 '해설 전'. 해설 칸('> [!answer]-')은 비워 둬.
 5. 선배 필기에 '올해 필기로 풀 수 없음'·'풀 수 있는 선지만 표시' 같은 표시가 있으면 그대로 옮겨.
 6. 마지막에 '{블록폴더}/족보/족보 목록.md': 강의별로 문항 링크 목록.
-7. 분량이 많으면 강의 몇 개씩 끊고, 내가 '계속'이라고 하면 이어서.
-VS Code의 Claude Code면 Vault에 바로 파일로 저장, claude.ai면 파일별로 구분된 .md로.`;
-const PJ_TEXT = `[족보 전체 + 선배 해설 첨부 — Claude Code면 {블록폴더}/족보 직접 읽어]
-족보 출제 패턴을 분석해서 '{블록폴더}/분석/족보 분석.md' 노트 하나로 만들어줘. 문항은 반드시 족보 노트 링크로 (예: [[2025 Q07]]).
+7. 분량이 많으면 강의 몇 개씩 끊고, 내가 '계속'이라고 하면 이어서. 끝나면 만든 노트 수와 [배정 확인 필요] 목록.`;
+const PJ_TEXT = `[{블록폴더}/족보 노트와 자료 폴더의 선배 해설을 직접 읽어]
+족보 출제 패턴을 분석해서 '{블록폴더}/분석/족보 분석.md' 노트 하나로 만들어줘. 먼저 강의별 요약 표를 보여주고, 내가 확인하면 노트로 저장. 문항은 반드시 족보 노트 링크로 (예: [[2025 Q07]]).
 1. 강의별·교수별: 연도별 문항 수, 반복 출제 개념(몇 년 연속인지), 주로 나오는 유형(단답/객관식/감별/기전/수치/그림), 선지 함정 패턴, 짤족/탈족 판단과 근거
 2. 반복 유형 표: 출제 개념 | 출제 문항 | 정답 | 묻는 방식이 어떻게 바뀌었는지
 3. 연도별 경향: 새로 등장한 개념, 사라진 개념
 4. 교수별 출제 스타일 한 줄 요약 — 지침 '교수별 학습 전략' 칸에 그대로 붙여넣을 수 있게 코드블록으로
 족보 첫 페이지의 강의 구성·교수 목록을 올해 강의 목록과 대조해서 올해 강의 기준으로 묶어줘.`;
-const PK_TEXT = `[{강의} 정리본 + 이 강의 족보 노트]
+const PK_TEXT = `[{블록폴더}/정리본/{강의}.md 와 이 강의 족보 노트를 직접 읽어]
 {강의} 앵커 인출 훈련 해줘. 한 번에 한 문제씩, 내가 답하기 전엔 답 공개 X.
 1. 정방향: 족보·기출 스타일 문제에서 '단서 문구'만 보여줘 → 내가 떠오르는 개념(앵커)과 기억 사슬을 말하면 채점
 2. 역방향: 개념 이름만 줘 → 특징·기전·감별점을 최대한 많이 인출하게. 빠뜨린 특징을 알려줘
 3. 틀리거나 빠뜨린 것은 '단서 → 앵커 → 기억 사슬 → 그래서 이 선지' 형태로 다시 설명하고 재출제
-4. 끝나면 정리본 노트 맨 아래 '## 카드'에 넣을 카드 목록 (Spaced Repetition 플러그인 형식): 앞면=단서, 뒷면=기억 사슬. 정방향 '앞 :: 뒤', 양방향(역인출) '앞 ::: 뒤' 한 줄씩`;
-const PL_TEXT = `[{강의} 정리본 노트 다 읽었어]
+4. 끝나면 카드 목록 (Spaced Repetition 플러그인 형식): 앞면=단서, 뒷면=기억 사슬. 정방향 '앞 :: 뒤', 양방향(역인출) '앞 ::: 뒤' 한 줄씩 → 내가 확인하면 정리본 노트 맨 아래 '## 카드'에 추가`;
+const PL_TEXT = `[{강의} 정리본 노트 다 읽었어 — {블록폴더}/정리본/{강의}.md 직접 읽어]
 {강의} ({교수}) 예상 기출문제 내줘. 이 강의는 시험에 {시험문항수}문항 나오니까 {예상기출수}문제.
 출제 우선순위:
 1. 교수가 시험 문제를 예고했거나 "낸다"고 한 내용 → 그 내용 위주로
@@ -2746,33 +2703,56 @@ const PL_TEXT = `[{강의} 정리본 노트 다 읽었어]
 - {예상기출수}문제를 한 번에 내고, 내가 다 답하기 전엔 정답 공개 X
 - 채점 때 문제마다 출제 근거 표시 ([예고] / [족보 반복: 2025 Q07] / [★강조] / [기타]). 틀린 것만 단서 → 앵커 → 기억 사슬로 다시 설명하고 비슷한 문제로 재출제
 - 끝나면 '정리본에 넣을 것' 목록 (내가 넣어달라고 한 것 포함) → 내가 확인하면 정리본 노트에 반영`;
-const PM_TEXT = `[족보 분석 노트 + 시험 직후 메모 — Claude Code면 {블록폴더} 폴더 직접 읽어]
-이번 블록 시험 끝났어. '{블록폴더}/분석/시험 회고.md' 노트를 만들어줘.
-1. 기억나는 실제 출제 개념을 강의별로 정리 (메모 기반, 모르는 건 비워 둠)
-2. 족보 재출제: 실제로 다시 나온 족보 노트 링크 (예: [[2026 Q01]])와 재출제율
-3. 예상 기출문제 적중: 맞힌 예측 / 놓친 출제 포인트
-4. 교수별 출제 스타일 갱신 — 다음 해 족보 분석에 쓸 한 줄씩
-5. 다음 블록에서 바꿀 공부 방법 3가지`;
+const PV_TEXT = `Vault에 이 블록 폴더 '{블록폴더}'를 만들고, 그 안에 정리본 · 족보 · 분석 · 자료 폴더를 만들어줘.
+- 이전 블록 폴더에 '분석/전날 요약.md'가 있으면 새 블록의 분석 폴더에 복사 (경로는 노트 안에서 스스로 찾으니 그대로)
+- 끝나면 만든 폴더 목록`;
+const PC_TEXT = `[읽을 곳: {블록폴더}/족보 의 '상태: 해설 전' 노트 · 선배 해설 파일이 있으면 {블록폴더}/자료/ 파일 이름을 여기에]
+해설이 아직 없는 족보 문항의 정답·해설을 만들어줘. 강의를 적어 주면 그 강의 문항만.
+1. 근거는 그 강의 정리본({블록폴더}/정리본) → 거기 없으면 강의록. 선지마다 '1. ✅/❌ 이유' + 근거가 된 정리본 위치 링크 (지침 '족보 노트 규격' 그대로)
+2. 노트에 바로 쓰지 말고 먼저 표로 보여줘: 문항 | 정답 | 핵심 근거 | [정답 불확실]·[선배 해설과 다름]
+3. 내가 확인하면 족보 노트의 '> [!answer]-' 칸에 해설을 채우고 상태를 '해설 완료'로, 정리본의 해당 개념에 ==하이라이트== + 문항 라벨
+4. 끝나면 바뀐 파일 목록`;
+const PO_TEXT = `[{강의} 족보 풀이 끝 — 틀린 문항을 아래에 적을게]
+틀린 문항:
+{강의} 족보에서 내가 틀린 문항이야. 족보 노트·정리본은 {블록폴더}에서 직접 읽어.
+1. 문항마다: 내가 고른 선지가 왜 끌렸는지, 정답으로 가는 단서 → 앵커 → 기억 사슬
+2. 정리본에서 이 부분이 약하거나 빠져 있으면 보강안 표 (위치(챕터·항목) | 넣을 문장)
+3. 내가 확인하면: 틀린 족보 노트 tags에 '오답' 추가 + 정리본 보강 반영 (필요한 부분만), 끝나면 바뀐 파일 목록`;
+const PQ_TEXT = `[{강의} 2차 복습 — 정리본은 {블록폴더}/정리본/{강의}.md 직접 읽어. 나는 정리본을 안 보고 할 거야]
+{강의} 백지 인출 점검해줘. 한 번에 한 챕터씩.
+1. 챕터 제목만 보여줘 → 내가 기억나는 걸 다 말하면, 정리본 기준으로 빠진 것·틀린 것을 짚어줘. 빠진 것 중 ★·족보(==하이라이트==)는 따로 표시
+2. 다 끝나면 내가 자주 빠뜨린 것 목록 → 카드로 만들 것 제안 (Spaced Repetition 형식 '앞 :: 뒤', 역인출이 필요하면 '앞 ::: 뒤')
+3. 내가 확인하면 정리본 맨 아래 '## 카드'에 추가`;
+const PT_TEXT = `[{블록폴더}/정리본 · 족보 · 분석 폴더 전부 직접 읽어]
+시험 전 총정리용 전체 예상 기출문제를 만들어줘. 강의마다 지침 강의 목록의 '시험 n문항'만큼 — 실제 시험과 같은 문항 수·비중으로.
+출제 기준:
+- 강의별 예상 기출문제와 같은 우선순위 (교수 예고 → 족보 반복 → ★강조 → 나머지)
+- 강의별 예상 기출 때 냈던 문제와 똑같은 문제는 피하고, 같은 개념은 다른 각도·다른 선지로
+- 족보 실제 형식 그대로, 문제 안 힌트 금지
+결과물: '{블록폴더}/분석/전체 예상 기출.html' 파일 하나 — 컴퓨터 시험(CBT) 화면처럼 (NSDevil 시험 프로그램 모방)
+- 한 화면에 한 문제, 선지를 눌러 답 고르기, 이전/다음, 문항 번호판(푼 문항·안 푼 문항 표시), 남은 시간 타이머
+- 제출하면 채점: 점수, 문항별 정답 · 내 답 · 해설 · 출처 강의(정리본 노트 이름)
+- 인터넷 없이 열리는 파일 하나 (외부 라이브러리 X)
+먼저 강의별 문항 수 표를 보여주고, 내가 확인하면 만들어.`;
 function PROMPTS(){ return [
-  {id:'pa', t:'Ⓐ 블록 시작', w:'블록 첫날, 프로젝트 첫 채팅에서', x:NEW_PA_TEXT},
-  {id:'pb', t:'Ⓑ 신규 인코딩 (정리본 노트)', w:'올해 강의록이 올라온 날 — 오늘 카드에서 복사하면 강의 정보가 채워짐', x:PB_TEXT},
-  {id:'pl', t:'Ⓛ 예상 기출문제', w:'정리본 노트를 읽은 뒤 — 시험 문항 수 × 배수만큼', x:PL_TEXT},
-  {id:'pc', t:'Ⓒ 족보 해설', w:'최신 연도 족보에 해설이 없을 때', x:`[선배 족보 해설 + 이번 연도 족보 첨부]\n이번 연도 족보 문항별 정답·해설 만들어줘.`},
-  {id:'pd', t:'Ⓓ 필기 비교', w:'예습해둔 강의의 실제 수업일에 필기 받으면', x:COMPARE_PROMPT},
-  {id:'pe', t:'Ⓔ 시험 전 요약 점검', w:'시험 2~3일 전, 강의 노트가 다 모였을 때', x:PE_TEXT},
-  {id:'pg', t:'Ⓖ 올해 강의록 + 작년 필기로 인코딩', w:'올해 필기는 아직, 올해 강의록(원본)은 올라왔을 때', x:PG_TEXT},
-  {id:'ph', t:'Ⓗ 강의록 보완', w:'미리 인코딩한 강의의 올해 필기가 올라온 날 (보완 카드)', x:PH_TEXT},
-  {id:'pi', t:'Ⓘ 족보 노트 만들기', w:'블록 시작, 족보를 받았을 때 (해설 없이 문항 노트만)', x:PI_TEXT},
-  {id:'pj', t:'Ⓙ 족보 출제 패턴 분석', w:'블록 시작, 족보 노트를 만든 뒤', x:PJ_TEXT},
-  {id:'pk', t:'Ⓚ 앵커 인출 훈련', w:'1차 복습, 족보 풀기 전후', x:PK_TEXT},
-  {id:'pm', t:'Ⓜ 시험 회고', w:'시험 직후 — 시험일 화면의 버튼은 오늘 메모를 함께 붙여 복사', x:PM_TEXT},
+  {id:'pv', t:'블록 폴더 만들기', w:'블록 첫날 — 플래너의 CLAUDE.md 저장으로도 폴더가 만들어짐', x:PV_TEXT},
+  {id:'pi', t:'족보 노트 만들기', w:'블록 시작, 족보를 받았을 때 (해설 없이 문항 노트만)', x:PI_TEXT},
+  {id:'pj', t:'족보 출제 패턴 분석', w:'블록 시작, 족보 노트를 만든 뒤 → 교수별 한 줄 요약을 학습 전략에 추가', x:PJ_TEXT},
+  {id:'pg', t:'신규 인코딩 (올해 강의록 + 작년 필기)', w:'올해 강의록이 올라온 날, 수업 전 — 보통 이걸 씀', x:PG_TEXT},
+  {id:'pb', t:'신규 인코딩 (올해 필기)', w:'올해 필기까지 올라온 뒤 처음 인코딩할 때', x:PB_TEXT},
+  {id:'pl', t:'예상 기출문제', w:'정리본 노트를 한 번 읽은 뒤 — 시험 문항 수 × 배수만큼', x:PL_TEXT},
+  {id:'ph', t:'강의록 보완', w:'미리 인코딩한 강의의 올해 필기가 올라온 날 (보완 카드)', x:PH_TEXT},
+  {id:'pc', t:'족보 해설', w:'해설이 비어 있는 족보 문항이 있을 때', x:PC_TEXT},
+  {id:'po', t:'족보 오답 정리', w:'1차 복습, 족보를 풀고 틀린 문항이 있을 때', x:PO_TEXT},
+  {id:'pk', t:'앵커 인출 훈련', w:'1차 복습, 족보 풀이 뒤', x:PK_TEXT},
+  {id:'pq', t:'백지 인출 점검', w:'2차 복습, 정리본을 덮고', x:PQ_TEXT},
+  {id:'pe', t:'시험 전 요약 점검', w:'시험 전 비워 둔 날, 강의 노트가 다 모였을 때', x:PE_TEXT},
+  {id:'pt', t:'전체 예상 기출문제 (CBT)', w:'시험 전 총정리 — 컴퓨터 시험 화면 HTML로', x:PT_TEXT},
 ];}
-/* 버전 6에서 넣었던 문구 그대로면 새 문구로 바꾼다(고쳐 쓴 건 건드리지 않는다) */
-const PROMPT_V7_OLD = {pb:[PB_TEXT_OLD], pe:[PE_TEXT_OLD], pg:[PG_TEXT_V6], ph:[PH_TEXT_V6], pi:[PI_TEXT_V6], pj:[PJ_TEXT_V6], pk:[PK_TEXT_V6]};
 /* 프롬프트는 단계(신규/1차/2차)에 묶인다. 오늘 할 일 카드의 프롬포트 버튼은
    그 단계에 묶인 기본 프롬프트 + 내가 추가한 프롬프트를 한 목록으로 펼쳐 보여준다. */
 const PROMPT_CATS=[{key:'new',label:'신규'},{key:'sup',label:'보완'},{key:'r1',label:'1차'},{key:'r2',label:'2차'},{key:'none',label:'관련없음'}];
-const BUILTIN_PROMPT_CAT={pa:'none', pb:'new', pl:'new', pc:'r1', pd:'none', pe:'none', pg:'new', ph:'sup', pi:'none', pj:'none', pk:'r1', pm:'none'};
+const BUILTIN_PROMPT_CAT={pv:'none', pi:'none', pj:'none', pg:'new', pb:'new', pl:'new', ph:'sup', pc:'none', po:'r1', pk:'r1', pq:'r2', pe:'none', pt:'none'};
 function catLabel(key){ const c=PROMPT_CATS.find(x=>x.key===key); return c? c.label : '관련없음'; }
 function customPrompts(){ if(!Array.isArray(App.customPrompts)) App.customPrompts=[]; return App.customPrompts; }
 function shortPromptName(t){ return String(t).replace(/^PROMPT\s*\d+\s*[·.]\s*/,''); }
@@ -3555,14 +3535,6 @@ function launchConfetti(){
   document.body.appendChild(wrap);
   setTimeout(()=>wrap.remove(), 4200);
 }
-/* 시험 회고 — Ⓜ 프롬프트 + 오늘 적은 메모(기억나는 문항)를 붙여 복사 */
-function copyRetroPrompt(){
-  const p=promptById('pm');
-  const base=fillPromptVars(p ? (p.text||'') : PM_TEXT);
-  const today=memos().filter(m=>sameDay(m.at) && (m.st==='open' || m.st==='later'));
-  const text = today.length ? `${base}\n\n[시험 직후 메모]\n${today.sort((a,b)=>a.at-b.at).map(m=>'- '+m.text).join('\n')}` : base;
-  copyPlain(text, today.length ? `회고 프롬프트를 오늘 메모 ${today.length}개와 함께 복사했습니다.` : '회고 프롬프트를 복사했습니다.');
-}
 function renderDayFlow(box, isExamDay){
   box.innerHTML='';
   if(isExamDay){
@@ -3572,21 +3544,16 @@ function renderDayFlow(box, isExamDay){
       const c=el(`<div class="finish-done">
         <b>${name} 블록을 마쳤습니다</b>
         <p>${esc(nameLead())}수고 많으셨습니다.</p>
-        <button class="finish-undo retro-btn" type="button">시험 회고 프롬포트 복사</button>
         <button class="finish-undo" type="button">블록 끝내기 취소</button>
       </div>`);
-      c.querySelector('.finish-undo:not(.retro-btn)').onclick=()=>{ delete S.finishedAt; saveApp(); render(); showToast('블록 끝내기를 취소했습니다.'); };
-      c.querySelector('.retro-btn').onclick=copyRetroPrompt;
+      c.querySelector('.finish-undo').onclick=()=>{ delete S.finishedAt; saveApp(); render(); showToast('블록 끝내기를 취소했습니다.'); };
       box.appendChild(c);
     } else {
       const c=el(`<div class="finish-wrap">
         <div class="empty" style="padding:24px 4px 14px">오늘은 시험일입니다.</div>
         <button class="finish-btn" type="button">블록 끝내기</button>
         <div class="finish-hint">시험을 마친 뒤 눌러 주세요.</div>
-        <button class="finish-undo retro-btn" type="button" style="margin-top:10px">시험 회고 프롬포트 복사</button>
-        <div class="finish-hint">시험 직후 기억나는 문항을 메모함에 적어 두면, 이 프롬프트에 함께 붙습니다.</div>
       </div>`);
-      c.querySelector('.retro-btn').onclick=copyRetroPrompt;
       c.querySelector('.finish-btn').onclick=()=>{
         S.finishedAt=new Date().toISOString();
         saveApp(); render();
@@ -3689,6 +3656,42 @@ function bindFlowDrag(box){
     });
   });
 }
+/* 프롬프트 모음 — ⋮⋮를 끌어서 순서 바꾸기. 오늘 카드의 프롬포트 목록도 이 순서를 따른다 */
+function bindPromptDrag(cards){
+  let dragEl=null;
+  const clear=()=>cards.forEach(x=>x.classList.remove('drop-before','drop-after'));
+  cards.forEach(c=>{
+    const grip=c.querySelector('.flowgrip'); if(!grip) return;
+    grip.addEventListener('mousedown', ()=>{ c.draggable=true; });
+    grip.addEventListener('mouseup', ()=>{ c.draggable=false; });
+    c.addEventListener('dragstart', e=>{
+      if(!c.draggable){ e.preventDefault(); return; }
+      dragEl=c; c.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+      try{ e.dataTransfer.setData('text/plain', c.dataset.pid); }catch(err){}
+    });
+    c.addEventListener('dragend', ()=>{ c.draggable=false; c.classList.remove('dragging'); clear(); dragEl=null; });
+    c.addEventListener('dragover', e=>{
+      if(!dragEl || dragEl===c) return;
+      e.preventDefault();
+      const r=c.getBoundingClientRect(), after=e.clientY>r.top+r.height/2;
+      c.classList.toggle('drop-after', after); c.classList.toggle('drop-before', !after);
+    });
+    c.addEventListener('dragleave', ()=>c.classList.remove('drop-before','drop-after'));
+    c.addEventListener('drop', e=>{
+      if(!dragEl || dragEl===c) return;
+      e.preventDefault();
+      const after=c.classList.contains('drop-after'); clear();
+      const list=customPrompts();
+      const moving=list.find(x=>x.id===dragEl.dataset.pid); if(!moving) return;
+      const rest=list.filter(x=>x!==moving);
+      let i=rest.findIndex(x=>x.id===c.dataset.pid); if(after) i++;
+      rest.splice(i, 0, moving);
+      App.customPrompts=rest;
+      saveApp(); render();
+    });
+  });
+}
 /* 오늘 카드 모두 펼치기 / 접기 — 체크리스트가 있는 카드만 대상 */
 function setupExpandAll(box){
   const btn=box.querySelector('.expandall'); if(!btn) return;
@@ -3740,10 +3743,13 @@ function renderExamEve(box){
      매일 반복 항목은 그날엔 띄우지 않는다(시험 전날 루틴만 남긴다). */
   const items = examEveItems(S.cur);
   const flow = box.querySelector('#eeveFlow');
-  const pe = promptById('pe');
-  flow.appendChild(el(`<div class="flowtools"><button class="add-plan-btn" type="button">+ 오늘 계획 추가</button>${pe?'<button class="add-plan-btn eve-prompt" type="button" title="전날 요약 프롬프트(Ⓔ)를 복사합니다">전날 요약 프롬포트 복사</button>':''}<button class="expandall" type="button"></button></div>`));
-  const eveP=flow.querySelector('.eve-prompt');
-  if(eveP) eveP.onclick=()=> copyPlain(fillPromptVars(pe.text||''), '전날 요약 프롬프트를 복사했습니다.');
+  /* 총정리 프롬프트 — 요약 점검(pe) · 전체 예상 기출문제(pt). 지운 프롬프트는 버튼도 없다 */
+  const eveIds=[['pe','요약 점검 프롬포트 복사'],['pt','전체 예상 기출 프롬포트 복사']].filter(([id])=>promptById(id));
+  flow.appendChild(el(`<div class="flowtools"><button class="add-plan-btn" type="button">+ 오늘 계획 추가</button>${eveIds.map(([id,label])=>`<button class="add-plan-btn eve-prompt" type="button" data-pid="${id}">${label}</button>`).join('')}<button class="expandall" type="button"></button></div>`));
+  flow.querySelectorAll('.eve-prompt').forEach(b=>{
+    const p=promptById(b.dataset.pid);
+    b.onclick=()=> copyPlain(fillPromptVars(p.text||''), `${p.name} 프롬프트를 복사했습니다.`);
+  });
   items.forEach((label,i)=>{ if(!map[i]) flow.appendChild(examEveCard(label,i)); });
   manualPlans.filter(plan=>!plan.done).forEach(plan=> flow.appendChild(manualPlanCard(plan)));
   items.forEach((label,i)=>{ if(map[i]) flow.appendChild(examEveCard(label,i)); });
@@ -3822,7 +3828,7 @@ function renderOnboarding(){
     const row = el(`<div class="oitem">
       <span class="ochk ${done?'done':''}">${done?'✓':''}</span>
       <span class="olabel ${done?'done':''} ${later?'later':''}">${esc(it.label)}${later?'<span class="olater-badge">나중에</span>':''}</span>
-      ${(it.prompt||it.action)?'<button class="opromptbtn">프롬포트 복사</button>':''}
+      ${(it.prompt||it.action)?`<button class="opromptbtn">${esc(it.btn||'프롬포트 복사')}</button>`:''}
       ${editable?'<button class="opromptedit">수정</button>':''}
     </div>`);
     row.querySelector('.ochk').onclick=()=>{ S.onboarding[it.key] = done? false : true; saveApp(); render(); };
@@ -3834,6 +3840,10 @@ function renderOnboarding(){
         activateTab('prompts');
         const instructionToggle=document.querySelector('#tab-prompts .instruction-toggle');
         if(instructionToggle && instructionToggle.textContent==='지침 열기') instructionToggle.click();
+        return;
+      }
+      if(it.action==='saveClaudeMd'){
+        saveClaudeMd(true).then(ok=>{ if(ok){ S.onboarding[it.key]=true; saveApp(); render(); } });
         return;
       }
       const existing = wrap.querySelector('.opromptbox');
@@ -3915,17 +3925,10 @@ function renderToday(){
   const cands = comparisonCandidates();
   const compareDismissKey=`${App.active}:${S.cur}`;
   if(cands.length && !App.compareDismissed[compareDismissKey]){
-    const p4 = promptById('pd');
     const names = cands.map(l=>esc(l.code)+'. '+esc(l.title)).join(', ');
     const supTargets = cands.filter(l=>S.lec[l.id].supFrom==null);
-    cbox.innerHTML = `<div class="compareCard"><div class="compareCard-head"><b>⚠ 미리 신규 학습해둔 강의 ${cands.length}개의 실제 수업일이 오늘입니다.</b><button class="compareCard-close" title="안내 닫기" aria-label="안내 닫기">×</button></div>이번 연도 필기를 받으신 후, 비교 프롬프트로 한 번 비교해 보시는 것을 권해드립니다.<br>${names}
-    ${supTargets.length?`<div class="compare-copy"><button class="copybtn supadd" type="button" title="올해 필기가 올라왔으면 — 강의마다 보완 세션(${+typeCost('sup').toFixed(2)} 크레딧)을 오늘 계획에 추가합니다">필기 올라옴 · 보완 세션 추가</button></div>`:''}
-    ${p4?`<div class="compare-copy"><button class="copybtn" type="button">프롬포트 복사</button></div>
-    <details style="margin-top:6px"><summary style="cursor:pointer;font-size:10.5px;font-weight:700">비교 프롬프트 보기</summary><div class="opromptbox" style="margin-left:0">${esc(p4.text||'')}</div></details>`:''}</div>`;
-    if(p4){
-      bindDetailsFold(cbox.querySelector('details'));
-      cbox.querySelector('.compare-copy .copybtn:not(.supadd)').onclick=e=>copyText(p4.text||'', e.target);
-    }
+    cbox.innerHTML = `<div class="compareCard"><div class="compareCard-head"><b>⚠ 미리 신규 학습해둔 강의 ${cands.length}개의 실제 수업일이 오늘입니다.</b><button class="compareCard-close" title="안내 닫기" aria-label="안내 닫기">×</button></div>올해 필기가 올라오면 보완 세션을 추가하세요. 보완 카드의 '강의록 보완' 프롬프트로 정리본을 고칩니다.<br>${names}
+    ${supTargets.length?`<div class="compare-copy"><button class="copybtn supadd" type="button" title="올해 필기가 올라왔으면 — 강의마다 보완 세션(${+typeCost('sup').toFixed(2)} 크레딧)을 오늘 계획에 추가합니다">필기 올라옴 · 보완 세션 추가</button></div>`:''}</div>`;
     const supAdd=cbox.querySelector('.supadd');
     if(supAdd) supAdd.onclick=()=>{
       supTargets.forEach(l=>{ if(S.lec[l.id].upl==null) toggleUploaded(l); else { S.lec[l.id].upl=null; toggleUploaded(l); } });
@@ -3973,8 +3976,10 @@ function tagGroupsHtml(items, isDoneFn, markMissed){
     const cells = groups[type].map(it=>{
       const l=byId(it.lecId); if(!l) return '';
       const done = isDoneFn ? isDoneFn(it) : false;
-      const tip = `${esc(l.title||'')}${done?' · 완료':(markMissed?' · 못 지킴':'')}`;
-      const cls = done? 'done' : (markMissed? 'missed' : '');
+      /* 미리보기에서 강의록이 아직 안 올라온 채로 수업일 전에 잡힌 신규 — 올라온다고 가정한 자리 */
+      const waiting = !done && it.day!=null && !itemEligible(it, it.day);
+      const tip = `${esc(l.title||'')}${done?' · 완료':(markMissed?' · 못 지킴':(waiting?' · 강의록 대기 (올라온다고 가정)':''))}`;
+      const cls = done? 'done' : (markMissed? 'missed' : (waiting? 'waiting' : ''));
       return `<span class="plancell ${cls}" title="${tip}">${esc(l.code || l.title)}</span>`;
     }).join('');
     html += `<div class="plantaggrp"><span class="glbl">${labels[type]}</span><span class="planstrip ${type}">${cells}</span></div>`;
@@ -4768,6 +4773,7 @@ function renderPrompts(){
     <div class="instruction-actions">
       <button class="instruction-toggle" type="button">지침 열기</button>
       <button class="copybtn" type="button">전체 지침 복사</button>
+      <button class="instruction-toggle claudemd-save" type="button" title="블록 폴더의 CLAUDE.md에 바로 저장합니다 (Chrome·Edge)">CLAUDE.md에 저장</button>
     </div>
     <div class="instruction-body">
 
@@ -4825,6 +4831,9 @@ function renderPrompts(){
     }
   };
   instructionCard.querySelector('.copybtn').onclick=e=>copyText(customInstructions(),e.target);
+  instructionCard.querySelector('.claudemd-save').onclick=()=>{
+    saveClaudeMd(true).then(ok=>{ if(ok && S.onboarding){ S.onboarding.claudeMd=true; saveApp(); render(); } });
+  };
 
   // 학습 전략 섹션: 수정/저장/취소
   const reviewsSub = instructionCard.querySelector('[data-sub="reviews"]');
@@ -4931,9 +4940,10 @@ function renderPrompts(){
   const catOptions=(sel)=> PROMPT_CATS.map(c=>`<option value="${c.key}" ${c.key===sel?'selected':''}>${c.label}</option>`).join('');
 
   /* 내가 추가한 프롬프트 */
+  const promptCards=[];
   customPrompts().forEach(cp=>{
-    const c = el(`<div class="pcard">
-      <div class="ptitle">${esc(cp.name || '이름 없는 프롬프트')}</div>
+    const c = el(`<div class="pcard pdrag" data-pid="${esc(cp.id)}">
+      <div class="ptitle"><span class="flowgrip" title="끌어서 순서 바꾸기" aria-hidden="true">⋮⋮</span> ${esc(cp.name || '이름 없는 프롬프트')}</div>
       <div class="pwhen"><span class="badge cat">${catLabel(cp.cat)}</span>${cp.when?' '+esc(cp.when):''}</div>
       <div class="ptext">${esc(cp.text || '')}</div>
       <div class="cpedit" style="display:none">
@@ -4956,7 +4966,7 @@ function renderPrompts(){
     </div>`);
     const tv=c.querySelector('.ptext'), form=c.querySelector('.cpedit');
     const va=c.querySelector('.pactions'), ea=c.querySelector('.pedit-actions');
-    va.querySelector('.copybtn').onclick=e=>copyText(cp.text || '', e.target);
+    va.querySelector('.copybtn').onclick=e=>copyText(fillPromptVars(cp.text || ''), e.target);
     c.querySelector('.peditbtn').onclick=()=>{
       showEditBox(tv, va, form, ea);
       form.querySelector('.cpname').focus();
@@ -4977,7 +4987,9 @@ function renderPrompts(){
       }, '삭제');
     };
     box.appendChild(c);
+    promptCards.push(c);
   });
+  bindPromptDrag(promptCards);
 
   /* 새 프롬프트 추가 (+ 지운 기본 프롬프트 되살리기) */
   const missingBuiltins = PROMPTS().filter(p=>!promptById(p.id));
@@ -4996,9 +5008,7 @@ function renderPrompts(){
   </div>`);
   const restoreBtn=addCard.querySelector('.cprestorebtn');
   if(restoreBtn) restoreBtn.onclick=()=>{
-    const list=customPrompts();
-    App.customPrompts = PROMPTS().map(p=> list.find(x=>x.id===p.id) || builtinPromptEntry(p, null))
-      .concat(list.filter(x=>!Object.prototype.hasOwnProperty.call(BUILTIN_PROMPT_CAT, x.id)));
+    App.customPrompts = customPrompts().concat(missingBuiltins.map(p=>builtinPromptEntry(p, null))); // 내가 정한 순서는 그대로, 되살린 건 맨 뒤에
     saveApp(); render(); showToast('삭제한 기본 프롬프트를 되살렸습니다.');
   };
   addCard.querySelector('.cpaddbtn').onclick=()=>{
@@ -5022,6 +5032,7 @@ function render(){
   studySync();
   SCHEDULE = computeSchedule();
   renderHeader(); renderBanner(); renderLoadPanel(); renderToday(); renderPlan(); renderTimetableViews(); renderList(); renderPrompts();
+  scheduleClaudeMdSync(); // 강의 목록·학습 전략이 바뀌었으면 CLAUDE.md도 다시 저장
   pomoSyncLauncher();
   if(document.getElementById('pomoFull').classList.contains('on')) renderPfMemos();
   if(typeof moveTabInk==='function') requestAnimationFrame(moveTabInk);
@@ -6960,6 +6971,8 @@ function renderSettings(){
     ${hasBlock?`<div class="setrow"><label for="stObsFolder">블록 폴더 <span class="setsub">현재 블록</span></label><input id="stObsFolder" class="stin wide" type="text" maxlength="80" value="${esc(obsFolder(block))}"></div>`:''}
     <p class="sethint">Vault 이름을 넣으면 오늘 카드에 '옵시디언' 버튼이 생겨 그 강의 정리본(블록 폴더/정리본/nn강. 강의제목)을 바로 엽니다. 프롬프트의 {블록폴더}도 이 값으로 채워집니다.</p>
     ${hasBlock?`<div class="stacts" style="justify-content:flex-start"><button class="stbtn" type="button" id="stObsHome">블록 홈 노트 받기 (.md)</button><button class="stbtn" type="button" id="stObsHomeCopy">블록 홈 노트 복사</button></div>`:''}
+    <div class="stacts" style="justify-content:flex-start"><button class="stbtn" type="button" id="stVaultPick">Vault 폴더 연결 (CLAUDE.md 자동 저장)</button></div>
+    <p class="sethint">Chrome·Edge에서만 됩니다. Vault 폴더를 한 번 고르면 프롬프트 모음 탭의 'CLAUDE.md에 저장'이 블록 폴더(정리본·족보·분석·자료 포함)와 CLAUDE.md를 바로 만들고, 그 뒤로는 강의 목록·학습 전략이 바뀔 때마다 자동으로 다시 저장합니다. 브라우저를 다시 열면 첫 저장 때 권한을 한 번 더 묻습니다.</p>
   </section>
 
   <section class="setsec" data-sec="display">
@@ -7065,6 +7078,11 @@ function renderSettings(){
   if(obsH) obsH.onclick=()=>{ downloadText('00 블록 홈.md', blockHomeMarkdown()); showToast('블록 홈 노트를 받았습니다. Vault의 블록 폴더에 넣어 주세요.'); };
   const obsHC=body.querySelector('#stObsHomeCopy');
   if(obsHC) obsHC.onclick=()=> copyPlain(blockHomeMarkdown(), '블록 홈 노트를 복사했습니다.');
+  body.querySelector('#stVaultPick').onclick=async()=>{
+    if(!vaultSupported()){ showToast('이 브라우저에서는 지원하지 않습니다. Chrome·Edge에서 열어 주세요.'); return; }
+    try{ const h=await vaultRoot(true, true); if(h) showToast(`Vault 폴더(${h.name})를 연결했습니다.`); }
+    catch(e){ if(e && e.name!=='AbortError') showToast('연결하지 못했습니다: '+(e.message||e)); }
+  };
 
   /* 화면 · 뽀모도로 토글 */
   body.querySelectorAll('[data-seg]').forEach(g=> g.querySelectorAll('button').forEach(b=> b.onclick=()=>{
