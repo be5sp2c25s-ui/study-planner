@@ -152,6 +152,8 @@
   .go.compact{padding:7px 11px;font-size:11.5px}
   .card .go + .go{margin-left:6px}
   .go.amber{background:var(--done);color:var(--on-accent)}
+  .go.upl{background:var(--surface2);color:var(--ink)}
+  .undo.upl-toggle.on{background:var(--point-soft);color:var(--ink)}
   .empty{font-size:12px;color:var(--faint);text-align:center;padding:18px 4px}
 
   details.pre{margin:6px 0 14px}
@@ -281,6 +283,7 @@
   .pcnt.zero{opacity:.42}
   .pcnt.assign{background:var(--warn-soft)}
   .pcnt.assign b{color:var(--warn)}
+  .pcnt.sup{background:var(--point-soft)}
   .capbox{display:flex;align-items:center;gap:5px;margin-top:auto}
   .caplbl{font-size:9.5px;font-weight:700;color:var(--faint)}
   /* 모바일: 고정 150px 우측 칸이 남는 폭을 밀어내 행이 어긋난다 → 아래로 내려 한 줄로 편다 */
@@ -323,6 +326,8 @@
   .planstrip.r2 .plancell{color:var(--inactive)}
   .planstrip.assign{background:var(--warn-soft)}
   .planstrip.assign .plancell{color:var(--warn)}
+  .planstrip.sup{background:var(--point-soft)}
+  .planstrip.sup .plancell{color:var(--ink)}
   /* 완료한 강의만 채워진 칸으로 — 띠가 왼쪽부터 차오르는 것처럼 읽힌다 */
   .planstrip .plancell.done{background:var(--fill-done);color:#fff;border-right-color:rgba(255,255,255,.34)}
 
@@ -408,6 +413,30 @@
   .flowbadge.r1{background:var(--done-soft);color:var(--ink)}
   .flowbadge.r2{background:var(--inactive-soft);color:var(--inactive)}
   .flowbadge.assign{background:var(--warn-soft);color:var(--warn)}
+  .flowbadge.sup{background:var(--point-soft);color:var(--ink)}
+  .insights{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px;margin-bottom:10px}
+  .ins-card{background:var(--surface);border-radius:12px;padding:10px 12px;box-shadow:var(--sh-1)}
+  .ins-h{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;color:var(--ink)}
+  .ins-sub{font-size:10px;font-weight:700;color:var(--faint)}
+  .ins-t{margin-top:5px;font-size:10.5px;line-height:1.6;color:var(--muted);font-weight:600}
+  .ins-badge{font-size:10px;font-weight:800;padding:1px 8px;border-radius:20px;background:var(--surface2);color:var(--ink)}
+  .ins-badge.good,.ins-badge.done{background:var(--point-soft)}
+  .ins-badge.mid{background:var(--warn-soft);color:var(--warn)}
+  .ins-badge.bad{background:var(--warn);color:#fff}
+  .ins-copy{margin-left:auto;border:none;border-radius:7px;padding:3px 9px;font-size:10px;font-weight:700;background:var(--surface2);color:var(--ink);cursor:pointer}
+  .defertag{color:var(--muted);font-weight:700}
+  .defertag.warn{color:var(--warn)}
+  .flowobs{border-radius:9px;padding:7px 10px;font-size:11px;font-weight:700;background:var(--surface2);color:var(--ink);text-decoration:none;flex-shrink:0}
+  .flowobs:hover{background:var(--point-soft)}
+  .flowgrip{cursor:grab;color:var(--faint);font-size:13px;line-height:1;padding:2px 0;user-select:none;flex-shrink:0;letter-spacing:-2px}
+  .flowgrip:hover{color:var(--ink)}
+  .flowitem.dragging{opacity:.45}
+  .flowitem.drop-before{box-shadow:0 -3px 0 0 var(--ink), var(--sh-1)}
+  .flowitem.drop-after{box-shadow:0 3px 0 0 var(--ink), var(--sh-1)}
+  .deferred-note{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:10.5px;font-weight:700;color:var(--muted);padding:2px 4px}
+  .deferred-chip{border:1px dashed var(--line);background:var(--surface);color:var(--muted);border-radius:8px;padding:3px 8px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:var(--sans)}
+  .deferred-chip:hover{color:var(--ink);border-color:var(--ink)}
+  .deferred-chip i{font-style:normal}
   .flowtitle{flex:1;font-size:13px;font-weight:700;min-width:0}
   .flowcopy{display:inline-flex;align-items:center;vertical-align:middle;margin-left:6px;padding:2px;border:none;background:transparent;color:var(--muted);cursor:pointer;border-radius:5px;opacity:.7;transition:color var(--t-fast) var(--ease),opacity var(--t-fast) var(--ease)}
   .flowcopy:hover{opacity:1;color:var(--ink)}
@@ -777,6 +806,7 @@
   .bulkbar{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
   .bulkbar button{border:none;border-radius:9px;padding:8px 14px;font-size:11.5px;font-weight:700;background:var(--accent);color:var(--on-accent);cursor:pointer}
   .bulkbar button:disabled{opacity:.35;cursor:default}
+  .bulkbar button.bulk-tt{background:var(--surface);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
   .bulkbar span{font-size:10.5px;color:var(--muted);font-weight:700}
 
   /* ===== 항목별 시간 측정 ===== */
@@ -831,6 +861,8 @@
   .memo-add{display:flex;gap:6px;margin-bottom:12px}
   .memo-add input{flex:1;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:12px;font-family:var(--sans);background:var(--surface)}
   .memo-add button{border:none;border-radius:9px;padding:8px 13px;font-size:11.5px;font-weight:700;background:var(--accent);color:var(--on-accent);cursor:pointer}
+  .memo-add button.memo-copy{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+  .memo-add button.memo-delall{color:var(--warn)}
   .memo-grp{margin-top:12px}
   .memo-grp:first-of-type{margin-top:0}
   .memo-grp h4{margin:0 0 7px;font-size:11px;font-weight:800;color:var(--muted);display:flex;gap:6px;align-items:baseline}
@@ -963,7 +995,7 @@
             <textarea id="bulkText" placeholder="한 줄에 강의 하나씩 입력해 주세요.&#10;칸은 탭, | 또는 두 칸 이상의 공백으로 나눕니다.&#10;&#10;3강 | 세포 손상과 적응 | 홍길동 | 9/15 | 1교시&#10;4강 | 염증 (1) | 김철수 | 9/16 | 5-6교시 | 실습&#10;(교시를 비워 두면 그날 빈 교시에 자동으로 들어갑니다)"></textarea>
             <div class="bulkopts">날짜가 없는 줄은 <select id="bulkDay"></select> 로 넣습니다.</div>
             <div class="bulkprev" id="bulkPrev" style="display:none"></div>
-            <div class="bulkbar"><button type="button" id="bulkAddBtn" disabled>추가</button><span id="bulkStat"></span></div>
+            <div class="bulkbar"><button type="button" id="bulkAddBtn" disabled>추가</button><button type="button" id="bulkTtPrompt" class="bulk-tt" title="시간표 PDF와 함께 Claude에 붙여넣으면, 이 칸에 그대로 넣을 줄글을 만들어 줍니다">시간표 PDF용 프롬포트 복사</button><span id="bulkStat"></span></div>
           </div>
         </details>
       </div>
@@ -1073,6 +1105,8 @@
   <div class="form-row"><label id="elTitleLabel">강의명</label><input type="text" id="elTitle"></div>
   <div class="form-row" id="elProfRow"><label>교수명</label><input type="text" id="elProf"></div>
   <div class="form-row" id="elTypeRow"><label>구분</label><select id="elType"><option value="강의">강의</option><option value="실습">실습</option></select></div>
+  <div class="form-row" id="elDiffRow"><label>난이도 (크레딧 가감)</label><select id="elDiff"><option value="easy">쉬움 (×0.75)</option><option value="normal">보통</option><option value="hard">어려움 (×1.5)</option></select></div>
+  <div class="form-row" id="elExamQRow"><label>시험 문항 수 (비우면 블록 기본값)</label><input type="number" step="1" min="0" max="50" id="elExamQ" placeholder="블록 기본값"></div>
   <div class="form-row" id="elCreditRow" style="display:none"><label>크레딧(예상 소요)</label><input type="number" step="0.25" min="0" id="elCredit"></div>
   <div class="form-row"><label id="elDayLabel">Day</label><select id="elDay"></select></div>
   <div class="form-row" id="elPeriodRow"><label>교시</label><div style="display:flex;gap:6px"><select id="elPeriod" style="flex:1"></select><select id="elSpan" style="flex:1"></select></div></div>
@@ -1237,7 +1271,7 @@ function builtinPromptEntry(p, app){
 }
 /* 콘텐츠 버전 3: 기본 프롬프트를 Ⓐ~Ⓓ로, Custom instructions를 새 지침으로 한 번 교체한다.
    직접 추가한 프롬프트는 그대로 두고, 예전 기본 프롬프트(p1~p5)와 지침 수정본만 새것으로 바꾼다. */
-const CONTENT_VERSION=5;
+const CONTENT_VERSION=8;
 const OLD_BUILTIN_IDS=['p1','p2','p3','p4','p5','pa','pb','pc','pd'];
 function migrateBuiltinPrompts(app){
   if((app.contentVersion||0) >= CONTENT_VERSION) return;
@@ -1263,6 +1297,42 @@ function migrateBuiltinPrompts(app){
   app.customInstructionDefault=patchInstructionV5(app.customInstructionDefault);
   const pa=app.customPrompts.find(cp=>cp && cp.id==='pa');
   if(pa && pa.text===OLD_PA_TEXT) pa.text=NEW_PA_TEXT;
+  /* 버전 6: 재구성·앵커·역인출 원칙(41~49)을 지침에 추가하고, Ⓕ~Ⓚ 프롬프트(작년 필기 인코딩·
+     예습 인출·강의록 보완·족보 노트·족보 분석·앵커 인출 훈련)를 한 번만 넣는다. */
+  if((app.contentVersion||0) < 6){
+    app.customInstructionOverride=patchInstructionV6(app.customInstructionOverride);
+    app.customInstructionDefault=patchInstructionV6(app.customInstructionDefault);
+    PROMPTS().filter(p=>['pf','pg','ph','pi','pj','pk'].includes(p.id)).forEach(p=>{
+      if(!app.customPrompts.some(cp=>cp && cp.id===p.id)) app.customPrompts.push(builtinPromptEntry(p, null));
+    });
+  }
+  /* 버전 7: 정리본이 옵시디언 노트로 바뀜 — 지침에 노트 형식·예상 기출문제·족보 노트 규격 추가,
+     안 고친 기본 프롬프트는 새 문구로, Ⓛ 예상 기출문제·Ⓜ 시험 회고 추가, Ⓕ(작년 필기만으로 인코딩)는 삭제. */
+  if((app.contentVersion||0) < 7){
+    app.customInstructionOverride=patchInstructionV7(app.customInstructionOverride);
+    app.customInstructionDefault=patchInstructionV7(app.customInstructionDefault);
+    app.customPrompts=app.customPrompts.filter(cp=>!(cp && cp.id==='pf' && cp.text===PF_TEXT_V6));
+    const fresh=PROMPTS();
+    app.customPrompts.forEach(cp=>{
+      const olds=cp && PROMPT_V7_OLD[cp.id];
+      if(!olds || !olds.includes(cp.text)) return;
+      const p=fresh.find(x=>x.id===cp.id); if(!p) return;
+      cp.text=p.x; cp.name=shortPromptName(p.t); cp.when=p.w;
+    });
+    ['pl','pm'].forEach(id=>{
+      if(app.customPrompts.some(cp=>cp && cp.id===id)) return;
+      const entry=builtinPromptEntry(fresh.find(x=>x.id===id), null);
+      const at=id==='pl' ? app.customPrompts.findIndex(cp=>cp && cp.id==='pb') : -1;
+      if(at>=0) app.customPrompts.splice(at+1, 0, entry); else app.customPrompts.push(entry);
+    });
+  }
+  /* 버전 8: Vault 하위 폴더 이름을 실제 Vault에 맞춤 — 01 강의 → 정리본, 02 족보 → 족보, 03 분석 → 분석 */
+  if((app.contentVersion||0) < 8){
+    const fix=t=> typeof t==='string' ? t.replaceAll('01 강의','정리본').replaceAll('02 족보','족보').replaceAll('03 분석','분석') : t;
+    app.customInstructionOverride=fix(app.customInstructionOverride);
+    app.customInstructionDefault=fix(app.customInstructionDefault);
+    app.customPrompts.forEach(cp=>{ if(cp) cp.text=fix(cp.text); });
+  }
   app.contentVersion=CONTENT_VERSION;
 }
 function normalizeApp(app){
@@ -1280,6 +1350,8 @@ function normalizeApp(app){
   /* 직접 고친 체크리스트들(사전 준비·전날 루틴·매일 반복). 없으면 기본값을 쓴다. */
   if(app.onboardSteps!=null && !Array.isArray(app.onboardSteps)) delete app.onboardSteps;
   if(app.examEveSteps!=null && !Array.isArray(app.examEveSteps)) delete app.examEveSteps;
+  if(app.examEveD2Steps!=null && !Array.isArray(app.examEveD2Steps)) delete app.examEveD2Steps;
+  if(app.examEveD3Steps!=null && !Array.isArray(app.examEveD3Steps)) delete app.examEveD3Steps;
   if(app.dailySteps!=null && !Array.isArray(app.dailySteps)) delete app.dailySteps;
   /* 매일 반복 항목이 여러 개가 될 수 있게 ankiCheck(단일 체크) → dailyCheck(항목별 체크)로 옮긴다 */
   app.blocks.forEach(b=>{
@@ -1319,7 +1391,7 @@ function normalizeApp(app){
 }
 
 /* ===== 사용자 설정 (블록과 무관한 전역 값) ===== */
-const SETTINGS_DEFAULTS={dayStartHour:4, name:'', bdayM:0, bdayD:0, fontScale:'md', reduceMotion:false, sound:true, volume:'mid', notify:true, bdayCelebrated:''};
+const SETTINGS_DEFAULTS={dayStartHour:4, name:'', bdayM:0, bdayD:0, fontScale:'md', reduceMotion:false, sound:true, volume:'mid', notify:true, bdayCelebrated:'', obsVault:''};
 function normalizeSettings(app){
   if(!app.settings || typeof app.settings!=='object') app.settings={};
   Object.keys(SETTINGS_DEFAULTS).forEach(k=>{ if(app.settings[k]===undefined) app.settings[k]=SETTINGS_DEFAULTS[k]; });
@@ -1509,6 +1581,7 @@ const SUB_STEPS = {
   new: ['필기 주석 flatten','인출 & 문제 풀이','정리본 제작(사진, 그림, 암기법)'],
   r1: ['족보 해설에 2025년 족보 추가','2025 족보 해설 옮기기','족보 풀이','족보 오답','족보 해설 보완', '정리본에 출제 요소 표시'],
   r2: ['정리본 1회독 (Highlights)','헷갈리는 부분 다시 확인'],
+  sup: ['정리본 먼저 읽기','올해 강의록 필기 보며 정리본 보완','족보 해설 갱신 (근거 없는 선지 표시)','요약 박스 갱신'],
 };
 /* 프롬프트 탭에서 직접 고친 체크리스트가 있으면 그걸 쓰고, 없으면 위 기본값을 쓴다.
    체크 기록(subCheck)은 배열 인덱스로 저장되므로, 항목 순서를 바꾸면 체크 위치도 함께 밀린다. */
@@ -1687,6 +1760,8 @@ const ONBOARD_ITEMS = [
 },
   {key:'pasteInstructions', label:'Custom Instruction 붙여넣기', action:'openPrompts'},
   {key:'uploadKnowledge', label:'Project Knowledge 업로드'},
+  {key:'jokboNotes', label:'족보 노트 만들기 (옵시디언, 해설 없이 문항만)', get prompt(){ return (promptById('pi')||{}).text || PI_TEXT; }},
+  {key:'jokboAnalysis', label:'족보 출제 패턴 분석 → 교수별 학습 전략에 반영', get prompt(){ return (promptById('pj')||{}).text || PJ_TEXT; }},
 ];
 function defaultOnboardLabels(){ return ONBOARD_ITEMS.map(it=>it.label); }
 /* 라벨 문자열에서 만든 안정적인 체크 키 — 문구가 그대로면 체크 기록도 유지된다 */
@@ -1711,7 +1786,13 @@ function onboardItems(){
 
 /* ===== 시험 전날 전용 루틴 (크레딧 분배 대상 아님) ===== */
 const EXAM_EVE_ITEMS = ['족보 전체 풀이','족보에서 많이 틀린 부분 복습','전날 요약본 1회독 (정리본 전체 X — 교수 정보·요약 박스·★만)'];
-function examEveItems(){
+/* 비워 둔 날이 여러 날이면 날마다 루틴이 다르다 — D-1(전날)·D-2·D-3 이전 */
+const EXAM_EVE_D2_ITEMS = ['족보 오답 다시 풀기','헷갈리는 감별·한 방에 가르는 기준 회독','예상 기출문제 틀린 것 다시 풀기'];
+const EXAM_EVE_D3_ITEMS = ['족보 전체 1회독 풀이','틀린 족보 문항 → 정리본에서 근거 확인','요약 콜아웃 + ★ 회독'];
+function examEveItems(day){
+  const dLeft = (day==null || !S) ? 1 : S.examDay-day;
+  if(dLeft>=3){ const v=App.examEveD3Steps; return Array.isArray(v) ? v : EXAM_EVE_D3_ITEMS; }
+  if(dLeft===2){ const v=App.examEveD2Steps; return Array.isArray(v) ? v : EXAM_EVE_D2_ITEMS; }
   const v=App.examEveSteps;
   return Array.isArray(v) ? v : EXAM_EVE_ITEMS;
 }
@@ -1739,17 +1820,27 @@ function checklistSections(){
     reset: ()=>{ if(App.subSteps) delete App.subSteps[t]; }
   });
   return [
-    stage('new'), stage('r1'), stage('r2'),
+    stage('new'), stage('sup'), stage('r1'), stage('r2'),
     {label:'블록 사전 준비', hint:'기본 항목의 문구를 바꾸면 그 줄에 붙어 있던 프롬프트 버튼은 사라집니다.',
      cur:()=> onboardItems().map(it=>it.label),
      edited:()=> Array.isArray(App.onboardSteps),
      save: arr=> saveListOverride('onboardSteps', arr, defaultOnboardLabels()),
      reset: ()=>{ delete App.onboardSteps; }},
-    {label:'시험 전날 루틴',
-     cur:()=> examEveItems(),
+    {label:'시험 전날(D-1) 루틴',
+     cur:()=> Array.isArray(App.examEveSteps) ? App.examEveSteps : EXAM_EVE_ITEMS,
      edited:()=> Array.isArray(App.examEveSteps),
      save: arr=> saveListOverride('examEveSteps', arr, EXAM_EVE_ITEMS),
      reset: ()=>{ delete App.examEveSteps; }},
+    {label:'D-2 루틴', hint:'시험 전 비워 둘 날을 2일 이상으로 설정했을 때 D-2에 뜹니다.',
+     cur:()=> Array.isArray(App.examEveD2Steps) ? App.examEveD2Steps : EXAM_EVE_D2_ITEMS,
+     edited:()=> Array.isArray(App.examEveD2Steps),
+     save: arr=> saveListOverride('examEveD2Steps', arr, EXAM_EVE_D2_ITEMS),
+     reset: ()=>{ delete App.examEveD2Steps; }},
+    {label:'D-3 이전 루틴', hint:'비워 둔 날 중 D-3 이전 날마다 뜹니다.',
+     cur:()=> Array.isArray(App.examEveD3Steps) ? App.examEveD3Steps : EXAM_EVE_D3_ITEMS,
+     edited:()=> Array.isArray(App.examEveD3Steps),
+     save: arr=> saveListOverride('examEveD3Steps', arr, EXAM_EVE_D3_ITEMS),
+     reset: ()=>{ delete App.examEveD3Steps; }},
     {label:'매일 반복 항목', hint:'날짜마다 새로 체크하는 항목입니다. 오늘 탭에 매일 카드로 나옵니다.',
      cur:()=> dailyItems(),
      edited:()=> Array.isArray(App.dailySteps),
@@ -1759,7 +1850,7 @@ function checklistSections(){
 }
 /* ===== 예습(전년도 필기) vs 실제(올해 필기) 비교 ===== */
 const COMPARE_PROMPT = `[이번 연도 필기 + 기존 정리본 첨부]\n작년 필기로 인코딩한 강의야. 이번 연도 필기랑 비교해서 정리본 수정사항 뽑아줘.`;
-const CUSTOM_INSTRUCTIONS_TEMPLATE = String.raw`### 과목 설정 (블록마다 이 부분만 수정)
+const CUSTOM_INSTRUCTIONS_TEMPLATE = `### 과목 설정 (블록마다 이 부분만 수정)
 - 과목명: {과목명}          ← 예: 감염의 기초 - 미생물학
 - 블록 기간: {시작일} ~ {시험일}
 - 필기 스탬프 종류: 중요, 족보, 어려워요   ← 과목마다 다르면 수정
@@ -1773,90 +1864,116 @@ const CUSTOM_INSTRUCTIONS_TEMPLATE = String.raw`### 과목 설정 (블록마다 
 ### 전체 학습 흐름
 | 단계 | 시점 | 담당 | 내용 |
 |---|---|---|---|
-| 1. 신규 인코딩 | 강의록 받은 날 | 너 | 설명 → 인출 → 강의별 정리본 PDF |
-| 2. 1차 복습 | — | 나 | 족보 풀이 등 (요청받기 전엔 관여 X) |
-| 3. 2차 복습 | — | 나 | 정리본 2회독 |
-| 4. 시험 전날 | — | 나 | 전날 요약본 읽기 (정리본 전체 재독 X) |
-| 수시 | 요청 시 | 너 | 족보 해설 제작, 작년↔올해 필기 비교, 전날 요약본 |
-네가 관여하는 건 1단계, 수시 작업뿐이야. 족보 풀이·모의고사·채점·복습은 내가 직접 해.
+| 1. 신규 인코딩 | 올해 강의록이 올라온 날 | 너 | 강의록·필기 → 옵시디언 정리본 노트 + 강의록 뒤 족보 문항 해설 |
+| 1-2. 예상 기출문제 | 내가 정리본 노트를 읽고 돌아오면 | 너 | 강의별 '예상 기출' 문제 수만큼 출제·채점 |
+| 보완 | 미리 인코딩한 강의의 올해 필기가 올라온 날 | 너 | 정리본·족보 해설 보완 |
+| 2. 1차 복습 | — | 나 | 족보 풀이 (요청받기 전엔 관여 X) |
+| 3. 2차 복습 | — | 나 | 정리본 회독 |
+| 4. 시험 전 | — | 나 | 요약 콜아웃 회독 (정리본 전체 재독 X) |
+| 수시 | 요청 시 | 너 | 족보 노트·족보 분석, 작년↔올해 필기 비교, 요약 점검, 시험 회고 |
+올해 강의록이 올라오지 않은 강의는 인코딩하지 않아. 족보 풀이·채점·복습은 내가 직접 해.
 
 ### 설명 말투 (설명·요약·오답 재설명 전부 적용)
 1. 웃기고 재밌게: 세포·분자·병원체·약물·장기를 캐릭터처럼 의인화하고 상황극·과장·드립을 적극 써. 교과서 문체 금지 — 친한 선배가 카페에서 썰 풀듯이.
    (예) 파상풍 독소 = 신경의 브레이크를 끊는 놈 → 브레이크 고장 난 차 → 근육이 계속 쥐어짜임 / 보툴리눔 독소 = 액셀 자체를 뜯어가는 놈 → 차가 아예 안 움직임
    (예) 경쟁적 길항제 = 열쇠 구멍에 맞는 가짜 열쇠 꽂고 버티는 놈 → 진짜 열쇠(작용제)를 잔뜩 들이부으면 밀려남
-   (예) 음성 되먹임 = 방이 따뜻해지면 알아서 꺼지는 보일러 온도조절기
 2. 재미는 수단: 드립 때문에 정확성·세부 내용을 빼지 마. 비유가 실제와 어긋나는 지점이 있으면 한 줄로 짚어.
 3. 우리말 우선:
    - 영어 그대로 쓰는 건 고유명사(균·기생충 학명, 약물명, 유전자·단백질명, 질환 고유명), 표준 약어, 족보에서 영어로 묻는 용어뿐. 첫 등장 때 쉬운 우리말 뜻을 괄호로 붙여.
    - 나머지는 우리말로 풀어. 어려운 한자어 전문용어도 쉬운 말로 먼저 설명하고 용어는 뒤에 붙여.
    - 한 문장에 영어 용어 2개 이상 섞지 마.
-4. 정리본 PDF·족보 해설에는 드립 빼고 압축해서 써. 기억에 도움 되는 비유만 한 줄 허용.
+4. 정리본 노트·족보 해설에는 드립 빼고 압축해서 써. 기억에 도움 되는 비유는 '기억 고리'로 한 줄만.
 
 ### 강의 간 비중
-5. 모든 강의는 동일 비중. 강의 간 우열·생략 없이 순서대로 처리. 실습 강의록은 인코딩 시간·인출 문제 수를 가볍게 줄여도 돼.
+5. 모든 강의는 동일 비중. 강의 간 우열·생략 없이 처리. 실습 강의록은 분량·예상 기출 수를 가볍게 줄여도 돼.
 
-### 1단계: 신규 인코딩
-9. 시작 전 대단원 목차와 우선순위(상/중/하) 표를 보여주고 확인받은 뒤 진행. 강의록 전체를 한 번에 쏟지 말고 대단원/주제별로 끊어서.
-10. 우선순위: 과목 설정의 스탬프가 붙은 슬라이드는 더 깊게. 스탬프 없는 슬라이드도 절대 생략 X — 강의 안에서 깊이 배분용일 뿐.
-11. 무생략: 세부 수치·분류·기전·예외까지 전부.
-12. 형식: 핵심 용어 굵게. 분류·감별·특성 비교는 표, 병태·기전·신호전달·약리작용은 인과사슬(원인→기전→결과). 줄글 최소화. 꼭 필요한 그림만 규격의 자리표시 형식으로.
-13. 챕터 시작 시 1~2줄: 이 강의 전체 흐름.
-14. 챕터 순서: 설명 → 3~5줄 요약 → 미니 인출. 챕터가 하나 끝날 때마다 요약을 빠짐없이 넣고, 정리본 PDF에도 챕터마다 같은 요약을 박스로 넣어 (규격 39).
-15. 필기에 "외우지 마"·"암기 불필요"류 → 내용 옆에 (암기 불필요). "시험에 낸다"·"외워라"·"중요" → 굵게+★.
-16. 미니 인출: 요약 다음, 강의록 안 보고 답할 문제 2~3개를 중요·강조 부분에서.
-17. 강의 끝: 챕터들을 요약해 전체 흐름 재정리 → 교수 출제 형식·족보 스타일 인출 8~10문제.
-18. 문제 규칙: 단답식·객관식 위주, 여러 단계 기전 이해 확인에만 서술형. 족보 실제 출제 방식·형태 반영. 강의록 번호 나열을 그대로 묻는("3번은?") 얕은 문제 금지. 문제 안에서 답을 굵게 하는 등 힌트 노출 금지.
-19. 채점: 내가 전부 답하기 전엔 정답·해설 공개 X. 틀린 것만 인과사슬+말투 규칙으로 재설명 후 재출제. "오답만 다시" 요청 시 틀린 개념만 재설명·재출제.
-20. 인출세트 끝나면 강의별 정리본 PDF 제작 (인출 문제는 미포함).
+### 1단계: 신규 인코딩 (정리본 노트)
+6. 입력: 올해 강의록 + 필기(+ 있으면 작년 필기). 올해 강의록이 없는 강의는 인코딩하지 마.
+7. 시작 전 대단원 목차와 우선순위(상/중/하) 표를 보여주고 내가 확인하면, 정리본 노트를 한 번에 만들어. 챕터마다 미니 인출 문제는 내지 마 — 문제는 1-2단계(예상 기출문제)에서만.
+8. 우선순위: 과목 설정의 스탬프가 붙은 슬라이드는 더 깊게. 스탬프 없는 슬라이드도 절대 생략 X — 깊이 배분용일 뿐.
+9. 무생략: 세부 수치·분류·기전·예외까지 전부. 단, 아래 '재구성·인출 원칙'대로 재구성·압축.
+10. 필기에 "외우지 마"·"암기 불필요"류 → 내용 옆에 (암기 불필요). "시험에 낸다"·"외워라"·"중요" → ★.
+11. 강의록 뒤에 붙은 족보 문항: 이 강의록 기준으로 해설을 써서 족보 노트에 채워 넣고(족보 노트 규격), 정리본의 해당 개념 옆에 문항 라벨을 달아.
+12. 결과물: 옵시디언 정리본 노트 하나 (아래 '옵시디언 정리본 노트 형식'). VS Code의 Claude Code에서 작업 중이면 Vault에 바로 저장하고, claude.ai에서는 내려받을 수 있는 .md 파일로 줘.
+13. 노트를 준 뒤 '요청 반영: n건'(내가 넣어달라고 한 것)과 '족보 해설 채운 문항: 2026 Q01 …' 목록으로 확인해줘.
 
-### 수시: 족보 해설 제작
-21. 문항마다 아래 형식, 그대로 옮겨 적을 수 있게 텍스트로 (파일 X):
-   [문항번호] 정답: ○
-   - 해설: 정답 근거 인과사슬 1~3줄
-   - 오답 선지: 선지별 틀린 이유 한 줄 (객관식)
-   - 관련 강의: nn강
-22. 복원 족보라 문항·선지가 불완전해 정답 확정이 어려우면 [정답 불확실] + 이유 + 가능한 답 후보. 선배 해설과 판단이 다르면 [선배 해설과 다름] + 근거. 확신 없는 답을 확정처럼 쓰지 마.
+### 1-2단계: 예상 기출문제
+14. 내가 정리본 노트를 읽고 돌아와서 요청하면 예상 기출문제를 내. 문제 수는 강의 목록에 적힌 '예상 기출 n문제'(= 그 강의 시험 문항 수 × 배수).
+15. 출제 우선순위: ① 교수가 시험 문제를 예고했거나 "낸다"고 한 내용 → 그 내용 위주 ② 족보에서 반복 출제된 개념 → 같은 개념을 다른 각도·선지로 ③ 교수 강조(★·필기 스탬프·반복 언급) ④ 남은 문항은 출제 가능성 높은 나머지 포인트.
+16. 형식: 족보 실제 형식 그대로(객관식은 '1.'~'5.' 선지, 단답은 단답). 단서 → 앵커 → 기억 사슬로 풀리는 문제. 정방향(단서 → 개념)과 역방향(개념 → 특징 여러 개)을 섞어. 강의록 번호 나열을 그대로 묻는 얕은 문제·문제 안 힌트(굵게 등) 금지.
+17. 전부 한 번에 내고, 내가 다 답하기 전엔 정답·해설 공개 X. 채점 때 문제마다 출제 근거([예고] / [족보 반복: 2025 Q07] / [★강조] / [기타]) 표시. 틀린 것만 단서 → 앵커 → 기억 사슬로 다시 설명하고 비슷한 문제로 재출제. "오답만 다시" 요청 시 틀린 개념만.
+18. 끝나면 '정리본에 넣을 것' 목록(내가 넣어달라고 한 것 포함) → 내가 확인하면 정리본 노트에 반영.
 
-### 수시: 작년↔올해 필기 비교
-23. PDF 새로 만들지 말고 텍스트로, 순서대로:
-   ① 달라진 점·새 강조: 표 (슬라이드 p. | 작년 | 올해 | 출제 의미)
-   ② 정리본 수정사항: 표 (정리본 위치(챕터·항목) | 유형(추가/수정/삭제/강조) | 넣을 내용 — 그대로 붙여넣을 수 있는 문장)
-   ③ 누락 전수검토: 올해 필기를 첫 슬라이드부터 한 장씩 정리본과 대조해서 빠진 개념·수치·분류·예외를 전부 ②에 포함. 마지막에 대조 완료 범위(p.1~p.N) 명시. 빠진 내용이 하나라도 있으면 안 돼.
+### 수시: 족보
+19. 족보 노트는 '족보 노트 규격'대로. 블록 시작 때는 문항 노트만 만들고(해설 X), 해설은 강의 인코딩 때 그 강의록 기준으로 채워.
+20. 복원 족보라 문항·선지가 불완전해 정답 확정이 어려우면 [정답 불확실] + 이유 + 가능한 답 후보. 선배 해설과 판단이 다르면 [선배 해설과 다름] + 근거. 확신 없는 답을 확정처럼 쓰지 마.
+
+### 수시: 작년↔올해 필기 비교 · 보완
+21. 새 노트를 만들지 말고 텍스트로, 순서대로:
+   1. 달라진 점·새 강조: 표 (슬라이드 p. | 작년 | 올해 | 출제 의미)
+   2. 정리본 수정사항: 표 (위치(챕터·항목) | 추가/수정/삭제/강조 | 그대로 붙여넣을 문장) — Claude Code에서는 내가 확인하면 노트에 직접 반영
+   3. 누락 전수검토: 올해 필기를 첫 슬라이드부터 한 장씩 정리본과 대조해 빠진 개념·수치·분류·예외를 전부 2에 포함. 마지막에 대조 완료 범위(p.1~p.N).
 
 ### 짤족 / 탈족
-24. 강의록·필기·교수 후기에서 짤족·탈족 언급을 발견하면 반드시 알려줘. 짤족 → 인출 문제에서 족보 문항 비중↑ + 정리본에 없는 족보 포인트 목록 제시. 탈족 → 족보 의존도↓, 개념 이해·응용 문제 강화. 과목 설정의 교수별 학습 전략이 있으면 그 교수 강의에 우선 적용.
+22. 강의록·필기·교수 후기에서 짤족·탈족 언급을 발견하면 반드시 알려줘. 짤족 → 예상 기출에서 족보 문항 비중↑ + 정리본에 없는 족보 포인트 목록 제시. 탈족 → 족보 의존도↓, 개념 이해·응용 문제 강화. 교수별 학습 전략이 있으면 그 교수 강의에 우선 적용.
 
-### 형식 · 기타
-25. 표·불릿·인과사슬 우선, 줄글 최소화. 확인한 내용은 다시 묻지 마.
+### 옵시디언 정리본 노트 형식 (고정)
+23. 파일: '{과목 폴더}/정리본/nn강. 강의제목.md' — 이름은 맨 위 강의 목록의 노트 이름 그대로(nn은 두 자리). 첫 줄 '# nn강. 강의제목 (교수)'. 챕터 '## 1. 제목', 섹션 '### 1-1. 제목' ('Ch1.' X).
+24. frontmatter: 강의(번호), 교수, 수업일, 족보(이 강의 족보 노트 링크 목록), tags: [정리본].
+25. 교수 정보: 제목 바로 아래 '> [!info] 교수 정보' 콜아웃에 딱 세 줄 — 짤족 여부 / 짤족 포인트(짤족일 때만) / 시험 문제 포인트(교수가 알려줬을 때만). 해당 없으면 '없음'. 강의 개요·학습 목표 등은 넣지 마.
+26. 표기 줄: 교수 정보 다음 한 줄 — '표기: 보통 글씨 = 교수 언급·강조 / *기울임* = 슬라이드에만 있고 언급 확인 안 됨 / **굵게** = 핵심 용어 / ==하이라이트== = 족보 출제 / ★ = 교수 강조·스탬프'.
+27. 기호: 말머리는 '-' 하나만(들여쓰기로 계층), 번호는 '1.'(원문자 ①② 금지). 강조는 26번 역할 그대로 — 섞어 쓰지 마.
+28. 족보 라벨: 족보에 나온 개념은 ==하이라이트== 하고 바로 옆에 그 문항 노트 링크 — 예) ==A→P 이동 억제== [[2023 Q54]]. 여러 문항이면 공백으로 나란히. 별칭 번호로 링크해도 같은 노트로 간다.
+29. 챕터 시작: '> [!tldr] 오늘의 한 문장' 콜아웃 한 줄 — 이 챕터를 꿰는 인과 사슬.
+30. 표: 분류·감별·약물 비교는 표. 셀 안 줄바꿈은 '<br>', 셀 안 목록은 '- '. 약물이 여러 개인 강의는 약물 통합표 열을 '약물 | 앵커 (기전 → 핵심 결과) | 갈래: 쓰는 이유·특징 | 부작용·주의·금기 | 기억 고리'로.
+31. 인과 사슬: '> [!chain] 제목' 콜아웃 안에서 한 문단으로 → 를 죽 이어 써 (↓로 줄마다 쌓지 마).
+32. 앵커: 문제에서 보이는 단서가 결정적인 개념은 '> [!anchor] 단서 → 앵커' 콜아웃 — 첫 줄 단서, 다음 줄 기억 사슬, 필요하면 역방향 한 줄.
+33. 요약: 챕터가 끝날 때마다 빠짐없이 '> [!summary] 요약' 콜아웃, 안에 3~6줄 '-'. 시험 직전에 요약 콜아웃만 모아 읽으므로 요약만으로 흐름이 이어지게.
+34. 그림: 실제 이미지는 내가 넣어. 자리만 '> [!figure] [그림 제목(p.강의록 페이지)] 그림 설명'.
+35. 챕터 구성 기본 틀 (강의 성격에 맞게 조정):
+   - 약물·분류가 많은 강의 (예: 26강 기타항생제): 1. 계열 지도·통합표 → 2. 증례로 보는 선택(표: 단서(★=결정적) | 답·결정 | 이유·교수 Q&A) → 3. 인과 사슬·내성·감별('한 방에 가르는 기준' 표) → 4. 족보·올해 슬라이드 밖
+   - 기전·임상 중심 강의 (예: 34강 항염증 약리): 1. 핵심 암기 요약표(우선순위순, 족보 반복 표시) → 2·3. 보충(요약표에 없는 내용, 주제 | 내용 표)
+   - 마지막 챕터 '족보 · 올해 슬라이드 밖': 표 (족보 | 지문 단서 | 정답 | 올해 슬라이드 근거). 올해 근거가 없으면 '근거 없음'.
+36. 최대한 압축, 화려한 서식 X. 예상 기출문제는 노트에 넣지 마.
 
-### 정리본 PDF 형식 (고정)
-26. 제목: 문서 첫 줄(대제목)은 'nn강. 강의제목 (교수 이름)' (예: 01강. 총론 (1) (OOO)), 파일명은 'nn강. 강의제목.pdf'. nn은 두 자리(01, 02…). 챕터 제목은 '1.' 형식 ('Ch1.' X).
-27. 색상·글꼴: 검정(#000000)·흰색(#FFFFFF)·강조색(#FFF9D6) 세 가지만. 테두리·구분선 전부 검정, 회색 계열 금지. 글꼴은 Pretendard.
-28. 크기·위계: 본문 10.3pt / 대제목 17pt / 챕터소제목 12.5pt / 섹션소제목 11pt / 표 본문 9.5pt / 캡션·부가설명(Light) 9pt. Semibold/Light 위계 유지.
-29. 간격: 문단 마진 없이 줄 간격 1.15. 서로 다른 블록(표/소제목/인과사슬 박스) 사이에만 최소 여백 1.8~4mm.
-30. 기호: 말머리는 하이픈(-) 하나, 번호는 원문자(①②③), 특별 강조는 ★.
-31. 표: 얇은 전체 격자 + #FFF9D6 헤더.
-32. 챕터소제목: #FFF9D6 배경 + 왼쪽 굵은 검정 세로 바를 함께 사용.
-33. 인과사슬: 네 면 박스 X, 왼쪽 세로선만 있는 인용구(blockquote) 스타일. ↓로 줄마다 쌓지 말고 한 문단 안에서 →로 죽 이어지게.
-34. 이미지 자리표시: 실제 이미지 X. 세로 60mm 빈 사각형 + 아래 캡션 '[그림 제목(p.강의록 페이지)] 그림 설명' (예: [신호전달 경로 모식도(p.6)] 수용체 결합부터 유전자 발현까지의 단계).
-35. 표·인과사슬 박스·이미지 박스·메모 칸은 page-break-inside: avoid.
-36. 최대한 압축, 화려한 서식 X. 인출 문제 미포함.
-37. 엔진·폰트: WeasyPrint 사용, wkhtmltopdf 금지 (글자 하나하나가 별도 텍스트 객체로 찍혀 PDF-XChange 편집 시 글자 단위로 쪼개짐). Pretendard는 반드시 TTF 버전을 @font-face로 임베딩, OTF/CFF 금지 (★↓①② 등 특수기호가 PDF-XChange에서 깨진 네모로 표시됨).
-38. 교수 정보 칸 (강의별 정리본): 대제목 바로 아래, '1.' 챕터 시작 전에 딱 이 세 줄만 쓰고 바로 '1.' 챕터로 넘어가.
-   - 짤족 여부: 짤족 / 탈족 / 정보 없음
-   - 짤족 포인트: (짤족일 때만) 족보에서 반복되는 포인트 한 줄
-   - 시험 문제 포인트: (교수가 시험 문제를 알려줬을 때만) 그 문제 포인트 한 줄
-   해당 없는 줄은 '없음'. 강의 개요·학습 목표·흐름 등 이 세 가지 외의 내용은 절대 추가하지 마.
-39. 챕터 요약 박스 (강의별 정리본): 챕터가 하나 끝날 때마다 빠짐없이 요약 박스 하나. 박스 제목은 '요약' 두 글자만 ('요약 체크리스트' X). 흰색(#FFFFFF) 배경 + 얇은 검정 테두리 네 면 박스, 안에 3~5줄 불릿(-). page-break-inside: avoid.
+### 족보 노트 규격 (고정)
+37. 파일: '{과목 폴더}/족보/2026 Q01.md' — 이름은 '연도 Q두자리번호'. 주관식 번호(R3 등)는 '2020 R3'.
+38. 같은 문항·유사 문항은 한 노트로 합쳐. 파일 이름은 가장 최근 연도, 나머지 연도 번호는 frontmatter aliases에 (예: aliases: [2025 Q03, 2023 Q11]). 개념은 같은데 묻는 방식이 아주 다른 문항은 합치지 말고 '관련 문항' 줄에 링크.
+39. 합친 노트의 선지: 모든 연도에 공통으로 나온 선지를 먼저 1., 2., 3.으로, 그 아래 연도마다 달라진 선지를 4., 5., 6. … 으로 이어 번호 매기고 각 선지 끝에 나온 연도 (예: — 2025, 2023). 그 아래 표로 연도별 구성 (연도 번호 | 선지 구성 | 정답).
+40. 노트 구조: frontmatter(aliases·연도·강의 링크·교수·출제 개념·정답·상태: 해설 전/해설 완료·tags: [족보]) → '# 2026 Q01' → '> [!question] 문제' 콜아웃에 지문 → 선지 → 연도별 구성 표 → '> [!answer]- 정답: 1' 접힌 콜아웃 → '관련 문항' 줄.
+41. 해설('> [!answer]-' 안): 선지마다 한 줄 '1. ✅/❌ 이유' + 근거가 된 정리본 위치 링크 (예: [[26강. 기타항생제#3. 인과사슬 · 내성 · 감별]]). 이 강의록에서 근거를 찾을 수 없는 선지는 '~~선지~~ (근거 없음)'.
+42. 필기에 '올해 필기로는 풀 수 없음'이 있으면 '> [!warning] 올해 필기로는 풀 수 없음' 콜아웃, '풀 수 있는 선지만 표시'가 있으면 표시된 선지 끝에 '(풀이 가능)'과 '> [!note] 필기: 풀 수 있는 선지만 표시됨'.
+43. 첫 페이지 대조: 족보를 처음 나눌 때 족보 첫 페이지의 강의 구성·교수 목록을 확인하고 맨 위 강의 목록(올해)과 대조해. 작년과 강의 순서·번호·교수가 다를 수 있으니 문항은 올해 강의 기준으로 배정.
 
-### 수시: 시험 전날 요약본
-40. 요청하면 강의별 정리본에서 시험 전날 하루에 다 읽을 수 있는 분량만 뽑아:
-   - 강의마다: 교수 정보 칸(38) 그대로 + 챕터별 요약 박스(39) + ★·족보 출제 항목만 한 줄씩.
-   - 강의당 A4 반 페이지 이내. 새 내용 추가·재설명 금지 — 정리본에 있는 문장만 줄여서 옮겨.
-   - 형식은 정리본 PDF 규격 그대로, 문서 첫 줄은 '{과목명} 전날 요약본', 파일명은 '{과목명} 전날 요약본.pdf'.`;
+### 수시: 시험 전 요약 점검
+44. 요청하면 모든 강의 노트의 요약 콜아웃만 읽고, 요약만으로 흐름이 이어지는지·족보(==하이라이트==)·★ 핵심이 빠졌는지 강의별로 점검해 보강 문장을 제안해. 새 내용 추가·재설명 금지 — 정리본에 있는 문장만 압축.
+
+### 재구성·인출 원칙 (설명·정리본·문제 전부 적용, 위 규칙과 겹치면 이쪽이 우선)
+45. 재구성: 강의록 순서를 그대로 옮기지 마. 처음 보는 사람이 한 번에 이해되는 순서로 다시 짜. 개념마다 1) 가장 쉬운 말로 한마디 정의(앵커) → 2) 그 정의에서 출발해 나머지 특징이 '왜' 따라 나오는지 인과 사슬로, 생각의 흐름이 끊기지 않게 연결.
+46. 압축 + 무생략: 시험에 나올 수 있는 내용(수치·분류·예외·족보 출제 포인트·교수 강조)은 하나도 빼지 마. 대신 같은 말 반복, 배경 설명, 출제 가능성이 없는 참고 사항·작은 글씨는 빼거나 한 줄로 줄여. 참고 사항이 넘쳐서 핵심이 눈에 안 들어오면 실패야.
+47. 분류·암기 항목은 이유까지: "A는 X다"로 끝내지 말고 "A는 ~해서 → ~이고 → 그래서 X다". 예) 베타락탐은 농도를 올려도 살균이 더 늘지 않음 → 시간 의존적 → MIC 아래로 떨어지면 곧 다시 자람 → 그래서 PAE가 없다.
+48. 앵커 → 기억 사슬 → 역인출: 핵심 개념마다 '키워드 앵커'(문제에서 보이는 단서 단어)와 그 앵커에서 떠올려야 할 기억 사슬을 함께 써. 역방향(특징 → 개념)으로도 떠올릴 수 있게. 문제를 풀 때 실제로 쓰는 사고 회로("이 단서가 보이면 → 이걸 떠올리고 → 그래서 이 선지")를 그대로 모방해.
+49. 내 추가 요청: 내가 "이거 정리본에 넣어줘"라고 한 내용은 빠짐없이 기억해 두었다가 정리본에 반드시 넣어.`;
+const INSTR_V6_RULES = CUSTOM_INSTRUCTIONS_TEMPLATE.slice(CUSTOM_INSTRUCTIONS_TEMPLATE.indexOf('### 재구성·인출 원칙'));
+/* 콘텐츠 버전 6 — 직접 고쳐 둔 지침도 지우지 않고, 41~49가 없을 때만 끝에 덧붙인다 */
+function patchInstructionV6(t){
+  if(typeof t!=='string' || !t.trim()) return t;
+  if(!t.includes('### 재구성·인출 원칙')) t=t.replace(/\s*$/,'')+'\n\n'+INSTR_V6_RULES;
+  return t;
+}
+/* 콘텐츠 버전 7 — 옵시디언 정리본 노트·예상 기출문제·족보 노트 규격. 직접 고쳐 둔 지침은 지우지 않고
+   새 규칙 묶음을 끝에 덧붙인다(위 규칙보다 우선). 깔끔한 새 지침은 프롬프트 탭 '기본값으로'. */
+const tmplPart=(from, to)=>{ const a=CUSTOM_INSTRUCTIONS_TEMPLATE.indexOf(from), b=CUSTOM_INSTRUCTIONS_TEMPLATE.indexOf(to); return a<0 ? '' : CUSTOM_INSTRUCTIONS_TEMPLATE.slice(a, b>a ? b : undefined).trim(); };
+const INSTR_V7_BLOCK = `### v7 변경 사항 (아래 규칙이 위 규칙보다 우선 — 정리본은 PDF가 아니라 옵시디언 노트, 챕터별 미니 인출 대신 예상 기출문제)\n\n`
+  + [tmplPart('### 1단계: 신규 인코딩 (정리본 노트)', '### 수시: 작년↔올해'), tmplPart('### 옵시디언 정리본 노트 형식', '### 재구성·인출 원칙')].join('\n\n');
+function patchInstructionV7(t){
+  if(typeof t!=='string' || !t.trim()) return t;
+  if(!t.includes('### 옵시디언 정리본 노트 형식')) t=t.replace(/\s*$/,'')+'\n\n'+INSTR_V7_BLOCK;
+  return t;
+}
 /* 콘텐츠 버전 4 — 지침을 직접 고쳐 둔 경우에도 지우지 않고, 바뀐 규칙 줄만 찾아서 고쳐 끼운다.
    (이미 고쳐진 문장은 건드리지 않으므로 여러 번 돌려도 같다) */
-const INSTR_V4_RULES = CUSTOM_INSTRUCTIONS_TEMPLATE.slice(CUSTOM_INSTRUCTIONS_TEMPLATE.indexOf('38. 교수 정보 칸'));
+const INSTR_V4_RULES = CUSTOM_INSTRUCTIONS_TEMPLATE.includes('38. 교수 정보 칸') ? CUSTOM_INSTRUCTIONS_TEMPLATE.slice(CUSTOM_INSTRUCTIONS_TEMPLATE.indexOf('38. 교수 정보 칸')) : '';
 function patchInstructionV4(t){
   if(typeof t!=='string' || !t.trim()) return t;
   t=t.replace('(설명·요약 체크리스트·오답 재설명 전부 적용)','(설명·요약·오답 재설명 전부 적용)')
@@ -1961,12 +2078,12 @@ function lectureListText(){
   const rows=LEC.filter(l=>l.type!=='과제' && !(S.lec[l.id] && S.lec[l.id].excluded))
     .slice().sort((a,b)=>lecSeq(a)-lecSeq(b))
     .map(l=>{
-      const code=lectureCodeLabel(l.code);
       const prof=(l.prof||'').trim();
-      return `${code?code+'. ':''}${String(l.title||'').trim()}${prof && prof!=='미정' ? `(${prof})` : ''}`;
+      const q=lecExamQ(l);
+      return `${lecNoteName(l)}${prof && prof!=='미정' ? ` (${prof})` : ''} — 시험 ${q}문항 · 예상 기출 ${q*examQMult()}문제`;
     });
   if(!rows.length) return '';
-  return `### 강의 목록 (강의 번호·제목·교수는 이 목록 기준 — 다시 묻지 마)\n${rows.join('\n')}\n\n`;
+  return `### 강의 목록 (강의 번호·제목·교수는 이 목록 기준 — 다시 묻지 마. 정리본 노트 이름은 '—' 앞부분(교수 제외) 그대로)\n${rows.join('\n')}\n\n`;
 }
 function customInstructions(){
   return lectureListText() + customInstructionsBody();
@@ -1986,6 +2103,7 @@ function customInstructionsBody(){
     .replace('__PROFESSOR_REVIEWS__', reviews)
     .replaceAll('{시작일}', start).replaceAll('{시험일}', exam)
     .replaceAll('{과목명}', subject).replaceAll('[과목명]', subject)
+    .replaceAll('{과목 폴더}', obsFolder(block) || subject)
     .replace(/[ \t]*←[^\n]*/g, '');
 }
 
@@ -2027,7 +2145,38 @@ function seqOf(lecId){ return lecSeq(byId(lecId)); }
    비워 둔 날 중 마지막 날(시험 전날)은 전날 루틴, 나머지는 자유롭게 쓰는 날이다. */
 function bufferDays(){ const v=S && S.plan ? S.plan.buffer : undefined; return (typeof v==='number' && v>=1) ? Math.round(v) : 1; }
 function usableDays(){ return Math.max(1, S.examDay-1-bufferDays()); } // 시험 당일 + 비워 둔 날은 분배 제외
-const DEFAULT_TYPE_COST = {new:1, r1:0.5, r2:0.25};
+const DEFAULT_TYPE_COST = {new:1, r1:0.5, r2:0.25, sup:0.5};
+/* ===== 단계 완료 여부 =====
+   신규·과제 = enc(완료한 날), 1차·2차 = r[1]/r[2], 보완 = supDone(완료한 날).
+   보완(sup)은 작년 필기 등으로 미리 인코딩한 강의에 올해 강의록이 올라온 날 생기는 단계로,
+   supFrom(생긴 날)이 있을 때만 존재한다. */
+function stageDone(st, type){
+  if(!st) return false;
+  if(type==='new' || type==='assign') return st.enc!=null;
+  if(type==='sup') return st.supDone!=null;
+  return !!(st.r && st.r[type==='r1'?1:2]);
+}
+function supPending(st){ return !!st && st.enc!=null && st.supFrom!=null && st.supDone==null; }
+/* 오늘 몫에 고정할 때 쓰는 '원래 예정일' — 표시용 */
+function stageOriginal(type, l, st){
+  if(type==='new' || type==='assign') return l.day;
+  if(type==='sup') return st.supFrom;
+  const g = type==='r1' ? G1() : G2();
+  return st.enc!=null ? st.enc+g : l.day+g;
+}
+/* 직접 미룬 항목 — S.deferred['lecId:type'] = 미룬 날. 그날의 오늘 몫에서만 빠지고
+   내일부터는 평소처럼 다시 배정된다. 뒤 단계(신규를 미루면 1차·2차)도 그날은 같이 빠진다. */
+function deferredKeysToday(){
+  const out=new Set();
+  Object.entries(S.deferred||{}).forEach(([key,day])=>{
+    if(day!==S.cur) return;
+    out.add(key);
+    const [lecId,type]=key.split(':');
+    const later = type==='new' ? ['sup','r1','r2'] : type==='sup' ? ['r1','r2'] : type==='r1' ? ['r2'] : [];
+    later.forEach(t=>out.add(lecId+':'+t));
+  });
+  return out;
+}
 /* 블록별 계획 계수 — 설정 패널에서 바꾼다. 값이 없으면 기본값을 쓴다.
    gap1/gap2 = 1차·2차 복습 간격(일), newLead = 신규 학습 우선 시점(수업 며칠 전부터),
    rampFrac/rampLoad = 초반 적응 기간 비율 / 그 기간의 목표 비율 */
@@ -2042,20 +2191,120 @@ function typeCost(type){ return (S.typeCost && S.typeCost[type]!=null) ? S.typeC
 function totalLecCost(){ return typeCost('new')+typeCost('r1')+typeCost('r2'); }
 /* 과제는 3단계가 아니라 등록할 때 직접 정한 크레딧 하나로 한 번에 완료된다. */
 function itemTotalCost(l){ return l.type==='과제' ? (l.credit>0 ? l.credit : 1) : totalLecCost(); }
-function itemCost(it){
-  if(it.type==='assign'){ const l=byId(it.lecId); return l ? itemTotalCost(l) : 1; }
-  return typeCost(it.type);
+/* 강의 난이도 — 어려운 강의는 모든 단계의 크레딧을 더 크게, 쉬운 강의는 작게 잡는다 */
+const DIFF_MULT={easy:0.75, normal:1, hard:1.5};
+function diffMult(l){ return (l && DIFF_MULT[l.diff]) || 1; }
+function stageCost(l, type){
+  if(type==='assign') return l ? itemTotalCost(l) : 1;
+  return typeCost(type)*diffMult(l);
 }
+function itemCost(it){ return stageCost(byId(it.lecId), it.type); }
 function remainingCredits(){
   let sum=0;
   activeLectures().forEach(l=>{
     const st=S.lec[l.id];
     if(l.type==='과제'){ if(st.enc==null) sum+=itemTotalCost(l); return; }
-    if(st.enc==null) sum+=typeCost('new');
-    if(!st.r[1]) sum+=typeCost('r1');
-    if(!st.r[2]) sum+=typeCost('r2');
+    if(st.enc==null) sum+=stageCost(l,'new');
+    if(supPending(st)) sum+=stageCost(l,'sup');
+    if(!st.r[1]) sum+=stageCost(l,'r1');
+    if(!st.r[2]) sum+=stageCost(l,'r2');
   });
   return sum;
+}
+/* 시험 문항 수 — 블록 기본값(설정) + 강의별 덮어쓰기. 예상 기출문제는 그 배수만큼 낸다 */
+/* ===== 옵시디언 연결 =====
+   Vault 안 구조: {블록 폴더}/00 블록 홈.md · 정리본/nn강. 강의제목.md · 족보/2026 Q01.md · 분석/
+   강의 노트 이름은 지침의 강의 목록에도 똑같이 들어가, Claude가 같은 이름으로 만든다. */
+function obsVault(){ return String(settings().obsVault||'').trim(); }
+function obsFolder(block){
+  block = block || App.blocks.find(b=>b.id===App.active);
+  return String((block && (block.obsFolder || block.name)) || '').trim();
+}
+function lecNoteName(l){
+  const code=String(l.code||'').trim();
+  const m=code.match(/^(\d+)\s*강?\s*(.*)$/);
+  const head = m ? String(parseInt(m[1],10)).padStart(2,'0')+'강'+(m[2]?' '+m[2]:'') : code;
+  return `${head}. ${String(l.title||'').trim()}`.replace(/[\\/:*?"<>|#^\[\]]/g,' ').replace(/\s+/g,' ').trim();
+}
+function obsUri(path){ return `obsidian://open?vault=${encodeURIComponent(obsVault())}&file=${encodeURIComponent(path)}`; }
+function lecNotePath(l){ return `${obsFolder()}/정리본/${lecNoteName(l)}`; }
+/* 프롬프트 안의 {강의} {강의번호} {강의명} {교수} {시험문항수} {예상기출수} {블록폴더}를 그 강의 정보로 채운다 */
+function fillPromptVars(text, l){
+  let t=String(text||'').replaceAll('{블록폴더}', obsFolder());
+  if(!l) return t;
+  const q=lecExamQ(l), name=lecNoteName(l);
+  return t.replaceAll('{강의}', name)
+    .replaceAll('{강의번호}', name.split('.')[0])
+    .replaceAll('{강의명}', String(l.title||''))
+    .replaceAll('{교수}', (l.prof && l.prof!=='미정') ? l.prof : '교수 미정')
+    .replaceAll('{시험문항수}', String(q))
+    .replaceAll('{예상기출수}', String(q*examQMult()));
+}
+/* 블록 홈 노트 — 강의별 진도표를 옵시디언 노트로 내보낸다 */
+function blockHomeMarkdown(){
+  const block=App.blocks.find(b=>b.id===App.active);
+  const name=block?.name || '블록';
+  const first=SCHOOL_DAYS[0], exam=dInfo(S.examDay);
+  const mk=v=> v ? '✅' : '⬜';
+  const lecs=LEC.filter(l=>l.type!=='과제' && S.lec[l.id] && !S.lec[l.id].excluded).sort((a,b)=>lecSeq(a)-lecSeq(b));
+  const rows=lecs.map(l=>{
+    const st=S.lec[l.id], di=dInfo(l.day);
+    return `| [[${lecNoteName(l)}]] | ${(l.prof||'').replace(/\|/g,'/')} | ${di?di.date:''} | ${lecExamQ(l)} | ${mk(st.upl!=null)} | ${mk(st.enc!=null)} | ${st.supFrom!=null?mk(st.supDone!=null):'-'} | ${mk(st.r[1])} | ${mk(st.r[2])} |`;
+  }).join('\n');
+  const now=new Date(), stamp=`${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`;
+  const done=lecs.filter(l=>S.lec[l.id].enc!=null).length;
+  return `---
+블록: ${name}
+기간: ${first?first.date:''} ~ ${exam?exam.date:''}
+갱신: ${stamp}
+---
+# ${name} 블록 홈
+
+> [!info] 블록 정보
+> - 기간: ${first?`${first.date}(${first.dow})`:''} ~ 시험 ${exam?`${exam.date}(${exam.dow})`:''}
+> - 강의 ${lecs.length}개 · 신규 완료 ${done}개 · 시험 문항 기본 ${examQDefault()}문항
+
+## 바로가기
+- [[족보 분석]]
+- [[전날 요약]]
+- [[시험 회고]]
+
+## 진도
+| 강의 | 교수 | 수업일 | 시험 문항 | 강의록 | 신규 | 보완 | 1차 | 2차 |
+|---|---|---|---|---|---|---|---|---|
+${rows}
+
+*스터디플래너에서 내보냄 (${stamp})*
+`;
+}
+function downloadText(filename, text){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([text], {type:'text/markdown;charset=utf-8'}));
+  a.download=filename; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+async function copyPlain(text, msg){
+  try{ await navigator.clipboard.writeText(text); }
+  catch(e){
+    const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
+    ta.select(); try{ document.execCommand('copy'); }catch(e2){} document.body.removeChild(ta);
+  }
+  if(msg) showToast(msg);
+}
+/* 강의록이 수업 며칠 전에 올라왔는지(수업일 기준 학교 날짜 수) — 업로드를 표시한 강의만 */
+function uploadLeadStats(){
+  const leads=LEC.filter(l=>l.type!=='과제' && S.lec[l.id] && S.lec[l.id].upl!=null).map(l=>l.day-S.lec[l.id].upl);
+  return leads.length ? {n:leads.length, avg:leads.reduce((a,b)=>a+b,0)/leads.length} : null;
+}
+function examQDefault(){ const v=S && S.plan ? S.plan.examQ : undefined; return (typeof v==='number' && v>=0) ? v : 3; }
+function examQMult(){ const v=S && S.plan ? S.plan.examQMult : undefined; return (typeof v==='number' && v>0) ? v : 3; }
+function lecExamQ(l){ return (l && typeof l.examQ==='number' && l.examQ>=0) ? l.examQ : examQDefault(); }
+/* 올해 강의록이 올라오기 전에는 인코딩하지 않는다 — 강의록 표시가 없는 강의의 신규는 수업일 전으로
+   앞당겨 배정하지 않는다(수업일부터는 올라왔다고 보고 배정, 아직이면 '미루기'). */
+function itemEligible(it, day){
+  if(day==null || it.type!=='new') return true;
+  const l=byId(it.lecId), st=S.lec[it.lecId];
+  return !(l && st && st.upl==null && day < l.day);
 }
 function rampDays(){ const f=planCfg('rampFrac'); return f>0 ? Math.max(1, Math.ceil(f*usableDays())) : 0; }
 function dayWeight(d){ return d<=rampDays() ? Math.max(0.1, Math.min(1, planCfg('rampLoad'))) : 1.0; }
@@ -2085,12 +2334,7 @@ function lockedTodayDoneCost(){
   if(!S.todayLock || S.todayLock.day!==S.cur) return 0;
   let sum=0;
   S.todayLock.items.forEach(it=>{
-    const st=S.lec[it.lecId]; if(!st) return;
-    let done;
-    if(it.type==='r1') done = !!st.r[1];
-    else if(it.type==='r2') done = !!st.r[2];
-    else done = st.enc!=null; // 'new' 또는 'assign'
-    if(done) sum+=itemCost(it);
+    if(stageDone(S.lec[it.lecId], it.type)) sum+=itemCost(it);
   });
   return sum;
 }
@@ -2107,7 +2351,7 @@ function buildPendingPool(excludeKeys){
   const pool=[];
   activeLectures().forEach(l=>{
     const st=S.lec[l.id];
-    const push=(type,original,cost)=>{ if(excludeKeys && excludeKeys.has(l.id+':'+type)) return; pool.push({type, lecId:l.id, cost:(cost!=null?cost:typeCost(type)), original, nominal:original}); };
+    const push=(type,original,cost)=>{ if(excludeKeys && excludeKeys.has(l.id+':'+type)) return; pool.push({type, lecId:l.id, cost:(cost!=null?cost:stageCost(l,type)), original, nominal:original}); };
     if(l.type==='과제'){ if(st.enc==null) push('assign', l.day, itemTotalCost(l)); return; }
     if(st.enc==null){
       push('new',l.day);
@@ -2115,6 +2359,7 @@ function buildPendingPool(excludeKeys){
       if(!st.r[2]) push('r2',l.day+G2());
     }
     else {
+      if(supPending(st)) push('sup', st.supFrom);
       if(!st.r[1]){ push('r1',st.enc+G1()); if(!st.r[2]) push('r2',st.enc+G2()); }
       else if(!st.r[2]){ push('r2',st.enc+G2()); }
     }
@@ -2128,7 +2373,7 @@ function buildPendingPool(excludeKeys){
    (= 날짜 구성은 변하지 않고, 같은 단계 안의 진행 순서만 항상 번호순이 된다.
      원래 예정일 표시에 쓰는 original은 건드리지 않는다.) */
 function alignPoolBySeq(pool){
-  ['assign','new','r1','r2'].forEach(type=>{
+  ['assign','new','sup','r1','r2'].forEach(type=>{
     const items=pool.filter(it=>it.type===type && it.nominal!=null);
     if(items.length<2) return;
     const days=items.map(it=>it.nominal).sort((a,b)=>a-b);
@@ -2146,14 +2391,20 @@ function alignPoolBySeq(pool){
   });
   return pool;
 }
-const TYPE_ORDER={assign:-1,new:0,r1:1,r2:2};
+const TYPE_ORDER={assign:-1,new:0,sup:0.5,r1:1,r2:2};
+const STAGE_LABEL={assign:'과제',new:'신규',sup:'보완',r1:'1차',r2:'2차'};
 /* ===== 신규 학습 우선 =====
    그 강의의 수업일 당일(또는 하루 전)이 되면, 복습보다 그 강의의 신규 학습을 먼저
    끝낸다 — 수업을 듣기 전에 예습이 끝나 있는 상태를 유지하는 게 목적이다.
    수업일이 이미 지난(=밀린) 신규도 같은 최우선 묶음에 들어가 먼저 따라잡는다.
    설정의 '신규 학습 우선 시점'(planCfg('newLead'))을 0으로 두면 "수업일 당일부터"만 우선이 된다. */
+/* 강의록이 올라온(st.upl) 강의의 신규 학습은 무엇보다 먼저(-1) — 진도부터 나간다.
+   올해 강의록으로 정리본을 보완하는 단계(sup)는 신규 우선 묶음(0)에 함께 들어간다. */
 function newFirstRank(it, day){
   if(day==null) return 1;
+  const st=S.lec[it.lecId];
+  if(it.type==='new' && st && st.upl!=null) return -1;
+  if(it.type==='sup') return 0;
   if(it.type!=='new' && it.type!=='assign') return 1;
   return (it.nominal!=null && it.nominal<=day+Math.max(0,Math.round(planCfg('newLead')))) ? 0 : 1;
 }
@@ -2169,15 +2420,17 @@ function scheduleSortFor(day){
    멈추고 나머지는 전부 다음 날로 이월한다. */
 function fillDay(pool, cap, day){
   pool.sort(scheduleSortFor(day==null?null:day));
-  const placed=[]; let used=0; let i=0;
-  for(; i<pool.length; i++){
-    if(used >= cap-1e-9) break;
-    placed.push(pool[i]); used+=pool[i].cost;
+  const placed=[], rest=[]; let used=0, full=false;
+  const blocked=new Set(); // 그날 배정 못 하는 단계가 있는 강의 — 뒤 단계도 같이 미룬다
+  for(const it of pool){
+    if(!full && used >= cap-1e-9) full=true;
+    if(full || blocked.has(it.lecId) || !itemEligible(it, day)){ rest.push(it); blocked.add(it.lecId); continue; }
+    placed.push(it); used+=it.cost;
   }
-  return {placed, rest:pool.slice(i)};
+  return {placed, rest};
 }
-function ensureTodayLock(){
-  if(S.todayLock && S.todayLock.day===S.cur){
+function ensureTodayLock(forceCap){
+  if(forceCap==null && S.todayLock && S.todayLock.day===S.cur){
     Object.entries(S.pulledReviews || {}).forEach(([key,day])=>{
       if(day!==S.cur) return;
       const [lecIdText,type]=key.split(':');
@@ -2187,11 +2440,7 @@ function ensureTodayLock(){
       if(!st || st.excluded) return;
       const lec=byId(lecId);
       if(!lec) return;
-      let original;
-      if(type==='new' || type==='assign') original = lec.day;
-      else if(type==='r1') original = st.enc!=null ? st.enc+G1() : null;
-      else original = st.enc!=null ? st.enc+G2() : null;
-      S.todayLock.items.push({type, lecId, original, pulled:true});
+      S.todayLock.items.push({type, lecId, original:stageOriginal(type, lec, st), pulled:true});
     });
     return;
   }
@@ -2203,8 +2452,9 @@ function ensureTodayLock(){
     const st=S.lec[l.id];
     if(l.type==='과제'){ if(st.enc===S.cur){ pinned.push({type:'assign', lecId:l.id, original:l.day}); pinnedKeys.add(l.id+':assign'); } return; }
     if(st.enc===S.cur){ pinned.push({type:'new', lecId:l.id, original:l.day}); pinnedKeys.add(l.id+':new'); }
-    if(st.r[1] && st.rDay && st.rDay[1]===S.cur){ pinned.push({type:'r1', lecId:l.id, original:(st.enc!=null?st.enc+G1():l.day+G1())}); pinnedKeys.add(l.id+':r1'); }
-    if(st.r[2] && st.rDay && st.rDay[2]===S.cur){ pinned.push({type:'r2', lecId:l.id, original:(st.enc!=null?st.enc+G2():l.day+G2())}); pinnedKeys.add(l.id+':r2'); }
+    if(st.supDone===S.cur){ pinned.push({type:'sup', lecId:l.id, original:st.supFrom}); pinnedKeys.add(l.id+':sup'); }
+    if(st.r[1] && st.rDay && st.rDay[1]===S.cur){ pinned.push({type:'r1', lecId:l.id, original:stageOriginal('r1', l, st)}); pinnedKeys.add(l.id+':r1'); }
+    if(st.r[2] && st.rDay && st.rDay[2]===S.cur){ pinned.push({type:'r2', lecId:l.id, original:stageOriginal('r2', l, st)}); pinnedKeys.add(l.id+':r2'); }
   });
   /* 오늘로 당겨왔지만 아직 완료 전이라 위 실제완료 기준에는 안 걸리는 항목도 그대로
      고정한다 — 안 그러면 크레딧 조정 등으로 오늘 몫이 통째로 다시 계산될 때 당겨온
@@ -2215,16 +2465,14 @@ function ensureTodayLock(){
     const lecId=Number(lecIdText);
     const l=byId(lecId), st=S.lec[lecId];
     if(!l || !st || st.excluded) return;
-    let original;
-    if(type==='new' || type==='assign') original=l.day;
-    else if(type==='r1') original = st.enc!=null ? st.enc+G1() : l.day+G1();
-    else original = st.enc!=null ? st.enc+G2() : l.day+G2();
-    pinned.push({type, lecId, original, pulled:true});
+    pinned.push({type, lecId, original:stageOriginal(type, l, st), pulled:true});
     pinnedKeys.add(key);
   });
   const pinnedCost = pinned.reduce((a,it)=>a+itemCost(it),0);
-  const cap = (S.capOverride && S.capOverride[S.cur]!=null) ? S.capOverride[S.cur] : defaultCapacityFor(S.cur, remainingCredits()+pinnedCost, S.cur);
-  const pool = buildPendingPool(pinnedKeys);
+  /* forceCap: 미루기·강의록 업로드처럼 '오늘 할 양은 그대로 두고 무엇을 할지만' 바꿀 때 */
+  const cap = forceCap!=null ? forceCap
+    : (S.capOverride && S.capOverride[S.cur]!=null) ? S.capOverride[S.cur] : defaultCapacityFor(S.cur, remainingCredits()+pinnedCost, S.cur);
+  const pool = buildPendingPool(new Set([...pinnedKeys, ...deferredKeysToday()]));
   const {placed} = fillDay(pool, Math.max(0, cap-pinnedCost), S.cur);
   S.todayLock = {day:S.cur, items: [...pinned, ...placed].map(it=>({type:it.type, lecId:it.lecId, original:it.original, pulled:!!it.pulled}))};
 }
@@ -2251,6 +2499,7 @@ function itemDoneBy(it, d){
   const st=S.lec[it.lecId]; if(!st) return false;
   if(it.type==='r1') return !!st.r[1] && (!st.rDay || st.rDay[1]==null || st.rDay[1]<=d);
   if(it.type==='r2') return !!st.r[2] && (!st.rDay || st.rDay[2]==null || st.rDay[2]<=d);
+  if(it.type==='sup') return st.supDone!=null && st.supDone<=d;
   return st.enc!=null && st.enc<=d; // 'new' 또는 'assign'
 }
 /* 기록이 없는 날에도 "그날 실제로 끝낸 것"은 완료 기록에서 되살릴 수 있다 */
@@ -2260,6 +2509,7 @@ function actualDoneOn(d){
     const st=S.lec[l.id]; if(!st) return;
     if(l.type==='과제'){ if(st.enc===d) out.push({type:'assign', lecId:l.id}); return; }
     if(st.enc===d) out.push({type:'new', lecId:l.id});
+    if(st.supDone===d) out.push({type:'sup', lecId:l.id});
     if(st.r[1] && st.rDay && st.rDay[1]===d) out.push({type:'r1', lecId:l.id});
     if(st.r[2] && st.rDay && st.rDay[2]===d) out.push({type:'r2', lecId:l.id});
   });
@@ -2300,10 +2550,7 @@ function computeSchedule(){
   S.todayLock.items.forEach(it=>{
     lockedKeys.add(it.lecId+':'+it.type);
     const st=S.lec[it.lecId]; if(!st) return;
-    let done;
-    if(it.type==='r1') done = !!st.r[1];
-    else if(it.type==='r2') done = !!st.r[2];
-    else done = st.enc!=null; // 'new' 또는 'assign'
+    const done = stageDone(st, it.type);
     byDay[startDay].push({type:it.type, lecId:it.lecId, cost:itemCost(it), original:it.original, day:startDay, done, pulled:!!it.pulled});
   });
 
@@ -2315,24 +2562,217 @@ function computeSchedule(){
   }
   const unscheduled = pool; // 크레딧이 부족하게 조정된 경우에만 남음
   const byLecture={};
-  activeLectures().forEach(l=>{ byLecture[l.id]={new:null,r1:null,r2:null,assign:null}; });
+  activeLectures().forEach(l=>{ byLecture[l.id]={new:null,sup:null,r1:null,r2:null,assign:null}; });
   Object.values(byDay).flat().forEach(it=>{ byLecture[it.lecId][it.type]=it.day; });
   return {byDay, byLecture, unscheduled, startDay, uEnd};
 }
 let SCHEDULE=null; // computeSchedule() 결과 캐시 — render()에서 한 번만 계산해 재사용
 
+/* ===== 오늘 몫 다시 고르기 =====
+   오늘 할 양(크레딧)은 그대로 두고(extra만큼만 더하거나 빼고) 무엇을 할지만 다시 고른다.
+   이미 끝낸 항목·직접 당겨온 항목은 그대로 남는다. */
+function relockToday(extra){
+  const total = (S.todayLock && S.todayLock.day===S.cur) ? lockedTodayTotalCost() : null;
+  S.todayLock=null;
+  ensureTodayLock(total==null ? null : Math.max(0, total+(extra||0)));
+}
+/* 미루기 — 오늘은 못 하는 항목을 내일 이후로 넘기고, 빈자리는 다음 순서의 항목으로 채운다 */
+function deferItem(lecId, type){
+  if(!S.deferred) S.deferred={};
+  Object.keys(S.deferred).forEach(k=>{ if(S.deferred[k]<S.cur) delete S.deferred[k]; });
+  const key=lecId+':'+type;
+  S.deferred[key]=S.cur;
+  /* 미룬 기록 — 항목별 누적 횟수(경고용)와 날짜별 기록(주간 리뷰용) */
+  if(!S.deferCount) S.deferCount={};
+  S.deferCount[key]=(S.deferCount[key]||0)+1;
+  if(!Array.isArray(S.deferLog)) S.deferLog=[];
+  S.deferLog.push({day:S.cur, key});
+  relockToday();
+  return S.deferCount[key];
+}
+/* 강의록 업로드 표시
+   - 아직 신규 전인 강의: 그 강의의 신규 학습이 무엇보다 먼저 배정된다(진도 최우선).
+   - 이미 작년 필기 등으로 미리 인코딩한 강의: 올해 강의록으로 정리본을 보완하는 '보완' 단계
+     (기본 0.5 크레딧)가 생기고, 오늘 몫에 그만큼 더해진다. */
+function toggleUploaded(l){
+  const st=S.lec[l.id]; if(!st) return '';
+  if(st.upl!=null){
+    st.upl=null;
+    if(supPending(st)){
+      st.supFrom=null;
+      if(S.pulledReviews) delete S.pulledReviews[l.id+':sup'];
+      if(S.todayLock && S.todayLock.day===S.cur) S.todayLock.items=S.todayLock.items.filter(it=>!(it.lecId===l.id && it.type==='sup'));
+    }
+    return '강의록 업로드 표시를 취소했습니다.';
+  }
+  st.upl=S.cur;
+  if(st.enc!=null && st.supFrom==null){
+    st.supFrom=S.cur; st.supDone=null;
+    ensureTodayLock();
+    if(S.cur<=usableDays() && !S.todayLock.items.some(it=>it.lecId===l.id && it.type==='sup'))
+      S.todayLock.items.push({type:'sup', lecId:l.id, original:S.cur, pulled:false}); // 오늘 몫에 그대로 더한다
+    return `${l.code?l.code+' ':''}보완 세션(${+typeCost('sup').toFixed(2)} 크레딧)을 오늘 계획에 추가했습니다.`;
+  }
+  if(st.enc==null){
+    relockToday();
+    return `${l.code?l.code+' ':''}신규 학습을 최우선으로 배정했습니다.`;
+  }
+  return '강의록이 올라온 것으로 표시했습니다.';
+}
+
 /* ===== 프롬프트 라이브러리 (블록 무관 범용) ===== */
+const PF_TEXT_V6 = `[작년 필기 강의록 첨부]
+올해 강의록이 아직 안 올라와서 작년 필기로 먼저 인코딩할게. 목차·우선순위 표부터 보여줘.
+- 재구성·인출 원칙(지침 41~49) 그대로.
+- 작년 기준이라 올해와 다를 수 있는 부분(교수 교체 가능성, 작년에만 있던 슬라이드)은 정리본에 [작년 기준] 표시.
+- 정리본 맨 끝에 '올해 강의록에서 확인할 것' 목록: 작년 필기의 스탬프·강조·교수 코멘트 위치(슬라이드 제목 기준). 올해 강의록이 올라오면 보완 세션에서 이 목록부터 대조할 거야.`;
+const PG_TEXT_V6 = `[올해 강의록(원본) + 작년 필기 강의록 첨부]
+수업 전에 예습 인출할게. 올해 강의록이 기준이고, 작년 필기의 강조·스탬프·교수 코멘트를 겹쳐서 설명해줘.
+1) 먼저 올해 vs 작년 슬라이드 차이표: 추가 / 삭제 / 순서 변경 / 내용 변경 (슬라이드 제목 | 작년 | 올해)
+2) 목차·우선순위 표 → 내가 확인하면 진행
+3) 작년에 강조됐고 올해도 그대로 있는 내용 = ★ 후보, 올해 새로 생긴 슬라이드 = [신규] 표시
+4) 재구성·인출 원칙(지침 41~49)대로 설명 → 요약 → 인출
+5) 정리본 끝에 '수업 때 확인할 것' 목록 (교수가 강조하는지 볼 부분)`;
+const PH_TEXT_V6 = `[올해 필기 강의록 + 기존 정리본 첨부]
+작년 필기(또는 원본)로 미리 인코딩해 둔 강의야. 나는 정리본을 먼저 읽고 올해 필기를 보면서 보완할 거야. 아래 순서로 텍스트로 줘 (PDF·노트 새로 만들지 말 것).
+① 달라진 점·새 강조: 표 (슬라이드 p. | 작년/정리본 | 올해 | 출제 의미)
+② 정리본 수정사항: 표 (위치(챕터·항목) | 추가/수정/삭제/강조 | 그대로 붙여넣을 문장)
+③ 누락 전수검토: 올해 필기를 첫 슬라이드부터 정리본과 대조해 빠진 개념·수치·분류·예외를 전부 ②에 포함. 끝에 대조 완료 범위(p.1~p.N).
+④ 강의록 뒤에 붙은 족보 문항: 올해 필기 기준으로 해설 갱신. 이 강의록에서 근거를 찾을 수 없는 선지는 ~~취소선~~ + (근거 없음). 필기에 '올해 필기로 풀 수 없음'·'풀 수 있는 선지만 표시'가 있으면 족보 노트에도 똑같이.
+⑤ 바뀐 내용이 들어간 챕터의 요약 박스를 새로 써줘.`;
+const PI_TEXT_V6 = `[족보 PDF(여러 연도) + 선배 해설(있으면) 첨부]
+족보를 옵시디언 노트로 나눠줘. 이번에는 해설은 쓰지 말고 문항 노트 생성까지만 (해설은 강의 인코딩 때 그 강의록 기준으로 채울 거야).
+0) 족보 첫 페이지의 강의 구성·교수 목록을 먼저 확인하고, 지침 맨 위 '강의 목록'(올해)과 대조표를 보여줘. 작년과 강의 순서·번호·교수가 다를 수 있으니 문항은 전부 올해 강의 번호 기준으로 배정. 애매하면 [배정 확인 필요]. 대조표를 내가 확인한 뒤 진행.
+1) 문항 하나 = 노트 하나. 파일명은 '연도-번호' (예: 2025-07). '#'은 옵시디언 링크를 깨뜨리므로 파일명에 쓰지 마.
+2) 동일 문항(연도만 다르고 같은 문제)은 한 노트로 합치고, 파일명은 최신 연도, 나머지 번호는 aliases에 (예: 파일 2026-01 / aliases: [2025-03]). 유사 문항(같은 개념, 다른 형태)은 합치지 말고 '유사 문항' 줄에 서로 링크.
+3) 노트 구조: frontmatter(연도·번호·강의·교수·출제 개념·정답(선배 해설에 있을 때만)·상태: 해설 전) → 문제 원문과 선지 그대로 → 접힌 해설 칸(비워 둠).
+4) 선배 필기에 '올해 필기로 풀 수 없음'·'풀 수 있는 선지만 표시' 같은 표시가 있으면 그대로 옮겨.
+5) 강의별 족보 목록 노트도 하나씩: 그 강의 문항 링크 목록.
+6) 분량이 많으면 강의 몇 개씩 끊어서 주고, 내가 '계속'이라고 하면 이어서.
+※ 콜아웃·태그 등 세부 형식은 내 옵시디언 템플릿 규칙을 따라. VS Code의 Claude Code에서 실행 중이면 Vault의 족보 폴더에 바로 파일로 써줘.`;
+const PJ_TEXT_V6 = `[족보 전체 + 선배 해설 첨부]
+족보 출제 패턴을 분석해서 '족보 분석' 노트 하나로 만들어줘. 문항 번호는 반드시 '연도-번호'(예: 2025-07)로, 족보 노트로 링크되게.
+1) 강의별·교수별: 연도별 문항 수, 반복 출제 개념(몇 년 연속인지), 주로 나오는 유형(단답/객관식/감별/기전/수치/그림), 선지 함정 패턴, 짤족/탈족 판단과 근거
+2) 반복 유형 표: 출제 개념 | 출제 연도-번호 | 정답 | 묻는 방식이 어떻게 바뀌었는지
+3) 연도별 경향: 새로 등장한 개념, 사라진 개념
+4) 교수별 출제 스타일 한 줄 요약 — 지침 '교수별 학습 전략' 칸에 그대로 붙여넣을 수 있게 코드블록으로
+족보 첫 페이지의 강의 구성·교수 목록을 올해 강의 목록과 대조해서 올해 강의 번호 기준으로 묶어줘.`;
+const PK_TEXT_V6 = `[이 강의 정리본 + 이 강의 족보 문항 첨부]
+앵커 인출 훈련 해줘. 한 번에 한 문제씩, 내가 답하기 전엔 답 공개 X.
+1) 정방향: 족보·기출 스타일 문제에서 '단서 문구'만 보여줘 → 내가 떠오르는 개념(앵커)과 기억 사슬을 말하면 채점.
+2) 역방향: 개념 이름만 줘 → 특징·기전·감별점을 최대한 많이 인출하게. 빠뜨린 특징을 알려줘.
+3) 틀리거나 빠뜨린 것은 '단서 → 앵커 → 기억 사슬 → 그래서 이 선지' 형태로 다시 설명하고 재출제.
+4) 끝나면 Anki 카드 목록: 앞면=단서(앵커), 뒷면=기억 사슬. 정방향은 '앞면 :: 뒷면', 양방향(역인출)이 필요한 건 '앞면 ::: 뒷면'으로 한 줄씩.`;
+/* 시간표 PDF → 강의 일괄 추가 칸에 그대로 붙여넣을 줄글 — 블록 기간을 채워서 만든다 */
+function timetablePromptText(){
+  const block=App.blocks.find(b=>b.id===App.active);
+  const first=SCHOOL_DAYS && SCHOOL_DAYS[0], exam=S && dInfo(S.examDay);
+  const range = first && exam ? `(${first.date} ~ ${exam.date})` : '';
+  return `[시간표 PDF 첨부]
+이 시간표에서 ${block?.name || '[과목명]'} 블록${range} 강의만 뽑아서 아래 형식으로 한 줄에 하나씩, 코드블록 하나에 써줘. 코드블록 안에는 설명을 넣지 마.
+형식: 강의번호 | 강의명 | 교수명 | 날짜(M/D) | 교시 | (실습이면 '실습')
+예)
+1강 | 세포 손상과 적응 | 홍길동 | 9/15 | 1교시
+2강 | 염증 (1) | 김철수 | 9/16 | 5-6교시 | 실습
+규칙:
+- 강의번호는 시간표에 번호가 있으면 그 번호, 없으면 날짜·교시 순서대로 1강부터.
+- 같은 강의가 연속 교시면 한 줄로 '5-6교시'. 교시는 1·2·3·5·6·7·8교시만 있어 (4교시는 점심).
+- 제목이 같은 강의가 여러 번이면 '(1)', '(2)'를 붙여 구분.
+- 교수명을 모르면 '미정'.
+- 시험·OT·자율학습·공휴일처럼 강의가 아닌 칸은 빼고, 뺀 칸은 코드블록 밖에 목록으로 따로 알려줘.
+- 날짜·교시를 읽기 애매한 칸은 코드블록 밖에 [확인 필요]로 따로 알려줘.`;
+}
+/* 버전 7 프롬프트 — 옵시디언 정리본 노트 흐름. {강의} 등은 오늘 카드에서 복사할 때 자동으로 채워진다 */
+const PB_TEXT_OLD = `[필기 강의록 첨부]\n오늘 이 강의록으로 시작할게. 목차·우선순위 표부터 보여줘.`;
+const PE_TEXT_OLD = `[강의별 정리본 PDF 전부 첨부]\n시험 전날 요약본 만들어줘. 지침 40번 규칙대로 — 강의마다 교수 정보 칸 + 챕터별 요약 박스 + ★·족보 출제 항목만, 강의당 반 페이지 이내로. 새 내용은 추가하지 마.`;
+const PB_TEXT = `[올해 강의록 + 필기 첨부]
+{강의} ({교수}) 인코딩할게. 목차·우선순위 표부터 보여주고, 내가 확인하면 옵시디언 정리본 노트를 한 번에 만들어줘. 챕터마다 인출 문제는 내지 마 (나중에 예상 기출문제로 따로 할게).
+- 파일: {블록폴더}/정리본/{강의}.md — 지침의 '옵시디언 정리본 노트 형식' 그대로
+- 강의록 뒤에 붙은 족보 문항: 이 강의록 기준으로 해설을 써서 족보 노트({블록폴더}/족보)에 채우고, 정리본의 해당 개념 옆에 문항 라벨을 달아줘. 근거가 없는 선지는 ~~취소선~~ (근거 없음)
+- VS Code의 Claude Code면 Vault에 바로 저장, claude.ai면 .md 파일로`;
+const PE_TEXT = `[전날 요약 노트 내용 첨부 — Claude Code면 {블록폴더}/정리본 폴더를 직접 읽어]
+시험 전 요약 점검할게. 모든 강의 노트의 요약 콜아웃(> [!summary])만 읽고:
+1. 요약만으로 강의 흐름이 이어지는지, 족보 출제(==하이라이트==)·★ 핵심이 요약에 빠졌는지 강의별로 점검
+2. 빠진 것은 그 강의 요약 콜아웃에 넣을 문장으로 제안 (정리본에 있는 문장만 압축, 새 내용 금지)
+3. 내가 확인하면 반영`;
+const PG_TEXT = `[올해 강의록(필기 없는 원본) + 작년 필기 첨부]
+올해 필기는 아직인데 올해 강의록은 올라왔어. {강의} ({교수})를 올해 강의록 기준으로 인코딩하고, 작년 필기의 강조·스탬프·교수 코멘트를 겹쳐줘.
+1. 먼저 올해 vs 작년 슬라이드 차이표: 추가 / 삭제 / 순서 변경 / 내용 변경 (슬라이드 제목 | 작년 | 올해)
+2. 목차·우선순위 표 → 내가 확인하면 정리본 노트를 한 번에 ({블록폴더}/정리본/{강의}.md, 지침의 노트 형식 그대로)
+3. 작년 필기에서만 확인되는 강조는 [작년 필기] 표시, 올해 새로 생긴 슬라이드는 [신규] 표시
+4. 노트 맨 끝에 '올해 필기에서 확인할 것' 목록 — 올해 필기가 올라오면 보완 세션에서 이것부터 대조할 거야`;
+const PH_TEXT = `[올해 필기 + 기존 정리본 노트 — Claude Code면 {블록폴더}/정리본/{강의}.md 직접 읽어]
+{강의}는 올해 강의록(필기 전)이나 작년 필기로 미리 인코딩해 둔 강의야. 나는 정리본을 먼저 읽고 올해 필기를 보며 보완할 거야. 순서대로:
+1. 달라진 점·새 강조: 표 (슬라이드 p. | 정리본 | 올해 필기 | 출제 의미)
+2. 정리본 수정사항: 표 (위치(챕터·항목) | 추가/수정/삭제/강조 | 그대로 붙여넣을 문장)
+3. 누락 전수검토: 올해 필기를 첫 슬라이드부터 정리본과 대조해 빠진 개념·수치·분류·예외를 전부 2에 포함. 끝에 대조 완료 범위(p.1~p.N)
+4. 강의록 뒤 족보 문항: 올해 필기 기준으로 족보 노트 해설 갱신. 근거 없는 선지 ~~취소선~~ (근거 없음). 필기에 '올해 필기로 풀 수 없음'·'풀 수 있는 선지만 표시'가 있으면 족보 노트에도 똑같이
+5. 바뀐 챕터의 요약 콜아웃을 새로
+내가 확인하면 노트에 반영 (Claude Code면 직접 수정).`;
+const PI_TEXT = `[족보 PDF(여러 연도) + 선배 해설(있으면) 첨부]
+족보를 옵시디언 족보 노트로 나눠줘 ({블록폴더}/족보). 이번에는 해설은 쓰지 말고 문항 노트까지만 — 해설은 강의 인코딩 때 그 강의록 기준으로 채울 거야. 지침의 '족보 노트 규격' 그대로.
+0. 족보 첫 페이지의 강의 구성·교수 목록을 먼저 확인하고, 지침 맨 위 강의 목록(올해)과 대조표를 보여줘. 작년과 강의 순서·번호·교수가 다를 수 있으니 문항은 올해 강의 기준으로 배정. 애매하면 [배정 확인 필요]. 대조표를 내가 확인한 뒤 진행.
+1. 파일 이름은 '2026 Q01' (연도 Q두자리번호). 주관식은 '2020 R3'.
+2. 같거나 유사한 문항은 한 노트로 합쳐 — 파일 이름은 최신 연도, 나머지 연도 번호는 aliases에. 별칭·합치기 판단은 네가 해.
+3. 합친 노트의 선지는 공통 선지를 먼저 1. 2. 3. …, 그 아래 연도마다 달라진 선지를 이어서 번호 매기고 끝에 나온 연도 표시. 그 아래 연도별 구성 표 (연도 번호 | 선지 구성 | 정답).
+4. 정답은 선배 해설에 있을 때만 frontmatter에, 상태는 '해설 전'. 해설 칸('> [!answer]-')은 비워 둬.
+5. 선배 필기에 '올해 필기로 풀 수 없음'·'풀 수 있는 선지만 표시' 같은 표시가 있으면 그대로 옮겨.
+6. 마지막에 '{블록폴더}/족보/족보 목록.md': 강의별로 문항 링크 목록.
+7. 분량이 많으면 강의 몇 개씩 끊고, 내가 '계속'이라고 하면 이어서.
+VS Code의 Claude Code면 Vault에 바로 파일로 저장, claude.ai면 파일별로 구분된 .md로.`;
+const PJ_TEXT = `[족보 전체 + 선배 해설 첨부 — Claude Code면 {블록폴더}/족보 직접 읽어]
+족보 출제 패턴을 분석해서 '{블록폴더}/분석/족보 분석.md' 노트 하나로 만들어줘. 문항은 반드시 족보 노트 링크로 (예: [[2025 Q07]]).
+1. 강의별·교수별: 연도별 문항 수, 반복 출제 개념(몇 년 연속인지), 주로 나오는 유형(단답/객관식/감별/기전/수치/그림), 선지 함정 패턴, 짤족/탈족 판단과 근거
+2. 반복 유형 표: 출제 개념 | 출제 문항 | 정답 | 묻는 방식이 어떻게 바뀌었는지
+3. 연도별 경향: 새로 등장한 개념, 사라진 개념
+4. 교수별 출제 스타일 한 줄 요약 — 지침 '교수별 학습 전략' 칸에 그대로 붙여넣을 수 있게 코드블록으로
+족보 첫 페이지의 강의 구성·교수 목록을 올해 강의 목록과 대조해서 올해 강의 기준으로 묶어줘.`;
+const PK_TEXT = `[{강의} 정리본 + 이 강의 족보 노트]
+{강의} 앵커 인출 훈련 해줘. 한 번에 한 문제씩, 내가 답하기 전엔 답 공개 X.
+1. 정방향: 족보·기출 스타일 문제에서 '단서 문구'만 보여줘 → 내가 떠오르는 개념(앵커)과 기억 사슬을 말하면 채점
+2. 역방향: 개념 이름만 줘 → 특징·기전·감별점을 최대한 많이 인출하게. 빠뜨린 특징을 알려줘
+3. 틀리거나 빠뜨린 것은 '단서 → 앵커 → 기억 사슬 → 그래서 이 선지' 형태로 다시 설명하고 재출제
+4. 끝나면 정리본 노트 맨 아래 '## 카드'에 넣을 카드 목록 (Spaced Repetition 플러그인 형식): 앞면=단서, 뒷면=기억 사슬. 정방향 '앞 :: 뒤', 양방향(역인출) '앞 ::: 뒤' 한 줄씩`;
+const PL_TEXT = `[{강의} 정리본 노트 다 읽었어]
+{강의} ({교수}) 예상 기출문제 내줘. 이 강의는 시험에 {시험문항수}문항 나오니까 {예상기출수}문제.
+출제 우선순위:
+1. 교수가 시험 문제를 예고했거나 "낸다"고 한 내용 → 그 내용 위주로
+2. 족보에서 반복 출제된 개념 → 같은 개념을 다른 각도·다른 선지로
+3. 교수가 강조한 부분(★·필기 스탬프·여러 번 언급) → 그 부분 위주로
+4. 남은 문항은 출제 가능성이 높은 나머지 포인트
+규칙:
+- 족보 실제 형식 그대로 (객관식은 1.~5. 선지, 단답은 단답). 문제 안에 힌트(굵게 등) 금지
+- 단서 → 앵커 → 기억 사슬로 풀리는 문제. 정방향(단서 → 개념)과 역방향(개념 → 특징 여러 개)을 섞어
+- {예상기출수}문제를 한 번에 내고, 내가 다 답하기 전엔 정답 공개 X
+- 채점 때 문제마다 출제 근거 표시 ([예고] / [족보 반복: 2025 Q07] / [★강조] / [기타]). 틀린 것만 단서 → 앵커 → 기억 사슬로 다시 설명하고 비슷한 문제로 재출제
+- 끝나면 '정리본에 넣을 것' 목록 (내가 넣어달라고 한 것 포함) → 내가 확인하면 정리본 노트에 반영`;
+const PM_TEXT = `[족보 분석 노트 + 시험 직후 메모 — Claude Code면 {블록폴더} 폴더 직접 읽어]
+이번 블록 시험 끝났어. '{블록폴더}/분석/시험 회고.md' 노트를 만들어줘.
+1. 기억나는 실제 출제 개념을 강의별로 정리 (메모 기반, 모르는 건 비워 둠)
+2. 족보 재출제: 실제로 다시 나온 족보 노트 링크 (예: [[2026 Q01]])와 재출제율
+3. 예상 기출문제 적중: 맞힌 예측 / 놓친 출제 포인트
+4. 교수별 출제 스타일 갱신 — 다음 해 족보 분석에 쓸 한 줄씩
+5. 다음 블록에서 바꿀 공부 방법 3가지`;
 function PROMPTS(){ return [
   {id:'pa', t:'Ⓐ 블록 시작', w:'블록 첫날, 프로젝트 첫 채팅에서', x:NEW_PA_TEXT},
-  {id:'pb', t:'Ⓑ 신규 인코딩', w:'강의록 받은 날, 강의 채팅에서', x:`[필기 강의록 첨부]\n오늘 이 강의록으로 시작할게. 목차·우선순위 표부터 보여줘.`},
+  {id:'pb', t:'Ⓑ 신규 인코딩 (정리본 노트)', w:'올해 강의록이 올라온 날 — 오늘 카드에서 복사하면 강의 정보가 채워짐', x:PB_TEXT},
+  {id:'pl', t:'Ⓛ 예상 기출문제', w:'정리본 노트를 읽은 뒤 — 시험 문항 수 × 배수만큼', x:PL_TEXT},
   {id:'pc', t:'Ⓒ 족보 해설', w:'최신 연도 족보에 해설이 없을 때', x:`[선배 족보 해설 + 이번 연도 족보 첨부]\n이번 연도 족보 문항별 정답·해설 만들어줘.`},
   {id:'pd', t:'Ⓓ 필기 비교', w:'예습해둔 강의의 실제 수업일에 필기 받으면', x:COMPARE_PROMPT},
-  {id:'pe', t:'Ⓔ 전날 요약본', w:'시험 2~3일 전, 강의별 정리본이 다 모였을 때', x:`[강의별 정리본 PDF 전부 첨부]\n시험 전날 요약본 만들어줘. 지침 40번 규칙대로 — 강의마다 교수 정보 칸 + 챕터별 요약 박스 + ★·족보 출제 항목만, 강의당 반 페이지 이내로. 새 내용은 추가하지 마.`},
+  {id:'pe', t:'Ⓔ 시험 전 요약 점검', w:'시험 2~3일 전, 강의 노트가 다 모였을 때', x:PE_TEXT},
+  {id:'pg', t:'Ⓖ 올해 강의록 + 작년 필기로 인코딩', w:'올해 필기는 아직, 올해 강의록(원본)은 올라왔을 때', x:PG_TEXT},
+  {id:'ph', t:'Ⓗ 강의록 보완', w:'미리 인코딩한 강의의 올해 필기가 올라온 날 (보완 카드)', x:PH_TEXT},
+  {id:'pi', t:'Ⓘ 족보 노트 만들기', w:'블록 시작, 족보를 받았을 때 (해설 없이 문항 노트만)', x:PI_TEXT},
+  {id:'pj', t:'Ⓙ 족보 출제 패턴 분석', w:'블록 시작, 족보 노트를 만든 뒤', x:PJ_TEXT},
+  {id:'pk', t:'Ⓚ 앵커 인출 훈련', w:'1차 복습, 족보 풀기 전후', x:PK_TEXT},
+  {id:'pm', t:'Ⓜ 시험 회고', w:'시험 직후 — 시험일 화면의 버튼은 오늘 메모를 함께 붙여 복사', x:PM_TEXT},
 ];}
+/* 버전 6에서 넣었던 문구 그대로면 새 문구로 바꾼다(고쳐 쓴 건 건드리지 않는다) */
+const PROMPT_V7_OLD = {pb:[PB_TEXT_OLD], pe:[PE_TEXT_OLD], pg:[PG_TEXT_V6], ph:[PH_TEXT_V6], pi:[PI_TEXT_V6], pj:[PJ_TEXT_V6], pk:[PK_TEXT_V6]};
 /* 프롬프트는 단계(신규/1차/2차)에 묶인다. 오늘 할 일 카드의 프롬포트 버튼은
    그 단계에 묶인 기본 프롬프트 + 내가 추가한 프롬프트를 한 목록으로 펼쳐 보여준다. */
-const PROMPT_CATS=[{key:'new',label:'신규'},{key:'r1',label:'1차'},{key:'r2',label:'2차'},{key:'none',label:'관련없음'}];
-const BUILTIN_PROMPT_CAT={pa:'none', pb:'new', pc:'r1', pd:'none', pe:'none'};
+const PROMPT_CATS=[{key:'new',label:'신규'},{key:'sup',label:'보완'},{key:'r1',label:'1차'},{key:'r2',label:'2차'},{key:'none',label:'관련없음'}];
+const BUILTIN_PROMPT_CAT={pa:'none', pb:'new', pl:'new', pc:'r1', pd:'none', pe:'none', pg:'new', ph:'sup', pi:'none', pj:'none', pk:'r1', pm:'none'};
 function catLabel(key){ const c=PROMPT_CATS.find(x=>x.key===key); return c? c.label : '관련없음'; }
 function customPrompts(){ if(!Array.isArray(App.customPrompts)) App.customPrompts=[]; return App.customPrompts; }
 function shortPromptName(t){ return String(t).replace(/^PROMPT\s*\d+\s*[·.]\s*/,''); }
@@ -2589,16 +3029,25 @@ function battShown(){
 /* 시험 전날 진도 = 그날 카드(전날 체크리스트 + 직접 추가한 계획) 중 완료한 비율.
    그날은 크레딧을 배정하지 않으므로 크레딧 기준 배터리가 의미가 없다. */
 function examEveProgress(){
-  if(!S.examEve) S.examEve={};
-  const items = examEveItems();
+  const map = eveCheckMap(S.cur);
+  const items = examEveItems(S.cur);
   const plans = (S.manualPlans && S.manualPlans[S.cur]) || [];
   return {
     total: items.length + plans.length,
-    done: items.filter((_,i)=>!!S.examEve[i]).length + plans.filter(p=>p.done).length,
+    done: items.filter((_,i)=>!!map[i]).length + plans.filter(p=>p.done).length,
   };
 }
+/* 시험 전 비워 둔 날(설정의 '시험 전 비워 둘 날')은 전부 시험 전날 루틴을 띄운다 */
+function isEveDay(d){ if(d==null) d=S.cur; return d>=1 && d>usableDays() && d<S.examDay; }
+/* 전날 루틴 체크는 날짜마다 따로 — 비워 둔 날이 여러 날이면 날마다 새로 체크한다.
+   (예전에는 블록에 하나(S.examEve)였다 — 시험 전날에는 그 기록을 이어받는다) */
+function eveCheckMap(day){
+  if(!S.eveCheck || typeof S.eveCheck!=='object') S.eveCheck={};
+  if(!S.eveCheck[day]) S.eveCheck[day] = (day===S.examDay-1 && S.examEve) ? {...S.examEve} : {};
+  return S.eveCheck[day];
+}
 function renderLoadPanel(){
-  const isExamEve = (S.examDay-1)>=1 && S.cur===S.examDay-1;
+  const isExamEve = isEveDay();
   const blocked = !isExamEve && S.cur>usableDays();
   let total, used, pct, meterText, hint;
   if(isExamEve){
@@ -2758,16 +3207,25 @@ function encCard(l){
   } else {
     badge = plannedDay!=null ? `<span class="badge due">Day${plannedDay} 예정</span>` : `<span class="badge carry">배정 못함</span>`;
   }
+  const upl = !isAssign && S.lec[l.id].upl!=null;
   const c = el(`<div class="card" style="border-left:4px solid ${leftColor}">
     <div class="top"><span class="code">${esc(l.code)}</span>
       ${l.type==='실습'?'<span class="badge lab">실습</span>':''}
+      ${upl?'<span class="badge due">강의록 올라옴</span>':(!isAssign && l.day>S.cur?'<span class="badge carry">강의록 대기</span>':'')}
       ${badge}
     </div>
     <div class="t">${esc(l.title)}</div>
     <div class="m">${isAssign?`과제 · 기한 Day${l.day} (${d.date}) · 크레딧 ${l.credit||1}`:`${esc(l.prof)} · ${d.date}(${d.dow})`}</div>
     <button class="go amber compact pull">오늘로 당기기</button>
-    <button class="go compact">${isAssign?'과제 완료':'인코딩 완료'}</button>
+    ${isAssign?'':`<button class="go compact upl" title="ETL에 강의록이 올라왔으면 눌러 주세요 — 이 강의 신규 학습이 최우선으로 배정됩니다">${upl?'올라옴 취소':'강의록 올라옴'}</button>`}
+    <button class="go compact done">${isAssign?'과제 완료':'인코딩 완료'}</button>
   </div>`);
+  const uplBtn=c.querySelector('.upl');
+  if(uplBtn) uplBtn.onclick=()=>{
+    const msg=toggleUploaded(l);
+    saveApp(); render();
+    showToast(msg, {undo:true});
+  };
   c.querySelector('.pull').onclick=()=>{
     if(!S.pulledReviews) S.pulledReviews={};
     S.pulledReviews[l.id+':'+type]=S.cur;
@@ -2780,7 +3238,7 @@ function encCard(l){
     saveApp(); render();
     showToast('오늘 목록으로 옮겼습니다.', {undo:true});
   };
-  c.querySelector('.go:not(.pull)').onclick=()=>{
+  c.querySelector('.go.done').onclick=()=>{
     if(!S.pulledReviews) S.pulledReviews={};
     S.pulledReviews[l.id+':'+type]=S.cur;
     ensureTodayLock();
@@ -2866,17 +3324,24 @@ function flowCard(type, l, isPulled){
   const isAssign = type==='assign';
   const steps = isAssign ? (Array.isArray(l.checklist)?l.checklist:[]) : subSteps(type);
   const sc = st.subCheck[type] || (st.subCheck[type]={});
-  const label = isAssign?'과제':(type==='new'?'신규':(type==='r1'?'1차':'2차'));
-  const promptList = isAssign ? [] : promptsForStage(type);
-  const done = (type==='new'||isAssign) ? st.enc!=null : !!st.r[type==='r1'?1:2];
+  const label = STAGE_LABEL[type] || type;
+  const promptList = isAssign ? [] : promptsForStage(type).map(p=>({...p, text:fillPromptVars(p.text, l)}));
+  const done = stageDone(st, type);
+  const canDefer = !done && !isPulled && S.cur<=usableDays();
+  const uplTag = (type==='new' && st.upl!=null) ? ' · <span class="pulledtag">강의록 올라옴</span>' : '';
+  const dCnt = (S.deferCount && S.deferCount[l.id+':'+type]) || 0;
+  const deferTag = dCnt ? ` · <span class="defertag${dCnt>=3?' warn':''}">${dCnt}번 미룸</span>` : '';
+  const obsBtn = (!isAssign && obsVault()) ? `<a class="flowobs" href="${esc(obsUri(lecNotePath(l)))}" title="옵시디언에서 정리본 열기">옵시디언</a>` : '';
   const flowKey=`${App.active}:${type}:${l.id}`;
   const doneCount = steps.filter((_,i)=>sc[i]).length;
   const titleText = isAssign ? esc(l.title) : `${esc(l.code)}. ${esc(l.title)}`;
   const item = el(`<div class="flowitem">
     <div class="flowhead">
       <span class="flowbadge ${type}">${label}</span>
-      <span class="flowtitle">${titleText}${isAssign?'':'<button class="flowcopy" type="button" title="강의 이름 복사" aria-label="강의 이름 복사"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button>'}<span class="flowmeta">${steps.length? `${doneCount}/${steps.length} 체크됨` : (isAssign?`크레딧 ${l.credit||1}`:'')}${isPulled?' · <span class="pulledtag">미리 당겨옴</span>':''}</span></span>
+      <span class="flowtitle">${titleText}${isAssign?'':'<button class="flowcopy" type="button" title="강의 이름 복사" aria-label="강의 이름 복사"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button>'}<span class="flowmeta">${steps.length? `${doneCount}/${steps.length} 체크됨` : (isAssign?`크레딧 ${l.credit||1}`:'')}${isPulled?' · <span class="pulledtag">미리 당겨옴</span>':''}${uplTag}${deferTag}</span></span>
+      ${obsBtn}
       ${isPulled?'<button class="unpullbtn" title="오늘로 당긴 것을 취소하고 원래대로 되돌립니다">당김 취소</button>':''}
+      ${canDefer?'<button class="unpullbtn deferbtn" type="button" title="오늘은 못 하는 항목 — 내일 이후로 미루고, 빈자리는 다음 순서 항목으로 채웁니다">미루기</button>':''}
       ${tWidgetHtml(tKey(App.active,type,l.id), st, type, done)}
       ${promptList.length?`<button class="flowpromptbtn" type="button">프롬포트 복사${promptList.length>1?` <span class="ppcount">${promptList.length}</span>`:''}</button>`:''}
       <button class="flowdone ${done?'done':''}" style="${done?'background:var(--inactive-soft);color:var(--inactive)':''}">${done?'완료됨':'완료'}</button>
@@ -2949,7 +3414,7 @@ function flowCard(type, l, isPulled){
   }
   if(steps.length){
     item.querySelector('.flowhead').addEventListener('click', (e)=>{
-      if(e.target.closest('.flowdone,.unpullbtn,.flowpromptbtn,.flowcopy,.tmr')) return;
+      if(e.target.closest('.flowdone,.unpullbtn,.deferbtn,.flowpromptbtn,.flowcopy,.tmr,.flowobs,.flowgrip')) return;
       toggleFlowBody(body, ()=>expandedFlowCards.add(flowKey), ()=>expandedFlowCards.delete(flowKey));
       if(item._syncAll) item._syncAll();
     });
@@ -2957,11 +3422,21 @@ function flowCard(type, l, isPulled){
   item.querySelector('.flowdone').onclick=(e)=>{
     e.stopPropagation();
     if(type==='new'||isAssign){ st.enc=done ? null : S.cur; }
+    else if(type==='sup'){ st.supDone=done ? null : S.cur; }
     else { const key=type==='r1'?1:2; st.r[key]=!done; if(!st.rDay) st.rDay={1:null,2:null}; st.rDay[key]=st.r[key] ? S.cur : null; }
     saveApp(); render();
-    if(!done) toastUndo(isAssign ? '과제를 완료로 표시했습니다.' : `${l.code?l.code+' ':''}${label} ${type==='new'?'학습':'복습'}을 완료로 표시했습니다.`);
+    if(!done) toastUndo(isAssign ? '과제를 완료로 표시했습니다.' : `${l.code?l.code+' ':''}${label} ${type==='new'?'학습':type==='sup'?'세션':'복습'}을 완료로 표시했습니다.`);
   };
-  const unpullBtn = item.querySelector('.unpullbtn');
+  const deferBtn = item.querySelector('.deferbtn');
+  if(deferBtn) deferBtn.onclick=(e)=>{
+    e.stopPropagation();
+    const n=deferItem(l.id, type);
+    saveApp(); render();
+    showToast(n>=3
+      ? `${l.code?l.code+' ':''}${label}을(를) ${n}번째 미뤘습니다. 계속 밀린다면 난이도·크레딧이나 시험범위를 확인해 보세요.`
+      : `${l.code?l.code+' ':''}${label}을(를) 내일 이후로 미뤘습니다. 빈자리는 다음 항목으로 채웠습니다.`, {undo:true, long:n>=3});
+  };
+  const unpullBtn = item.querySelector('.unpullbtn:not(.deferbtn)');
   if(unpullBtn) unpullBtn.onclick=(e)=>{
     e.stopPropagation();
     if(S.pulledReviews) delete S.pulledReviews[l.id+':'+type];
@@ -2969,6 +3444,7 @@ function flowCard(type, l, isPulled){
       S.todayLock.items=S.todayLock.items.filter(it=>!(it.lecId===l.id && it.type===type && it.pulled));
     }
     if(type==='new'||isAssign){ st.enc=null; }
+    else if(type==='sup'){ st.supDone=null; }
     else {
       const key=type==='r1'?1:2;
       st.r[key]=false;
@@ -3004,7 +3480,7 @@ function manualPlanCard(plan){
     body.appendChild(row);
   });
   item.querySelector('.flowhead').onclick=e=>{
-    if(e.target.closest('.flowdone,.manualdelbtn')) return;
+    if(e.target.closest('.flowdone,.manualdelbtn,.flowgrip')) return;
     if(!steps.length) return;
     toggleFlowBody(body, ()=>expandedFlowCards.add(flowKey), ()=>expandedFlowCards.delete(flowKey));
     if(item._syncAll) item._syncAll();
@@ -3079,6 +3555,14 @@ function launchConfetti(){
   document.body.appendChild(wrap);
   setTimeout(()=>wrap.remove(), 4200);
 }
+/* 시험 회고 — Ⓜ 프롬프트 + 오늘 적은 메모(기억나는 문항)를 붙여 복사 */
+function copyRetroPrompt(){
+  const p=promptById('pm');
+  const base=fillPromptVars(p ? (p.text||'') : PM_TEXT);
+  const today=memos().filter(m=>sameDay(m.at) && (m.st==='open' || m.st==='later'));
+  const text = today.length ? `${base}\n\n[시험 직후 메모]\n${today.sort((a,b)=>a.at-b.at).map(m=>'- '+m.text).join('\n')}` : base;
+  copyPlain(text, today.length ? `회고 프롬프트를 오늘 메모 ${today.length}개와 함께 복사했습니다.` : '회고 프롬프트를 복사했습니다.');
+}
 function renderDayFlow(box, isExamDay){
   box.innerHTML='';
   if(isExamDay){
@@ -3088,16 +3572,21 @@ function renderDayFlow(box, isExamDay){
       const c=el(`<div class="finish-done">
         <b>${name} 블록을 마쳤습니다</b>
         <p>${esc(nameLead())}수고 많으셨습니다.</p>
+        <button class="finish-undo retro-btn" type="button">시험 회고 프롬포트 복사</button>
         <button class="finish-undo" type="button">블록 끝내기 취소</button>
       </div>`);
-      c.querySelector('.finish-undo').onclick=()=>{ delete S.finishedAt; saveApp(); render(); showToast('블록 끝내기를 취소했습니다.'); };
+      c.querySelector('.finish-undo:not(.retro-btn)').onclick=()=>{ delete S.finishedAt; saveApp(); render(); showToast('블록 끝내기를 취소했습니다.'); };
+      c.querySelector('.retro-btn').onclick=copyRetroPrompt;
       box.appendChild(c);
     } else {
       const c=el(`<div class="finish-wrap">
         <div class="empty" style="padding:24px 4px 14px">오늘은 시험일입니다.</div>
         <button class="finish-btn" type="button">블록 끝내기</button>
         <div class="finish-hint">시험을 마친 뒤 눌러 주세요.</div>
+        <button class="finish-undo retro-btn" type="button" style="margin-top:10px">시험 회고 프롬포트 복사</button>
+        <div class="finish-hint">시험 직후 기억나는 문항을 메모함에 적어 두면, 이 프롬프트에 함께 붙습니다.</div>
       </div>`);
+      c.querySelector('.retro-btn').onclick=copyRetroPrompt;
       c.querySelector('.finish-btn').onclick=()=>{
         S.finishedAt=new Date().toISOString();
         saveApp(); render();
@@ -3120,22 +3609,85 @@ function renderDayFlow(box, isExamDay){
     .map(([k])=>{ const [lecId,type]=k.split(':'); return {lecId:Number(lecId), type, pulled:true}; })
     .filter(p=> byId(p.lecId) && S.lec[p.lecId] && !S.lec[p.lecId].excluded)
     .filter(p=>!scheduledKeys.has(p.lecId+':'+p.type));
-  const items = scheduled.concat(pulled).sort((a,b)=>{
-    const aDone=(a.type==='new'||a.type==='assign') ? S.lec[a.lecId].enc!=null : !!S.lec[a.lecId].r[a.type==='r1'?1:2];
-    const bDone=(b.type==='new'||b.type==='assign') ? S.lec[b.lecId].enc!=null : !!S.lec[b.lecId].r[b.type==='r1'?1:2];
-    return Number(aDone)-Number(bDone) || TYPE_ORDER[a.type]-TYPE_ORDER[b.type] || seqOf(a.lecId)-seqOf(b.lecId);
-  });
+  const isDone = it => stageDone(S.lec[it.lecId], it.type);
+  const items = scheduled.concat(pulled).sort((a,b)=>
+    Number(isDone(a))-Number(isDone(b)) || TYPE_ORDER[a.type]-TYPE_ORDER[b.type] || seqOf(a.lecId)-seqOf(b.lecId));
   box.appendChild(el('<div class="flowtools"><button class="add-plan-btn" type="button">+ 오늘 계획 추가</button><button class="expandall" type="button"></button></div>'));
-  const isDone = it => (it.type==='new'||it.type==='assign') ? S.lec[it.lecId].enc!=null : !!S.lec[it.lecId].r[it.type==='r1'?1:2];
-  items.filter(it=>!isDone(it)).forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId), it.pulled)));
-  manualPlans.filter(plan=>!plan.done).forEach(plan=> box.appendChild(manualPlanCard(plan)));
+  /* 아직 안 끝낸 카드는 끌어서 순서를 바꿀 수 있다 — 순서는 그날만(S.todayOrder[날짜]) 기억한다 */
+  const order=(S.todayOrder && S.todayOrder[S.cur]) || [];
+  const undone=[
+    ...items.filter(it=>!isDone(it)).map(it=>({key:it.lecId+':'+it.type, make:()=>flowCard(it.type, byId(it.lecId), it.pulled)})),
+    ...manualPlans.filter(plan=>!plan.done).map(plan=>({key:'m:'+plan.id, make:()=>manualPlanCard(plan)})),
+  ].map((x,i)=>({...x, r: order.includes(x.key) ? order.indexOf(x.key) : 1e6+i}))
+   .sort((a,b)=>a.r-b.r);
+  undone.forEach(x=>{
+    const c=x.make();
+    c.dataset.okey=x.key;
+    c.querySelector('.flowhead').prepend(el('<span class="flowgrip" title="끌어서 순서 바꾸기" aria-hidden="true">⋮⋮</span>'));
+    box.appendChild(c);
+  });
   dailyItems().forEach((label,i)=> box.appendChild(dailyFlowCard(label,i)));
   items.filter(isDone).forEach(it=> box.appendChild(flowCard(it.type, byId(it.lecId), it.pulled)));
   manualPlans.filter(plan=>plan.done).forEach(plan=> box.appendChild(manualPlanCard(plan)));
   if(!items.length && !manualPlans.length) box.insertBefore(el('<div class="empty">오늘 배정된 신규·복습 없음</div>'),box.children[1]);
+  /* 오늘 미룬 항목 — 누르면 미루기 취소(오늘 할 양은 그대로, 대신 채워 넣었던 항목이 빠진다) */
+  const deferredToday = Object.entries(S.deferred||{}).filter(([,d])=>d===S.cur)
+    .map(([k])=>{ const [id,t]=k.split(':'); return {lecId:Number(id), type:t}; })
+    .filter(p=>byId(p.lecId) && S.lec[p.lecId] && !S.lec[p.lecId].excluded && !stageDone(S.lec[p.lecId], p.type));
+  if(deferredToday.length){
+    const row=el('<div class="deferred-note"><span>오늘 미룬 항목</span></div>');
+    deferredToday.forEach(p=>{
+      const l=byId(p.lecId);
+      const b=el(`<button type="button" class="deferred-chip" title="미루기 취소">${esc(l.code||l.title)} ${STAGE_LABEL[p.type]||''} <i>↺</i></button>`);
+      b.onclick=()=>{
+        delete S.deferred[p.lecId+':'+p.type];
+        relockToday(); saveApp(); render();
+        showToast('미루기를 취소했습니다.', {undo:true});
+      };
+      row.appendChild(b);
+    });
+    box.appendChild(row);
+  }
   box.querySelector('.add-plan-btn').onclick=openManualPlanModal;
   tRunChip(box);
   setupExpandAll(box);
+  bindFlowDrag(box);
+}
+function bindFlowDrag(box){
+  const cards=[...box.querySelectorAll('.flowitem[data-okey]')];
+  let dragEl=null;
+  const clear=()=>cards.forEach(x=>x.classList.remove('drop-before','drop-after'));
+  cards.forEach(c=>{
+    const grip=c.querySelector('.flowgrip'); if(!grip) return;
+    grip.addEventListener('mousedown', ()=>{ c.draggable=true; });
+    grip.addEventListener('mouseup', ()=>{ c.draggable=false; });
+    c.addEventListener('dragstart', e=>{
+      if(!c.draggable){ e.preventDefault(); return; }
+      dragEl=c; c.classList.add('dragging');
+      e.dataTransfer.effectAllowed='move';
+      try{ e.dataTransfer.setData('text/plain', c.dataset.okey); }catch(err){}
+    });
+    c.addEventListener('dragend', ()=>{ c.draggable=false; c.classList.remove('dragging'); clear(); dragEl=null; });
+    c.addEventListener('dragover', e=>{
+      if(!dragEl || dragEl===c) return;
+      e.preventDefault();
+      const r=c.getBoundingClientRect(), after=e.clientY>r.top+r.height/2;
+      c.classList.toggle('drop-after', after); c.classList.toggle('drop-before', !after);
+    });
+    c.addEventListener('dragleave', ()=>c.classList.remove('drop-before','drop-after'));
+    c.addEventListener('drop', e=>{
+      if(!dragEl || dragEl===c) return;
+      e.preventDefault();
+      const after=c.classList.contains('drop-after'); clear();
+      const keys=cards.map(x=>x.dataset.okey).filter(k=>k!==dragEl.dataset.okey);
+      let i=keys.indexOf(c.dataset.okey); if(after) i++;
+      keys.splice(i, 0, dragEl.dataset.okey);
+      if(!S.todayOrder) S.todayOrder={};
+      Object.keys(S.todayOrder).forEach(d=>{ if(Number(d)<S.cur) delete S.todayOrder[d]; });
+      S.todayOrder[S.cur]=keys;
+      saveApp(); render();
+    });
+  });
 }
 /* 오늘 카드 모두 펼치기 / 접기 — 체크리스트가 있는 카드만 대상 */
 function setupExpandAll(box){
@@ -3158,8 +3710,8 @@ function setupExpandAll(box){
 }
 /* 시험 전날 체크리스트 한 항목 = 카드 하나 (강의 카드와 같은 모양·같은 완료 버튼) */
 function examEveCard(label, index){
-  if(!S.examEve) S.examEve={};
-  const done = !!S.examEve[index];
+  const map = eveCheckMap(S.cur);
+  const done = !!map[index];
   const item = el(`<div class="flowitem">
     <div class="flowhead">
       <span class="flowbadge" style="background:var(--warn-soft);color:var(--warn)">전날</span>
@@ -3168,29 +3720,33 @@ function examEveCard(label, index){
     </div>
   </div>`);
   item.querySelector('.flowdone').onclick=()=>{
-    S.examEve[index]=!S.examEve[index];
+    map[index]=!map[index];
+    if(S.cur===S.examDay-1) S.examEve={...map}; // 예전 기록 자리도 같이 맞춰 둔다
     saveApp(); render();
-    if(S.examEve[index]) toastUndo('완료로 표시했습니다.');
+    if(map[index]) toastUndo('완료로 표시했습니다.');
   };
   return item;
 }
 function renderExamEve(box){
-  if(!S.examEve) S.examEve={};
+  const map = eveCheckMap(S.cur);
   if(!S.manualPlans) S.manualPlans={};
   const manualPlans = S.manualPlans[S.cur] || (S.manualPlans[S.cur]=[]);
   box.innerHTML = `<div class="eeve">
-    <h2>시험 D-1</h2>
-    <p class="hint">오늘은 크레딧을 배정하지 않습니다. 아래 항목을 끝낸 비율이 오늘의 진도가 됩니다.</p>
+    <h2>시험 D-${S.examDay-S.cur}</h2>
+    <p class="hint">시험 전 비워 둔 날이라 크레딧을 배정하지 않습니다. 아래 항목을 끝낸 비율이 오늘의 진도가 됩니다.</p>
     <div class="dayflow" id="eeveFlow" style="margin:14px 0 0"></div>
   </div>`;
   /* 전날에도 직접 할 일을 붙일 수 있게 — 마지막 날 루틴은 사람마다 다르다.
      매일 반복 항목은 그날엔 띄우지 않는다(시험 전날 루틴만 남긴다). */
-  const items = examEveItems();
+  const items = examEveItems(S.cur);
   const flow = box.querySelector('#eeveFlow');
-  flow.appendChild(el('<div class="flowtools"><button class="add-plan-btn" type="button">+ 오늘 계획 추가</button><button class="expandall" type="button"></button></div>'));
-  items.forEach((label,i)=>{ if(!S.examEve[i]) flow.appendChild(examEveCard(label,i)); });
+  const pe = promptById('pe');
+  flow.appendChild(el(`<div class="flowtools"><button class="add-plan-btn" type="button">+ 오늘 계획 추가</button>${pe?'<button class="add-plan-btn eve-prompt" type="button" title="전날 요약 프롬프트(Ⓔ)를 복사합니다">전날 요약 프롬포트 복사</button>':''}<button class="expandall" type="button"></button></div>`));
+  const eveP=flow.querySelector('.eve-prompt');
+  if(eveP) eveP.onclick=()=> copyPlain(fillPromptVars(pe.text||''), '전날 요약 프롬프트를 복사했습니다.');
+  items.forEach((label,i)=>{ if(!map[i]) flow.appendChild(examEveCard(label,i)); });
   manualPlans.filter(plan=>!plan.done).forEach(plan=> flow.appendChild(manualPlanCard(plan)));
-  items.forEach((label,i)=>{ if(S.examEve[i]) flow.appendChild(examEveCard(label,i)); });
+  items.forEach((label,i)=>{ if(map[i]) flow.appendChild(examEveCard(label,i)); });
   manualPlans.filter(plan=>plan.done).forEach(plan=> flow.appendChild(manualPlanCard(plan)));
   if(!items.length && !manualPlans.length) flow.appendChild(el('<div class="empty">오늘 체크할 항목이 없습니다</div>'));
   flow.querySelector('.add-plan-btn').onclick=openManualPlanModal;
@@ -3341,7 +3897,7 @@ function renderOnboarding(){
 }
 function renderToday(){
   renderOnboarding();
-  const isExamEve = (S.examDay-1)>=1 && S.cur===S.examDay-1;
+  const isExamEve = isEveDay();
   const isExamDay = S.cur===S.examDay;
   const eeveBox=document.getElementById('eeveBox');
   const flowBox=document.getElementById('dayFlow');
@@ -3361,13 +3917,21 @@ function renderToday(){
   if(cands.length && !App.compareDismissed[compareDismissKey]){
     const p4 = promptById('pd');
     const names = cands.map(l=>esc(l.code)+'. '+esc(l.title)).join(', ');
+    const supTargets = cands.filter(l=>S.lec[l.id].supFrom==null);
     cbox.innerHTML = `<div class="compareCard"><div class="compareCard-head"><b>⚠ 미리 신규 학습해둔 강의 ${cands.length}개의 실제 수업일이 오늘입니다.</b><button class="compareCard-close" title="안내 닫기" aria-label="안내 닫기">×</button></div>이번 연도 필기를 받으신 후, 비교 프롬프트로 한 번 비교해 보시는 것을 권해드립니다.<br>${names}
+    ${supTargets.length?`<div class="compare-copy"><button class="copybtn supadd" type="button" title="올해 필기가 올라왔으면 — 강의마다 보완 세션(${+typeCost('sup').toFixed(2)} 크레딧)을 오늘 계획에 추가합니다">필기 올라옴 · 보완 세션 추가</button></div>`:''}
     ${p4?`<div class="compare-copy"><button class="copybtn" type="button">프롬포트 복사</button></div>
     <details style="margin-top:6px"><summary style="cursor:pointer;font-size:10.5px;font-weight:700">비교 프롬프트 보기</summary><div class="opromptbox" style="margin-left:0">${esc(p4.text||'')}</div></details>`:''}</div>`;
     if(p4){
       bindDetailsFold(cbox.querySelector('details'));
-      cbox.querySelector('.compare-copy .copybtn').onclick=e=>copyText(p4.text||'', e.target);
+      cbox.querySelector('.compare-copy .copybtn:not(.supadd)').onclick=e=>copyText(p4.text||'', e.target);
     }
+    const supAdd=cbox.querySelector('.supadd');
+    if(supAdd) supAdd.onclick=()=>{
+      supTargets.forEach(l=>{ if(S.lec[l.id].upl==null) toggleUploaded(l); else { S.lec[l.id].upl=null; toggleUploaded(l); } });
+      saveApp(); render();
+      showToast(`보완 세션 ${supTargets.length}개를 오늘 계획에 추가했습니다.`, {undo:true});
+    };
     cbox.querySelector('.compareCard-close').onclick=()=>{
       App.compareDismissed[compareDismissKey]=true;
       saveApp();
@@ -3399,12 +3963,12 @@ function renderTypeCostInputs(){
   node.textContent=`단계별 크레딧 · 신규 ${f(typeCost('new'))} · 1차 ${f(typeCost('r1'))} · 2차 ${f(typeCost('r2'))} · 복습 간격 +${G1()}일 / +${G2()}일`;
 }
 function tagGroupsHtml(items, isDoneFn, markMissed){
-  const groups={assign:[], new:[], r1:[], r2:[]};
+  const groups={assign:[], new:[], sup:[], r1:[], r2:[]};
   items.forEach(it=>{ if(groups[it.type]) groups[it.type].push(it); });
   Object.values(groups).forEach(g=> g.sort((a,b)=> seqOf(a.lecId)-seqOf(b.lecId))); // 같은 단계는 항상 번호순
-  const labels={assign:'과제',new:'신규',r1:'1차',r2:'2차'};
+  const labels=STAGE_LABEL;
   let html='';
-  ['assign','new','r1','r2'].forEach(type=>{
+  ['assign','new','sup','r1','r2'].forEach(type=>{
     if(!groups[type].length) return;
     const cells = groups[type].map(it=>{
       const l=byId(it.lecId); if(!l) return '';
@@ -3417,6 +3981,17 @@ function tagGroupsHtml(items, isDoneFn, markMissed){
   });
   return html? `<div class="plantags">${html}</div>` : '';
 }
+/* 단계별 개수 배지 — 과제·보완은 있는 날에만 */
+function planCountCells(items){
+  const cnt=t=>items.filter(it=>it.type===t).length;
+  const assign=cnt('assign'), sup=cnt('sup');
+  return [
+    assign? {k:'과제', v:assign, c:'assign'} : null,
+    {k:'신규', v:cnt('new'), c:'new'},
+    sup? {k:'보완', v:sup, c:'sup'} : null,
+    {k:'1차', v:cnt('r1'), c:'r1'}, {k:'2차', v:cnt('r2'), c:'r2'},
+  ].filter(Boolean).map(x=>`<span class="pcnt ${x.c}${x.v?'':' zero'}"><i>${x.k}</i><b>${x.v}</b></span>`).join('');
+}
 /* 지난 날 한 줄 — 그날 계획(못 지킨 건 색 안 칠한 채로) + 달성률 배터리 */
 function historyRow(h, scale){
   const info=dInfo(h.d) || {date:'', dow:''};
@@ -3428,12 +4003,7 @@ function historyRow(h, scale){
       <div class="pbarseg" style="width:${restPct}%;background:var(--inactive-soft)"></div>
     </div></div>`;
   const tagsHtml = tagGroupsHtml(items, it=>it.done, true);
-  const n=items.filter(it=>it.type==='new').length, r1=items.filter(it=>it.type==='r1').length,
-        r2=items.filter(it=>it.type==='r2').length, assign=items.filter(it=>it.type==='assign').length;
-  const countCells = [
-    assign? {k:'과제', v:assign, c:'assign'} : null,
-    {k:'신규', v:n, c:'new'}, {k:'1차', v:r1, c:'r1'}, {k:'2차', v:r2, c:'r2'},
-  ].filter(Boolean).map(x=>`<span class="pcnt ${x.c}${x.v?'':' zero'}"><i>${x.k}</i><b>${x.v}</b></span>`).join('');
+  const countCells = planCountCells(items);
   const pct=prog.pct;
   const pctCls = pct==null ? '' : (pct>=100 ? '' : (pct>=1 ? 'mid' : 'zero'));
   const battHtml = pct!=null
@@ -3465,8 +4035,7 @@ const DOW_IDX={'월':0,'화':1,'수':2,'목':3,'금':4,'토':5,'일':6};
 function dayPct(d){
   if(d<S.cur){ const {items}=historyItems(d); return historyProgress(d, items).pct; }
   if(d===S.cur){
-    const isEve=(S.examDay-1)>=1 && S.cur===S.examDay-1;
-    if(isEve){ const p=examEveProgress(); return p.total ? Math.round(p.done/p.total*100) : null; }
+    if(isEveDay()){ const p=examEveProgress(); return p.total ? Math.round(p.done/p.total*100) : null; }
     const t=lockedTodayTotalCost(); if(t<1e-9) return null;
     return Math.round(Math.max(0, t-lockedTodayRemainingCost())/t*100);
   }
@@ -3501,15 +4070,79 @@ function renderHeatmap(){
     <div class="hm-grid">${['월','화','수','목','금','토','일'].map(x=>`<span class="hm-dow">${x}</span>`).join('')}${cells}</div>
     <div class="hm-legend"><span>0%</span><i></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><span>100%</span><i class="fut"></i><span>예정</span></div>`;
 }
+/* ===== 시험 대비 안전도 =====
+   남은 크레딧 ÷ 남은 분배 일수(오늘 포함) = 하루에 필요한 양. 최근 5일 동안 실제로 끝낸 크레딧 평균과 비교한다. */
+function doneCreditsOn(d){ return actualDoneOn(d).reduce((a,it)=>a+itemCost(it),0); }
+function examSafety(){
+  const daysLeft=Math.max(0, usableDays()-S.cur+1);
+  const remaining=remainingCredits();
+  let sum=0, n=0;
+  for(let d=S.cur-1; d>=1 && n<5; d--){ sum+=doneCreditsOn(d); n++; }
+  const pace = n ? sum/n : null;
+  if(remaining<1e-9) return {level:'done', label:'완료', text:'남은 신규·복습이 없습니다.'};
+  if(daysLeft<=0) return {level:'bad', label:'분배 끝', text:`분배할 날이 끝났는데 ${remaining.toFixed(2)} 크레딧이 남았습니다.`};
+  const need=remaining/daysLeft;
+  let level, label;
+  if(SCHEDULE.unscheduled.length){ level='bad'; label='위험'; }
+  else if(pace==null){ level='mid'; label='기록 쌓는 중'; }
+  else { const r=pace/need; [level,label] = r>=1.1 ? ['good','여유'] : r>=0.9 ? ['ok','적정'] : r>=0.7 ? ['mid','빠듯'] : ['bad','위험']; }
+  const text=`남은 ${remaining.toFixed(2)} 크레딧 ÷ 남은 ${daysLeft}일 = 하루 ${need.toFixed(2)} 필요`
+    + (pace!=null ? ` · 최근 ${n}일 평균 ${pace.toFixed(2)} 완료` : '')
+    + (SCHEDULE.unscheduled.length ? ` · 배정 못 한 항목 ${SCHEDULE.unscheduled.length}개` : '');
+  return {level, label, text};
+}
+/* ===== 주간 리뷰 — 지난 7일 ===== */
+function weeklyReview(){
+  const from=Math.max(1, S.cur-7), to=S.cur-1;
+  if(to<from) return null;
+  let rated=0, pctSum=0, full=0, study=0;
+  const cnt={new:0, sup:0, r1:0, r2:0, assign:0};
+  for(let d=from; d<=to; d++){
+    const {items}=historyItems(d), p=historyProgress(d, items);
+    if(p.pct!=null){ rated++; pctSum+=p.pct; if(p.pct>=100) full++; }
+    actualDoneOn(d).forEach(it=>{ if(cnt[it.type]!=null) cnt[it.type]++; });
+    const k=dayKeyOfBlockDay(d); if(k) study+=studyLog()[k]||0;
+  }
+  const deferred=(S.deferLog||[]).filter(x=>x.day>=from && x.day<=to);
+  const defLecs={};
+  deferred.forEach(x=>{ defLecs[x.key]=(defLecs[x.key]||0)+1; });
+  const topDef=Object.entries(defLecs).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>{
+    const [id,t]=k.split(':'); const l=byId(Number(id)); return l ? `${l.code||l.title} ${STAGE_LABEL[t]||''}(${v})` : null;
+  }).filter(Boolean);
+  return {from, to, days:to-from+1, avg: rated ? Math.round(pctSum/rated) : null, full, study, cnt, deferred:deferred.length, topDef};
+}
+function weeklyReviewMarkdown(w){
+  const a=dInfo(w.from), b=dInfo(w.to);
+  return `## 주간 리뷰 (Day${w.from}~Day${w.to}${a&&b?` · ${a.date}~${b.date}`:''})
+- 평균 달성률: ${w.avg!=null?w.avg+'%':'기록 없음'} · 100% 달성 ${w.full}일 / ${w.days}일
+- 공부 시간: ${fmtHMshort(w.study)}
+- 끝낸 항목: 신규 ${w.cnt.new} · 보완 ${w.cnt.sup} · 1차 ${w.cnt.r1} · 2차 ${w.cnt.r2}${w.cnt.assign?` · 과제 ${w.cnt.assign}`:''}
+- 미룬 횟수: ${w.deferred}${w.topDef.length?` (많이 미룬 것: ${w.topDef.join(', ')})`:''}
+- 다음 주에 바꿀 것:
+`;
+}
+function planInsightsEl(){
+  const s=examSafety(), w=weeklyReview();
+  const wrap=el(`<div class="insights">
+    <div class="ins-card"><div class="ins-h">시험 대비 안전도 <span class="ins-badge ${s.level}">${esc(s.label)}</span></div><div class="ins-t">${esc(s.text)}</div></div>
+    ${w?`<div class="ins-card"><div class="ins-h">주간 리뷰 <span class="ins-sub">지난 ${w.days}일</span><button class="ins-copy" type="button" title="옵시디언에 붙여넣을 수 있는 형식으로 복사">복사</button></div>
+      <div class="ins-t">평균 달성률 ${w.avg!=null?w.avg+'%':'—'} · 100% ${w.full}일 · 공부 ${esc(fmtHMshort(w.study))}<br>
+      신규 ${w.cnt.new} · 보완 ${w.cnt.sup} · 1차 ${w.cnt.r1} · 2차 ${w.cnt.r2} 완료 · 미룸 ${w.deferred}회${w.topDef.length?` (${esc(w.topDef.join(', '))})`:''}</div></div>`:''}
+  </div>`);
+  const cb=wrap.querySelector('.ins-copy');
+  if(cb) cb.onclick=()=> copyPlain(weeklyReviewMarkdown(w), '주간 리뷰를 복사했습니다.');
+  return wrap;
+}
 function renderPlan(){
   renderHeatmap();
   renderTypeCostInputs();
   const box=document.getElementById('planList'); box.innerHTML='';
+  box.appendChild(planInsightsEl());
   const warnEl=document.getElementById('planWarn');
   const uEnd=usableDays();
   if(SCHEDULE.unscheduled.length){
     const names = SCHEDULE.unscheduled.slice(0,6).map(it=>{
-      const l=byId(it.lecId); const kind = it.type==='assign'?'과제':(it.type==='new'?'신규':(it.type==='r1'?'1차':'2차'));
+      const l=byId(it.lecId); const kind = STAGE_LABEL[it.type] || it.type;
       return `${l.code||l.title}(${kind})`;
     }).join(', ');
     warnEl.innerHTML = `<p class="hint" style="color:var(--ink);font-weight:700">⚠ 남은 시험기간 안에 다 못 채운 항목이 ${SCHEDULE.unscheduled.length}개 있습니다. (${esc(names)}${SCHEDULE.unscheduled.length>6?' 외':''}). 하루 목표 크레딧을 올리거나 시험범위를 조정해야합니다.</p>`;
@@ -3564,7 +4197,7 @@ function renderPlan(){
     const blocked = d>uEnd;
     const isToday = d===S.cur;
     const cls = isToday?'cur':'';
-    let barHtml, tagsHtml, n=0, r1=0, r2=0, assign=0;
+    let barHtml, tagsHtml, dayItems=[];
 
     if(isToday){
       const total=lockedTodayTotalCost(), done=lockedTodayDoneCost(), remaining=Math.max(0,total-done);
@@ -3576,13 +4209,8 @@ function renderPlan(){
         <div class="pbarseg" style="width:${remPct}%;background:var(--fill-progress)"></div>
       </div><div class="pcapline" style="left:${capPct}%"></div></div>`;
       const items = S.todayLock.items;
-      n=items.filter(it=>it.type==='new').length; r1=items.filter(it=>it.type==='r1').length; r2=items.filter(it=>it.type==='r2').length; assign=items.filter(it=>it.type==='assign').length;
-      tagsHtml = tagGroupsHtml(items, it=>{
-        const st=S.lec[it.lecId]; if(!st) return false;
-        if(it.type==='new'||it.type==='assign') return st.enc!=null;
-        if(it.type==='r1') return !!st.r[1];
-        return !!st.r[2];
-      });
+      dayItems = items;
+      tagsHtml = tagGroupsHtml(items, it=>stageDone(S.lec[it.lecId], it.type));
     } else {
       const items = SCHEDULE.byDay[d]||[];
       const load = items.reduce((a,it)=>a+it.cost,0);
@@ -3596,23 +4224,20 @@ function renderPlan(){
       let color = blocked? 'var(--inactive-soft)' : (overloaded?'var(--fill-warn)':'var(--fill-progress)');
       if(load<1e-9 && !blocked) color='var(--inactive-soft)';
       barHtml = `<div class="pbarwrap"><div class="pbar" style="width:${loadPct}%;background:${color}"></div><div class="pcapline" style="left:${capPct}%"></div></div>`;
-      n=items.filter(it=>it.type==='new').length; r1=items.filter(it=>it.type==='r1').length; r2=items.filter(it=>it.type==='r2').length; assign=items.filter(it=>it.type==='assign').length;
+      dayItems = items;
       tagsHtml = tagGroupsHtml(items, null);
     }
 
     const isOverridden = !!(S.capOverride && S.capOverride[d]!=null);
     const capInput = blocked? '' : `<input type="number" step="0.25" min="0" class="capinput${isOverridden?' overridden':''}" data-day="${d}" value="${cap.toFixed(2)}" title="${isOverridden?'직접 조정한 값입니다':'자동 계산된 값입니다'}">${isOverridden?`<button class="capreset" type="button" title="자동 계산값으로 되돌리기">↺</button>`:''}`;
     /* 개수는 낱개 배지로 띄워 간격을 벌리고, 크레딧 조정은 오른쪽 아래로 내린다 */
-    const countCells = [
-      assign? {k:'과제', v:assign, c:'assign'} : null,
-      {k:'신규', v:n, c:'new'}, {k:'1차', v:r1, c:'r1'}, {k:'2차', v:r2, c:'r2'},
-    ].filter(Boolean).map(x=>`<span class="pcnt ${x.c}${x.v?'':' zero'}"><i>${x.k}</i><b>${x.v}</b></span>`).join('');
+    const countCells = planCountCells(dayItems);
     const row = el(`<div class="planrow ${cls}">
       <div class="pd">Day${d}<div class="pdate">${info.date}(${info.dow})</div></div>
       <div>
         ${barHtml}
         ${tagsHtml}
-        ${blocked?`<div class="pnote">${d===S.examDay?'시험':(d===S.examDay-1?'시험 전날 · 분배 제외':'비워 둔 날 · 분배 제외')}${info.note&&d!==S.examDay?' · '+esc(info.note):''}</div>`:(info.note?`<div class="pnote">${esc(info.note)}</div>`:'')}
+        ${blocked?`<div class="pnote">${d===S.examDay?'시험':(d===S.examDay-1?'시험 전날 · 전날 루틴':'비워 둔 날 · 전날 루틴')}${info.note&&d!==S.examDay?' · '+esc(info.note):''}</div>`:(info.note?`<div class="pnote">${esc(info.note)}</div>`:'')}
       </div>
       <div class="pside">
         <div class="pcount">${countCells}</div>
@@ -3651,10 +4276,11 @@ function buildRow(l, st){
   else { chipsHtml = `<div class="chips">${stage0Chip(l)}${ss.map(s=>slotChip(l,s)).join('')}</div>`; }
 
   const row = el(`<div class="row" style="${excluded?'opacity:.45':''}">
-    <div class="rt"><div class="rn">${excluded?'<s>':''}${l.type==='실습'?'<span class="badge lab" style="margin-right:4px">실습</span>':''}${esc(l.code)}. ${esc(l.title)}${excluded?'</s>':''}</div><div class="rp">${ttValidPeriod(l)?`${ttSpan(l)>1?`${l.period}~${ttCover(l.period,ttSpan(l)).slice(-1)[0]}교시`:periodLabel(l.period)} · `:'교시 미정 · '}${esc(l.prof)}${excluded?' · 시험범위 제외됨':''}</div></div>
+    <div class="rt"><div class="rn">${excluded?'<s>':''}${l.type==='실습'?'<span class="badge lab" style="margin-right:4px">실습</span>':''}${esc(l.code)}. ${esc(l.title)}${excluded?'</s>':''}</div><div class="rp">${ttValidPeriod(l)?`${ttSpan(l)>1?`${l.period}~${ttCover(l.period,ttSpan(l)).slice(-1)[0]}교시`:periodLabel(l.period)} · `:'교시 미정 · '}${esc(l.prof)}${l.diff==='hard'?' · 어려움 ×1.5':l.diff==='easy'?' · 쉬움 ×0.75':''} · 시험 ${lecExamQ(l)}문항${excluded?' · 시험범위 제외됨':''}</div></div>
     ${chipsHtml}
     ${excluded?'':`<span class="encpill ${enc?'':'no'}">${enc?'enc D'+st.enc:'신규 학습 미완'}</span>`}
     ${(!excluded && enc)?'<button class="undo undo-enc">되돌리기</button>':''}
+    ${excluded?'':`<button class="undo upl-toggle${st.upl!=null?' on':''}" title="${st.upl!=null?`Day${st.upl}에 강의록 올라옴 표시 · 누르면 취소`:(enc?'올해 강의록이 올라왔으면 — 정리본 보완 세션(0.5 크레딧)이 오늘 계획에 추가됩니다':'ETL에 강의록이 올라왔으면 — 이 강의 신규 학습이 최우선으로 배정됩니다')}">${st.upl!=null?'강의록 ✓':'강의록 올라옴'}</button>`}
     <button class="undo edit-lec">수정</button>
     <button class="undo excl-toggle">${excluded?'포함시키기':'시험범위 제외'}</button>
     <button class="tabdel del-lec" title="강의 삭제">×</button>
@@ -3665,7 +4291,7 @@ function buildRow(l, st){
     if(newBtn) newBtn.onclick=()=>{
       if(st.enc!=null){
         askConfirm(`"${l.title}" 인코딩을 취소하시겠습니까?`, '해당 강의의 복습 진도도 함께 초기화됩니다.', ()=>{
-          st.enc=null; st.r={1:false,2:false}; st.rDay={1:null,2:null}; S.todayLock=null; saveApp(); render();
+          st.enc=null; st.r={1:false,2:false}; st.rDay={1:null,2:null}; st.supFrom=null; st.supDone=null; S.todayLock=null; saveApp(); render();
           toastUndo('인코딩을 취소했습니다.');
         }, '취소하기');
       }else{
@@ -3686,10 +4312,16 @@ function buildRow(l, st){
     });
     const undoBtn = row.querySelector('.undo-enc');
     if(undoBtn) undoBtn.onclick=()=> askConfirm(`"${l.title}" 인코딩을 취소하시겠습니까?`, '해당 강의의 복습 진도도 함께 초기화됩니다.', ()=>{
-      st.enc=null; st.r={1:false,2:false}; st.rDay={1:null,2:null}; saveApp(); render();
+      st.enc=null; st.r={1:false,2:false}; st.rDay={1:null,2:null}; st.supFrom=null; st.supDone=null; saveApp(); render();
       toastUndo('인코딩을 취소했습니다.');
     }, '취소하기');
   }
+  const uplToggle=row.querySelector('.upl-toggle');
+  if(uplToggle) uplToggle.onclick=()=>{
+    const msg=toggleUploaded(l);
+    saveApp(); render();
+    showToast(msg, {undo:true});
+  };
   row.querySelector('.edit-lec').onclick=()=> openEditLecModal(l);
   row.querySelector('.del-lec').onclick=()=>{
     askConfirm(`"${l.title}"을 목록에서 완전히 삭제하시겠습니까?`, '강의와 인코딩·체크 기록이 함께 삭제됩니다. 삭제 직후 알림의 되돌리기로만 복구할 수 있습니다.', ()=>{
@@ -4571,6 +5203,11 @@ function openEditLecModal(l){
   document.getElementById('elCodeRow').style.display = isAssign?'none':'';
   document.getElementById('elProfRow').style.display = isAssign?'none':'';
   document.getElementById('elTypeRow').style.display = isAssign?'none':'';
+  document.getElementById('elDiffRow').style.display = isAssign?'none':'';
+  document.getElementById('elExamQRow').style.display = isAssign?'none':'';
+  document.getElementById('elDiff').value = DIFF_MULT[l.diff] ? l.diff : 'normal';
+  document.getElementById('elExamQ').value = (l.examQ!=null && l.examQ!=='') ? l.examQ : '';
+  document.getElementById('elExamQ').placeholder = `블록 기본값 ${examQDefault()}문항`;
   document.getElementById('elCreditRow').style.display = isAssign?'':'none';
   document.getElementById('elChecklistRow').style.display = isAssign?'':'none';
   document.getElementById('elTitleLabel').textContent = isAssign?'과제명':'강의명';
@@ -4608,6 +5245,10 @@ document.getElementById('elSave').onclick=()=>{
     _editingLec.code = document.getElementById('elCode').value.trim() || _editingLec.code;
     _editingLec.prof = document.getElementById('elProf').value.trim() || '미정';
     _editingLec.type = document.getElementById('elType').value;
+    const dv=document.getElementById('elDiff').value;
+    if(dv==='normal') delete _editingLec.diff; else _editingLec.diff=dv;
+    const qv=parseInt(document.getElementById('elExamQ').value,10);
+    if(isNaN(qv) || qv<0) delete _editingLec.examQ; else _editingLec.examQ=qv;
     /* 교시 — 고른 자리에 다른 강의가 있으면 그 강의를 그날 빈 교시로 밀어낸다 */
     const l=_editingLec;
     const pv=document.getElementById('elPeriod').value;
@@ -4697,12 +5338,7 @@ function tRec(st,type,create){
   return r;
 }
 function tElapsed(r){ return r ? Math.max(0,(r.ms||0) + (r.since ? Date.now()-r.since : 0)) : 0; }
-function tDone(st,type){
-  if(!st) return false;
-  if(type==='r1') return !!st.r[1];
-  if(type==='r2') return !!st.r[2];
-  return st.enc!=null;
-}
+function tDone(st,type){ return stageDone(st,type); }
 function tState(){
   if(!App.taskTimer || typeof App.taskTimer!=='object') App.taskTimer={key:null, byPomo:false};
   return App.taskTimer;
@@ -4717,7 +5353,7 @@ function tLookup(key){
 function tLabel(key){
   const {l,type}=tLookup(key); if(!l) return '';
   if(type==='assign') return l.title;
-  return `${l.code?l.code+' ':''}${type==='new'?'신규 학습':type==='r1'?'1차 복습':'2차 복습'}`;
+  return `${l.code?l.code+' ':''}${type==='new'?'신규 학습':type==='sup'?'강의록 보완':type==='r1'?'1차 복습':'2차 복습'}`;
 }
 function fmtDur(ms){
   const t=Math.floor(Math.max(0,ms)/1000), m=Math.floor(t/60), sec=t%60;
@@ -4998,16 +5634,16 @@ setInterval(()=>{ studySync(); studyPaint(); }, 1000);
 
 /* 단계별 평균 — 완료된 강의 중 1분 이상 기록된 것만 */
 function stageSamples(blocks){
-  const out={new:[], r1:[], r2:[]};
+  const out={new:[], sup:[], r1:[], r2:[]};
   blocks.forEach(b=>{
     if(!b || !b.state || !b.state.lec) return;
     b.lec.forEach(l=>{
       if(l.type==='과제') return;
       const st=b.state.lec[l.id]; if(!st || st.excluded) return;
-      ['new','r1','r2'].forEach(t=>{
+      ['new','sup','r1','r2'].forEach(t=>{
         const r=tRec(st,t,false);
         if(!r || !tDone(st,t)) return;
-        const ms=tElapsed(r);
+        const ms=tElapsed(r)/diffMult(l); // 난이도 가감을 빼고 '보통 강의' 기준으로 비교한다
         if(ms>=T_MIN_SAMPLE) out[t].push(ms);
       });
     });
@@ -5015,18 +5651,32 @@ function stageSamples(blocks){
   return out;
 }
 function avgHours(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length/3600000 : null; }
+/* 실측 시간 비율로 단계별 크레딧 제안 — 신규 크레딧은 그대로 두고, 나머지를 '신규 대비 실제 걸린 비율'로.
+   이 블록 기록이 2개 이상이면 이 블록, 아니면 전체 블록 기록을 쓴다. 기록이 모자라면 null. */
+function suggestedTypeCost(block){
+  const cur=stageSamples(block?[block]:[]), all=stageSamples(App.blocks);
+  const pick=t=> cur[t].length>=2 ? cur[t] : (all[t].length>=2 ? all[t] : null);
+  const base=pick('new'); if(!base) return null;
+  const bh=avgHours(base), out={};
+  ['sup','r1','r2'].forEach(t=>{ const a=pick(t); if(a) out[t]=Math.max(0.05, Math.round(typeCost('new')*avgHours(a)/bh*20)/20); });
+  return Object.keys(out).length ? out : null;
+}
 function timeStatsHtml(block){
   const cur=stageSamples(block?[block]:[]), all=stageSamples(App.blocks);
   const base=avgHours(cur.new);
   const cell=arr=>{ const h=avgHours(arr); return h==null ? '<td class="na">기록 없음</td>' : `<td>${h.toFixed(2)}시간<i>${arr.length}개</i></td>`; };
   const ratio=t=>{ const h=avgHours(cur[t]); return (h==null || !base) ? '<td class="na">-</td>' : `<td>${(h/base).toFixed(2)}</td>`; };
+  const sug=suggestedTypeCost(block);
+  const sugTxt = sug ? Object.entries(sug).map(([t,v])=>`${STAGE_LABEL[t]} ${v}`).join(' · ') : '';
   return `<div class="tstat"><table>
     <thead><tr><th>실측 평균</th><th>이 블록</th><th>전체 블록</th><th>신규 대비</th></tr></thead>
     <tbody>
       <tr><td>신규</td>${cell(cur.new)}${cell(all.new)}${ratio('new')}</tr>
+      <tr><td>보완</td>${cell(cur.sup)}${cell(all.sup)}${ratio('sup')}</tr>
       <tr><td>1차</td>${cell(cur.r1)}${cell(all.r1)}${ratio('r1')}</tr>
       <tr><td>2차</td>${cell(cur.r2)}${cell(all.r2)}${ratio('r2')}</tr>
-    </tbody></table></div>`;
+    </tbody></table></div>
+    ${sug?`<div class="stacts" style="justify-content:flex-start"><button class="stbtn" type="button" id="stTcSuggest" title="신규 크레딧은 그대로, 나머지는 실제로 걸린 시간 비율로 맞춥니다">실측 비율로 맞추기 (${esc(sugTxt)})</button></div>`:''}`;
 }
 
 /* ===== 강의 일괄 추가 =====
@@ -5112,6 +5762,16 @@ function renderBulkPreview(){
 document.getElementById('bulkText').addEventListener('input', renderBulkPreview);
 document.getElementById('bulkDay').addEventListener('change', renderBulkPreview);
 bindDetailsFold(document.getElementById('bulkAdd'));
+document.getElementById('bulkTtPrompt').onclick=async e=>{
+  if(!S) return;
+  const text=timetablePromptText();
+  try{ await navigator.clipboard.writeText(text); }
+  catch(err){
+    const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
+    ta.select(); try{ document.execCommand('copy'); }catch(e2){} document.body.removeChild(ta);
+  }
+  showToast('시간표 PDF용 프롬프트를 복사했습니다. 결과를 이 칸에 붙여넣어 주세요.');
+};
 document.getElementById('bulkAddBtn').onclick=()=>{
   if(!S) return;
   const ok=bulkParseAll().filter(r=>!r.bad);
@@ -5259,8 +5919,9 @@ body.pomo-pip .pw-time{font-size:clamp(10px,min(38cqh,19cqw),42px)}
 .pw-ctl{display:flex;align-items:center;justify-content:center;gap:2px}
 .pw-b{width:16px;height:13px;flex-shrink:0;border:1px solid #EAEAEA;background:#fff;color:#7A7A7A;
   border-radius:4px;font-size:10px;font-weight:800;line-height:1;cursor:pointer;padding:0;
-  font-family:inherit;display:flex;align-items:center;justify-content:center}
-.pw-b svg{width:10px;height:10px;fill:currentColor;display:block}
+  font-family:inherit;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.pw-b svg{width:10px;height:10px;fill:currentColor;display:block;flex-shrink:0}
+.pw-b > span{display:flex;align-items:center;justify-content:center}
 .pw-go{width:22px;background:#111;border-color:#111;color:#fff}
 .pw-b:hover{filter:brightness(.92)}
 .pw-b:active{transform:scale(.92)}
@@ -5269,7 +5930,9 @@ body.pomo-pip .pw-time{font-size:clamp(10px,min(38cqh,19cqw),42px)}
 body.pomo-pip .pw-ctl{gap:min(2.4cqw,2px)}
 body.pomo-pip .pw-b{width:clamp(9px,15cqw,24px);height:clamp(9px,26cqh,19px);border-radius:min(1.4cqw,5px)}
 body.pomo-pip .pw-go{width:clamp(13px,21cqw,34px)}
-body.pomo-pip .pw-b svg{width:clamp(7px,10cqw,16px);height:clamp(7px,10cqw,16px)}
+/* 아이콘은 버튼 높이(cqh)도 함께 보고 정한다 — 폭(cqw)만 보면 넓고 낮은 창에서 아이콘이 버튼보다
+   커져 위아래로 삐져나온다 */
+body.pomo-pip .pw-b svg{width:clamp(7px,min(10cqw,22cqh),16px);height:clamp(7px,min(10cqw,22cqh),16px)}
 /* 더는 줄일 수 없을 만큼 좁아지면 −/+ 를 접고 재생·정지만 남긴다 */
 @container (max-width:54px){ .pw-b[data-p="minus"],.pw-b[data-p="plus"]{display:none} }
 /* ===== 메모 =====
@@ -6173,6 +6836,27 @@ function renderMemoBox(){
   inp.addEventListener('input', ()=>{ _memoAddDraft=inp.value; });
   inp.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.isComposing && e.keyCode!==229){ e.preventDefault(); commit(); } });
   add.querySelector('button').onclick=commit;
+  if(pending.length){
+    const cp=el(`<button type="button" class="memo-copy" title="남아 있는 메모를 모두 복사">전체 복사</button>`);
+    cp.onclick=async()=>{
+      const text=pending.slice().sort((a,b)=>a.at-b.at).map(m=>'- '+m.text).join('\n');
+      try{ await navigator.clipboard.writeText(text); }
+      catch(e){
+        const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
+        ta.select(); try{ document.execCommand('copy'); }catch(e2){} document.body.removeChild(ta);
+      }
+      showToast(`메모 ${pending.length}개를 복사했습니다.`);
+    };
+    add.appendChild(cp);
+    const del=el(`<button type="button" class="memo-copy memo-delall" title="남아 있는 메모를 모두 삭제">전체 삭제</button>`);
+    del.onclick=()=> askConfirm(`메모 ${pending.length}개를 모두 삭제하시겠습니까?`, '메모함에 남아 있는 메모가 전부 지워집니다. 삭제 직후 알림의 되돌리기로 복구할 수 있습니다.', ()=>{
+      const ids=new Set(pending.map(m=>m.id));
+      App.memos=memos().filter(m=>!ids.has(m.id));
+      saveApp(); renderMemoBox(); renderPfMemos(); memoPaintWidget(true);
+      showToast(`메모 ${ids.size}개를 삭제했습니다.`, {undo:true});
+    }, '삭제');
+    add.appendChild(del);
+  }
   box.appendChild(add);
   if(!pending.length){ box.appendChild(el('<div class="empty">남아 있는 메모가 없습니다</div>')); return; }
   const groups=new Map();
@@ -6240,9 +6924,15 @@ function renderSettings(){
       <span class="stunit">신규</span><input class="stin num" data-tc="new" type="number" step="0.05" min="0" value="${num(typeCost('new'))}">
       <span class="stunit">1차</span><input class="stin num" data-tc="r1" type="number" step="0.05" min="0" value="${num(typeCost('r1'))}">
       <span class="stunit">2차</span><input class="stin num" data-tc="r2" type="number" step="0.05" min="0" value="${num(typeCost('r2'))}">
+      <span class="stunit">보완</span><input class="stin num" data-tc="sup" type="number" step="0.05" min="0" value="${num(typeCost('sup'))}">
     </div></div>
     ${timeStatsHtml(block)}
-    <p class="sethint" style="margin-top:4px">오늘 카드에서 측정한 시간 중 완료한 항목, 1분 이상 기록된 것만 계산합니다. 크레딧 값은 이 평균을 참고해 직접 조정해 주세요.</p>
+    <p class="sethint" style="margin-top:4px">오늘 카드에서 측정한 시간 중 완료한 항목, 1분 이상 기록된 것만 계산합니다(난이도 가감은 빼고 비교). 강의별 난이도(쉬움 ×0.75 / 어려움 ×1.5)는 전체 강의 탭의 '수정'에서 정합니다.</p>
+    <div class="setrow"><span class="setlbl">시험 문항 수</span><div class="stgrp">
+      <span class="stunit">강의당</span><input class="stin num" data-plan="examQ" type="number" step="1" min="0" max="50" value="${examQDefault()}"><span class="stunit">문항 · 예상 기출</span>
+      <input class="stin num" data-plan="examQMult" type="number" step="1" min="1" max="10" value="${examQMult()}"><span class="stunit">배</span>
+    </div></div>
+    <p class="sethint">강의 목록과 함께 지침에 들어가, 예상 기출문제를 '시험 문항 수 × 배수'만큼 냅니다. 강의마다 다르면 전체 강의 탭 '수정'에서 바꿉니다.</p>
     <div class="setrow"><span class="setlbl">복습 간격</span><div class="stgrp">
       <span class="stunit">1차</span><input class="stin num" data-plan="gap1" type="number" step="1" min="0" max="14" value="${G1()}"><span class="stunit">일 뒤</span>
       <span class="stunit">2차</span><input class="stin num" data-plan="gap2" type="number" step="1" min="0" max="21" value="${G2()}"><span class="stunit">일 뒤</span>
@@ -6250,6 +6940,7 @@ function renderSettings(){
     <div class="setrow"><label for="stLead">신규 학습 우선 시점</label><select class="stin" id="stLead" data-plan="newLead">
       ${opt(0,'수업 당일부터',Math.round(planCfg('newLead')))}${opt(1,'수업 하루 전부터',Math.round(planCfg('newLead')))}${opt(2,'수업 이틀 전부터',Math.round(planCfg('newLead')))}
     </select></div>
+    <p class="sethint">${(()=>{ const u=uploadLeadStats(); if(!u) return "강의록 업로드를 표시하면, 보통 수업 며칠 전에 올라오는지 여기에 알려 드립니다. 강의록이 올라오기 전에는 신규 학습을 수업일 전으로 앞당기지 않습니다."; const d=Math.max(0,Math.round(u.avg)); return `강의록은 보통 수업 ${u.avg.toFixed(1)}일 전에 올라왔습니다 (${u.n}개 기준).${d>=1 && d<=2 && d!==Math.round(planCfg('newLead')) ? ` 신규 학습 우선 시점을 '수업 ${d===1?'하루':'이틀'} 전부터'로 맞추면 올라오는 날 바로 진도를 나갈 수 있습니다.` : ''}`; })()}</p>
     <div class="setrow"><span class="setlbl">초반 적응 기간</span><div class="stgrp">
       <span class="stunit">처음</span><input class="stin num" data-plan="rampFrac" data-pct="1" type="number" step="5" min="0" max="50" value="${Math.round(planCfg('rampFrac')*100)}"><span class="stunit">% 기간은 목표의</span>
       <input class="stin num" data-plan="rampLoad" data-pct="1" type="number" step="5" min="10" max="100" value="${Math.round(planCfg('rampLoad')*100)}"><span class="stunit">%</span>
@@ -6257,10 +6948,18 @@ function renderSettings(){
     <div class="setrow"><span class="setlbl">시험 전 비워 둘 날</span><div class="stgrp">
       <span class="stunit">시험</span><input class="stin num" data-plan="buffer" type="number" step="1" min="1" max="10" value="${bufferDays()}"><span class="stunit">일 전부터 분배 안 함</span>
     </div></div>
-    <p class="sethint">1이면 시험 전날만 비웁니다. 3이면 시험 3일 전·2일 전·전날에는 크레딧을 배정하지 않고, 남은 강의는 그 전날까지 나눠 배정합니다.</p>
+    <p class="sethint">1이면 시험 전날만 비웁니다. 3이면 시험 3일 전·2일 전·전날에는 크레딧을 배정하지 않고, 남은 강의는 그 전날까지 나눠 배정합니다. 비워 둔 날에는 매일 시험 전날 루틴이 뜹니다.</p>
     <p class="sethint">복습 간격은 신규 학습을 한 날(아직 하지 않았다면 수업일)을 기준으로 합니다. 값을 바꾸면 오늘 배정량을 다시 계산하며, 이미 완료한 항목은 그대로 유지됩니다.</p>
     <div class="stacts"><button class="stbtn" type="button" id="stPlanReset">기본값으로</button></div>`
     : `<p class="sethint">블록을 만든 뒤 설정할 수 있습니다.</p>`}
+  </section>
+
+  <section class="setsec" data-sec="obsidian">
+    <h4>옵시디언</h4>
+    <div class="setrow"><label for="stObsVault">Vault 이름</label><input id="stObsVault" class="stin wide" type="text" maxlength="80" value="${esc(st.obsVault||'')}" placeholder="예: 의대 공부"></div>
+    ${hasBlock?`<div class="setrow"><label for="stObsFolder">블록 폴더 <span class="setsub">현재 블록</span></label><input id="stObsFolder" class="stin wide" type="text" maxlength="80" value="${esc(obsFolder(block))}"></div>`:''}
+    <p class="sethint">Vault 이름을 넣으면 오늘 카드에 '옵시디언' 버튼이 생겨 그 강의 정리본(블록 폴더/정리본/nn강. 강의제목)을 바로 엽니다. 프롬프트의 {블록폴더}도 이 값으로 채워집니다.</p>
+    ${hasBlock?`<div class="stacts" style="justify-content:flex-start"><button class="stbtn" type="button" id="stObsHome">블록 홈 노트 받기 (.md)</button><button class="stbtn" type="button" id="stObsHomeCopy">블록 홈 노트 복사</button></div>`:''}
   </section>
 
   <section class="setsec" data-sec="display">
@@ -6325,16 +7024,26 @@ function renderSettings(){
       let v=parseFloat(inp.value);
       if(isNaN(v)){ renderSettings(); return; }
       if(inp.dataset.pct) v=v/100;
-      const lim={gap1:[0,14], gap2:[0,21], newLead:[0,2], rampFrac:[0,0.5], rampLoad:[0.1,1], buffer:[1,Math.max(1,Math.min(10,S.examDay-2))]}[k];
+      const lim={gap1:[0,14], gap2:[0,21], newLead:[0,2], rampFrac:[0,0.5], rampLoad:[0.1,1], buffer:[1,Math.max(1,Math.min(10,S.examDay-2))], examQ:[0,50], examQMult:[1,10]}[k];
       v=Math.max(lim[0], Math.min(lim[1], v));
-      if(k==='gap1'||k==='gap2'||k==='newLead'||k==='buffer') v=Math.round(v);
+      if(k==='gap1'||k==='gap2'||k==='newLead'||k==='buffer'||k==='examQ'||k==='examQMult') v=Math.round(v);
       if(!S.plan) S.plan={};
       S.plan[k]=v;
       if(k==='gap1' && G2()<v) S.plan.gap2=v; // 2차는 1차보다 앞설 수 없다
       if(k==='gap2' && v<G1()) S.plan.gap2=G1();
-      S.todayLock=null; saveApp(); render();
+      if(k!=='examQ' && k!=='examQMult') S.todayLock=null; // 문항 수는 계획과 무관 — 오늘 몫은 그대로
+      saveApp(); render();
       const keep=body.scrollTop; renderSettings(); body.scrollTop=keep;
     }));
+    const sugBtn=body.querySelector('#stTcSuggest');
+    if(sugBtn) sugBtn.onclick=()=>{
+      const sug=suggestedTypeCost(block); if(!sug) return;
+      if(!S.typeCost) S.typeCost={...DEFAULT_TYPE_COST};
+      Object.assign(S.typeCost, sug);
+      S.todayLock=null; saveApp(); render();
+      const keep=body.scrollTop; renderSettings(); body.scrollTop=keep;
+      showToast('실측 비율로 크레딧을 맞췄습니다.', {undo:true});
+    };
     body.querySelector('#stPlanReset').onclick=()=>{
       delete S.plan; S.typeCost={...DEFAULT_TYPE_COST};
       S.todayLock=null; saveApp(); render();
@@ -6343,6 +7052,19 @@ function renderSettings(){
     };
     renderPointPicker(block, body.querySelector('#stPoint'));
   }
+
+  /* 옵시디언 */
+  body.querySelector('#stObsVault').addEventListener('change', e=>{ st.obsVault=e.target.value.trim(); saveApp(); render(); });
+  const obsF=body.querySelector('#stObsFolder');
+  if(obsF) obsF.addEventListener('change', e=>{
+    const v=e.target.value.trim().replace(/[\\:*?"<>|#^\[\]]/g,' ');
+    if(!v || v===block.name) delete block.obsFolder; else block.obsFolder=v;
+    saveApp(); render();
+  });
+  const obsH=body.querySelector('#stObsHome');
+  if(obsH) obsH.onclick=()=>{ downloadText('00 블록 홈.md', blockHomeMarkdown()); showToast('블록 홈 노트를 받았습니다. Vault의 블록 폴더에 넣어 주세요.'); };
+  const obsHC=body.querySelector('#stObsHomeCopy');
+  if(obsHC) obsHC.onclick=()=> copyPlain(blockHomeMarkdown(), '블록 홈 노트를 복사했습니다.');
 
   /* 화면 · 뽀모도로 토글 */
   body.querySelectorAll('[data-seg]').forEach(g=> g.querySelectorAll('button').forEach(b=> b.onclick=()=>{
