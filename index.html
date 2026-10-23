@@ -2286,11 +2286,16 @@ async function vaultRoot(interactive, repick){
   if(!h){
     if(!interactive) return null;
     h=await window.showDirectoryPicker({id:'vault', mode:'readwrite'});
-    if(obsVault() && h.name!==obsVault()){
-      showToast(`고른 폴더(${h.name})가 설정의 Vault 이름(${obsVault()})과 다릅니다. Vault 폴더를 골라 주세요.`, {long:true});
+    /* 옵시디언 Vault의 맨 위 폴더인지 확인 — Vault 안쪽 폴더(학기·블록 폴더)를 고르면 그 안에 폴더가 또 생긴다 */
+    let isVault=true;
+    try{ await h.getDirectoryHandle('.obsidian'); }catch(e){ isVault=false; }
+    if(!isVault){
+      showToast(`'${h.name}' 폴더는 옵시디언 Vault의 맨 위 폴더가 아닙니다(.obsidian 폴더가 없음). 옵시디언을 연 Vault 폴더 자체(예: jaesuh)를 골라 주세요.`, {long:true});
       return null;
     }
     await setVaultHandle(h);
+    /* 옵시디언 Vault 이름은 그 폴더 이름과 같다 — 직접 치지 않아도 채워 둔다 */
+    if(settings().obsVault!==h.name){ settings().obsVault=h.name; saveApp(); }
   }
   let perm=await h.queryPermission({mode:'readwrite'});
   if(perm!=='granted' && interactive) perm=await h.requestPermission({mode:'readwrite'});
@@ -2314,6 +2319,27 @@ function mergeClaudeMd(prev, section){
   if(prev.startsWith(CLAUDE_MD_LEGACY) || !prev.trim()) return section+'\n';
   return null;
 }
+/* 블록 폴더 입력 정리 — 역슬래시→/, 앞뒤 /, 금지 글자 제거, 맨 앞에 Vault 이름을 또 쓴 경우 떼어 냄 */
+function normalizeObsFolder(v){
+  const parts=String(v||'').replace(/\\/g,'/').replace(/[:*?"<>|#^\[\]]/g,' ').split('/').map(s=>s.trim()).filter(Boolean);
+  if(parts.length>1 && parts[0]===obsVault()) parts.shift();
+  return parts.join('/');
+}
+/* 연결한 Vault 안의 폴더 목록(학기/블록, 두 단계까지) — 블록 폴더 칸의 선택지. 연결·권한이 없으면 빈 목록 */
+async function listVaultFolders(){
+  try{
+    const root=await vaultHandle();
+    if(!root || (await root.queryPermission({mode:'readwrite'}))!=='granted') return [];
+    const skip=n=>n.startsWith('.') || n==='템플릿';
+    const out=[];
+    for await (const [n1,h1] of root.entries()){
+      if(h1.kind!=='directory' || skip(n1)) continue;
+      out.push(n1);
+      for await (const [n2,h2] of h1.entries()){ if(h2.kind==='directory' && !skip(n2) && !VAULT_SUBFOLDERS.includes(n2)) out.push(n1+'/'+n2); }
+    }
+    return out.sort();
+  }catch(e){ return []; }
+}
 async function writeVaultFile(fh, text){ const w=await fh.createWritable(); await w.write(text); await w.close(); }
 function currentBlock(){ return App.blocks.find(b=>b.id===App.active); }
 /* ① 블록 폴더 만들기 — 폴더만 만든다(CLAUDE.md 같은 파일은 만들지 않음) */
@@ -2325,11 +2351,20 @@ async function makeBlockFolders(){
   if(!vaultSupported()){ showToast('이 브라우저에서는 폴더를 직접 만들 수 없습니다. Chrome·Edge에서 열거나, Claude Code에 "블록 폴더 만들기" 프롬프트를 쓰세요.', {long:true}); return false; }
   try{
     const root=await vaultRoot(true);
-    if(!root){ showToast('Vault 폴더에 쓸 권한이 없습니다.'); return false; }
-    const dir=await vaultDir(root, folder);
-    for(const sub of VAULT_SUBFOLDERS) await dir.getDirectoryHandle(sub, {create:true});
-    showToast(`${folder} 폴더를 만들었습니다 (${VAULT_SUBFOLDERS.join(' · ')}).`, {long:true});
-    return true;
+    if(!root){ showToast('Vault 폴더를 먼저 연결해 주세요 (설정 → 옵시디언).'); return false; }
+    /* 만들기 전에 위치를 보여 주고 확인받는다 — 이미 있는 폴더는 그대로 두고 빠진 하위 폴더만 만든다 */
+    let exists=true, d=root;
+    for(const part of folder.split('/').filter(Boolean)){ try{ d=await d.getDirectoryHandle(part); }catch(e){ exists=false; break; } }
+    const where=`${root.name} / ${folder.split('/').filter(Boolean).join(' / ')}`;
+    const go=async()=>{
+      const dir=await vaultDir(root, folder);
+      for(const sub of VAULT_SUBFOLDERS) await dir.getDirectoryHandle(sub, {create:true});
+      showToast(`${where} 폴더를 ${exists?'확인했습니다 (빠진 하위 폴더만 채움)':'만들었습니다'} — ${VAULT_SUBFOLDERS.join(' · ')}`, {long:true});
+      if(S.onboarding){ S.onboarding.vaultFolder=true; saveApp(); render(); }
+    };
+    if(exists){ await go(); return true; }
+    askConfirm('이 위치에 블록 폴더를 만들까요?', `${where}\n(그 안에 ${VAULT_SUBFOLDERS.join(' · ')} 폴더)`, ()=>{ go().catch(e=>showToast('폴더를 만들지 못했습니다: '+(e.message||e))); }, '만들기');
+    return false;
   }catch(e){
     if(e && e.name!=='AbortError') showToast('폴더를 만들지 못했습니다: '+(e.message||e));
     return false;
@@ -7280,12 +7315,14 @@ function renderSettings(){
 
   <section class="setsec" data-sec="obsidian">
     <h4>옵시디언</h4>
-    <div class="setrow"><label for="stObsVault">Vault 이름</label><input id="stObsVault" class="stin wide" type="text" maxlength="80" value="${esc(st.obsVault||'')}" placeholder="예: 의대 공부"></div>
-    ${hasBlock?`<div class="setrow"><label for="stObsFolder">블록 폴더 <span class="setsub">현재 블록</span></label><input id="stObsFolder" class="stin wide" type="text" maxlength="80" value="${esc(obsFolder(block))}"></div>`:''}
-    <p class="sethint">Vault 이름을 넣으면 오늘 카드에 '옵시디언' 버튼이 생겨 그 강의 정리본(블록 폴더/정리본/nn강. 강의제목)을 바로 엽니다. 프롬프트의 {블록폴더}도 이 값으로 채워집니다.</p>
+    <p class="sethint">두 가지만 정하면 됩니다. <b>① Vault 폴더</b>: 옵시디언에서 연 폴더 자체(예: jaesuh)를 한 번 고르기 — 이름은 자동으로 채워집니다. <b>② 블록 폴더</b>: Vault 안에서 이 블록 노트가 있는 위치(예: <code>1학년 2학기/감염과 면역</code>). Vault 이름은 앞에 쓰지 않습니다.</p>
+    <div class="setrow"><label for="stObsVault">① Vault 이름 <span class="setsub">폴더 고르면 자동</span></label><input id="stObsVault" class="stin wide" type="text" maxlength="80" value="${esc(st.obsVault||'')}" placeholder="폴더를 고르면 채워집니다"></div>
+    <div class="stacts" style="justify-content:flex-start"><button class="stbtn" type="button" id="stVaultPick">Vault 폴더 고르기 (한 번만)</button></div>
+    ${hasBlock?`<div class="setrow"><label for="stObsFolder">② 블록 폴더 <span class="setsub">현재 블록</span></label><input id="stObsFolder" class="stin wide" type="text" maxlength="80" list="stObsFolderList" value="${esc(obsFolder(block))}" placeholder="예: 1학년 2학기/감염과 면역"><datalist id="stObsFolderList"></datalist></div>
+    <p class="sethint" id="stObsPreview"></p>`:''}
+    <p class="sethint">정리본은 <code>Vault / 블록 폴더 / 정리본 / nn강. 강의제목</code>에 저장되고, 오늘 카드의 '옵시디언' 버튼이 그 노트를 바로 엽니다. 프롬프트의 {블록폴더}도 이 값으로 채워집니다. 칸을 누르면 Vault 안에 이미 있는 폴더가 목록으로 나옵니다(Vault 폴더를 고른 뒤).</p>
     ${hasBlock?`<div class="stacts" style="justify-content:flex-start"><button class="stbtn" type="button" id="stObsHome">블록 홈 노트 받기 (.md)</button><button class="stbtn" type="button" id="stObsHomeCopy">블록 홈 노트 복사</button></div>`:''}
-    <div class="stacts" style="justify-content:flex-start"><button class="stbtn" type="button" id="stVaultPick">Vault 폴더 연결 (폴더 만들기용)</button></div>
-    <p class="sethint">Chrome·Edge에서만 됩니다. Vault 폴더를 한 번 고르면 프롬프트 모음 탭의 '블록 폴더 만들기'가 블록 폴더와 정리본·족보·분석·자료 폴더를 만듭니다. 지침을 넣을 파일은 같은 카드의 'CLAUDE.md 파일 선택'으로 따로 고릅니다. 브라우저를 다시 열면 첫 사용 때 권한을 한 번 더 묻습니다.</p>
+    <p class="sethint">Vault 폴더 고르기는 Chrome·Edge에서만 됩니다. 한 번 고르면 프롬프트 모음 탭의 '블록 폴더 만들기'가 위치를 보여 주고 확인받은 뒤 블록 폴더와 정리본·족보·분석·자료 폴더를 만듭니다. 지침을 넣을 파일은 같은 카드의 'CLAUDE.md 파일 선택'으로 따로 고릅니다. 브라우저를 다시 열면 첫 사용 때 권한을 한 번 더 묻습니다.</p>
   </section>
 
   <section class="setsec" data-sec="display">
@@ -7383,18 +7420,25 @@ function renderSettings(){
   /* 옵시디언 */
   body.querySelector('#stObsVault').addEventListener('change', e=>{ st.obsVault=e.target.value.trim(); saveApp(); render(); });
   const obsF=body.querySelector('#stObsFolder');
-  if(obsF) obsF.addEventListener('change', e=>{
-    const v=e.target.value.trim().replace(/[\\:*?"<>|#^\[\]]/g,' ');
-    if(!v || v===block.name) delete block.obsFolder; else block.obsFolder=v;
-    saveApp(); render();
-  });
+  if(obsF){
+    obsF.addEventListener('change', e=>{
+      /* 흔한 실수 정리: 역슬래시→/, 앞뒤 /, 맨 앞에 Vault 이름을 또 쓴 경우(폴더 안에 같은 이름 폴더가 또 생기는 원인) */
+      const v=normalizeObsFolder(e.target.value);
+      if(!v || v===block.name) delete block.obsFolder; else block.obsFolder=v;
+      saveApp(); render();
+    });
+    const prev=body.querySelector('#stObsPreview');
+    const paintPreview=()=>{ if(prev) prev.innerHTML=`노트가 저장될 위치: <b>${esc(obsVault()||'(Vault)')} / ${esc(normalizeObsFolder(obsF.value)||block.name).split('/').join(' / ')} / 정리본</b>`; };
+    obsF.addEventListener('input', paintPreview); paintPreview();
+    listVaultFolders().then(list=>{ const dl=body.querySelector('#stObsFolderList'); if(dl) dl.innerHTML=list.map(p=>`<option value="${esc(p)}"></option>`).join(''); });
+  }
   const obsH=body.querySelector('#stObsHome');
   if(obsH) obsH.onclick=()=>{ downloadText('00 블록 홈.md', blockHomeMarkdown()); showToast('블록 홈 노트를 받았습니다. Vault의 블록 폴더에 넣어 주세요.'); };
   const obsHC=body.querySelector('#stObsHomeCopy');
   if(obsHC) obsHC.onclick=()=> copyPlain(blockHomeMarkdown(), '블록 홈 노트를 복사했습니다.');
   body.querySelector('#stVaultPick').onclick=async()=>{
     if(!vaultSupported()){ showToast('이 브라우저에서는 지원하지 않습니다. Chrome·Edge에서 열어 주세요.'); return; }
-    try{ const h=await vaultRoot(true, true); if(h) showToast(`Vault 폴더(${h.name})를 연결했습니다.`); }
+    try{ const h=await vaultRoot(true, true); if(h){ showToast(`Vault 폴더(${h.name})를 연결했습니다. Vault 이름도 '${h.name}'로 채웠습니다.`, {long:true}); render(); renderSettings(); } }
     catch(e){ if(e && e.name!=='AbortError') showToast('연결하지 못했습니다: '+(e.message||e)); }
   };
 
