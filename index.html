@@ -3117,9 +3117,8 @@ function renderBanner(){
   /* 링은 항상 "직전에 보여주던 값"에서 출발해 현재 값으로 이어진다. 처음 열 때는 0에서
      차오르고, 이후에는 값이 바뀔 때만 실제로 움직이므로 렌더마다 튀지 않는다. */
   const pd = C*_lastFrac, pg = C-pd;
-  /* 둥근 끝(round cap)은 선 굵기의 반(4.5)만큼 양 끝으로 삐져나온다. 채운 호가 거의 한 바퀴라 남은 틈이
-     둥근 끝 두 개(9)+여유(3)보다 좁으면 두 끝이 맞붙어 한 덩어리로 보이고, 꽉 찼을 땐 시작점에 혹이 생긴다.
-     채운 호가 너무 짧을 때도 점처럼 보인다. 그런 경우엔 평평한 끝(butt)으로 그려 틈이 또렷이 보이게 한다 */
+  /* 둥근 끝(round cap)은 선 굵기의 반(4.5)만큼 양 끝으로 삐져나온다. 남은 틈이 둥근 끝 두 개(9)+여유(3)보다
+     좁으면 두 끝이 맞붙어 보이므로 아래에서 꽉 찬 원으로 바꾸고, 채운 호가 너무 짧아 점처럼 보일 때는 평평한 끝 */
   const capFor = f => (C*f>=10 && C*(1-f)>=12) ? 'round' : 'butt';
   const svg = `<svg viewBox="0 0 84 84" width="72" height="72">
     <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--surface2)" stroke-width="9"/>
@@ -3154,14 +3153,18 @@ function renderBanner(){
     }
   }
   const ring=b.querySelector('.gring');
+  /* 남은 틈이 둥근 끝 두 개가 맞붙을 만큼 좁으면 틈 없이 꽉 찬 원으로 그린다(100% 남았을 때 포함).
+     그보다 덜 남은 날부터는 원래대로 둥근 끝의 호 */
+  const full = frac>=0.996 || C*(1-frac) < 12;
+  const shown = full ? 1 : frac;
   if(ring) requestAnimationFrame(()=>{
-    /* 차오르는 동안은 둥근 끝, 다 차거나 비는 순간(애니메이션이 끝난 뒤)에는 butt로 바꿔 꽉 찬 원이 되게 */
-    if(capFor(frac)==='round') ring.setAttribute('stroke-linecap','round');
-    ring.style.strokeDasharray = frac>=0.996 ? `${C.toFixed(1)} 0` : `${dash.toFixed(1)} ${gap.toFixed(1)}`;
-    if(capFor(frac)==='butt') setTimeout(()=>{ if(ring.isConnected) ring.setAttribute('stroke-linecap','butt'); }, 800);
-    else ring.setAttribute('stroke-linecap','round');
+    ring.style.strokeDasharray = full ? `${C.toFixed(1)} 0` : `${dash.toFixed(1)} ${gap.toFixed(1)}`;
+    if(full){
+      /* 차오르는 애니메이션이 끝난 뒤 평평한 끝으로 바꿔 시작점의 혹을 없앤다 */
+      setTimeout(()=>{ if(ring.isConnected) ring.setAttribute('stroke-linecap','butt'); }, 800);
+    } else ring.setAttribute('stroke-linecap', capFor(frac));
   });
-  _lastFrac = frac;
+  _lastFrac = shown;
 }
 /* ===== 배터리 =====
    battLevel(현재 수위) = 표시 퍼센트. 물결은 이 기준선 위아래로만 흔들리고,
