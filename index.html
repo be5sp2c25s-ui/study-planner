@@ -2281,25 +2281,38 @@ async function vaultPut(key, h){
 const vaultHandle=()=>vaultGet('root');
 const setVaultHandle=h=>vaultPut('root', h);
 /* interactive: 버튼으로 부른 경우 — 연결이 없으면 폴더를 고르게 하고, 권한도 물어본다. repick: 다시 고르기 */
+/* 옵시디언 Vault의 맨 위 폴더인지(.obsidian이 있는지) — Vault 안쪽 폴더(학기·블록 폴더)를 고르면 그 안에 폴더가 또 생긴다.
+   지워졌거나 옮겨져 더는 없는 폴더도 여기서 걸러진다 */
+async function isVaultRootDir(d){ try{ await d.getDirectoryHandle('.obsidian'); return true; }catch(e){ return false; } }
+let vaultWhyShown=false; // vaultRoot가 이미 이유를 알렸는지 — 부른 쪽이 같은 자리에 다른 안내를 덮어쓰지 않게
 async function vaultRoot(interactive, repick){
+  vaultWhyShown=false;
   let h = repick ? null : await vaultHandle();
-  if(!h){
+  if(h){
+    /* 예전에 기억해 둔 폴더가 아직 있고 Vault 맨 위 폴더인지 검사한다 — 아니면 그대로 쓰지 않고 다시 고르게 한다
+       (없는 폴더에 만들려 하면 'A requested file or directory could not be found' 오류가 난다) */
+    let perm='denied';
+    try{
+      perm=await h.queryPermission({mode:'readwrite'});
+      if(perm!=='granted' && interactive) perm=await h.requestPermission({mode:'readwrite'});
+    }catch(e){ perm='gone'; }
+    if(perm==='granted' && await isVaultRootDir(h)) return h;
     if(!interactive) return null;
-    h=await window.showDirectoryPicker({id:'vault', mode:'readwrite'});
-    /* 옵시디언 Vault의 맨 위 폴더인지 확인 — Vault 안쪽 폴더(학기·블록 폴더)를 고르면 그 안에 폴더가 또 생긴다 */
-    let isVault=true;
-    try{ await h.getDirectoryHandle('.obsidian'); }catch(e){ isVault=false; }
-    if(!isVault){
-      showToast(`'${h.name}' 폴더는 옵시디언 Vault의 맨 위 폴더가 아닙니다(.obsidian 폴더가 없음). 옵시디언을 연 Vault 폴더 자체(예: jaesuh)를 골라 주세요.`, {long:true});
-      return null;
-    }
-    await setVaultHandle(h);
-    /* 옵시디언 Vault 이름은 그 폴더 이름과 같다 — 직접 치지 않아도 채워 둔다 */
-    if(settings().obsVault!==h.name){ settings().obsVault=h.name; saveApp(); }
+    /* 폴더 선택 창은 버튼을 누른 직후에만 열 수 있어서 여기서 이어서 열지 않고, 다시 고르는 위치를 안내한다 */
+    if(perm==='granted' || perm==='gone') vaultWhyShown=true, showToast('전에 고른 Vault 폴더가 지금은 없거나 Vault 폴더가 아닙니다. 설정 → 옵시디언 → \'Vault 폴더 고르기\'에서 Vault 폴더(예: jaesuh)를 다시 골라 주세요.', {long:true});
+    return null;
   }
-  let perm=await h.queryPermission({mode:'readwrite'});
-  if(perm!=='granted' && interactive) perm=await h.requestPermission({mode:'readwrite'});
-  return perm==='granted' ? h : null;
+  if(!interactive) return null;
+  h=await window.showDirectoryPicker({id:'vault', mode:'readwrite'});
+  if(!(await isVaultRootDir(h))){
+    vaultWhyShown=true;
+    showToast(`'${h.name}' 폴더는 옵시디언 Vault의 맨 위 폴더가 아닙니다(.obsidian 폴더가 없음). 옵시디언을 연 Vault 폴더 자체(예: jaesuh)를 골라 주세요.`, {long:true});
+    return null;
+  }
+  await setVaultHandle(h);
+  /* 옵시디언 Vault 이름은 그 폴더 이름과 같다 — 직접 치지 않아도 채워 둔다 */
+  if(settings().obsVault!==h.name){ settings().obsVault=h.name; saveApp(); }
+  return h;
 }
 async function vaultDir(root, path){
   let d=root;
@@ -2351,7 +2364,7 @@ async function makeBlockFolders(){
   if(!vaultSupported()){ showToast('이 브라우저에서는 폴더를 직접 만들 수 없습니다. Chrome·Edge에서 열거나, Claude Code에 "블록 폴더 만들기" 프롬프트를 쓰세요.', {long:true}); return false; }
   try{
     const root=await vaultRoot(true);
-    if(!root){ showToast('Vault 폴더를 먼저 연결해 주세요 (설정 → 옵시디언).'); return false; }
+    if(!root){ if(!vaultWhyShown) showToast('Vault 폴더를 먼저 연결하고 쓰기를 허용해 주세요 (설정 → 옵시디언 → Vault 폴더 고르기).'); return false; }
     /* 만들기 전에 위치를 보여 주고 확인받는다 — 이미 있는 폴더는 그대로 두고 빠진 하위 폴더만 만든다 */
     let exists=true, d=root;
     for(const part of folder.split('/').filter(Boolean)){ try{ d=await d.getDirectoryHandle(part); }catch(e){ exists=false; break; } }
