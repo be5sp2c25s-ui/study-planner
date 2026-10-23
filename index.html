@@ -1728,8 +1728,8 @@ function hideEditBox(view, viewActions, editInput, editActions){
 }
 /* ===== 새 블록 온보딩 체크리스트 ===== */
 
-const PROF_REVIEW_PROMPT_TEMPLATE = String.raw`[읽을 파일: {블록폴더}/자료/ 에 넣은 교수 후기 엑셀 — 파일 이름을 여기에]
-이 엑셀은 [과목명] 교수님 후기(친구·동아리 선배가 정리한 것)야. 이걸로 이 블록의 학습 전략을 만들어줘.
+const PROF_REVIEW_PROMPT_TEMPLATE = String.raw`[읽을 파일: {후기파일}]
+이 엑셀은 교수님 후기(친구·동아리 선배가 정리한 것)야. 시트에서 [과목명] 블록 교수님들 후기만 골라 이 블록의 학습 전략을 만들어줘. 이 블록 교수님과 이름이 겹치는 다른 과목 후기는 섞지 마.
 1) 학습 전략 — 스터디플래너 '학습 전략' 칸에 그대로 붙여넣을 코드블록 하나, 800~1500자
    - 내가 정리본을 만들고 예상 기출문제를 풀 때 네가 지켜야 할 규칙만: 교수/파트별 "설명 깊이 + 출제 방향 + 주의점"을 한두 문장씩
      예) 강조·별표만 다루면 되는지 / 세부·예외·수치까지 필요한지 / 개념 흐름 위주인지 / 지엽 선지 감별까지 필요한지 /
@@ -1752,7 +1752,7 @@ const ONBOARD_ITEMS = [
   {key:'vaultFolder', label:'Vault에 블록 폴더 만들기 (정리본·족보·분석·자료)', action:'makeFolders', btn:'폴더 만들기'},
   {
     key:'profReview',
-    label:'교수 후기 엑셀을 자료 폴더에 넣고 → 학습 전략 생성',
+    label:'학습 전략 생성 (학기 폴더의 교수님 후기.xlsx 읽기)',
     get prompt() {
       const subject = App.blocks.find(b => b.id === App.active)?.name || '[과목명]';
       return fillPromptVars(profReviewPromptTemplate().replaceAll('[과목명]', subject));
@@ -1870,7 +1870,7 @@ const CUSTOM_INSTRUCTIONS_TEMPLATE = `### 과목 설정 (블록마다 이 부분
 ### 작업 원칙 (Claude Code)
 - 노트를 새로 만들거나 고칠 때는 먼저 무엇을 할지(목차·대조표·수정 표) 보여주고, 내가 확인하면 반영해. 반영한 뒤에는 바뀐 파일 목록을 알려줘.
 - 이미 있는 노트는 필요한 부분만 고쳐. 통째로 다시 쓰지 마 — 내가 붙인 그림·메모·카드가 지워져.
-- 경로는 Vault 기준 '{과목 폴더}/정리본 · 족보 · 분석 · 자료'. 강의록·필기·엑셀은 자료 폴더에 있어.
+- 경로는 Vault 기준 '{과목 폴더}/정리본 · 족보 · 분석 · 자료'. 강의록·필기는 자료 폴더에 있고, 교수님 후기 엑셀은 학기 폴더(블록 폴더 한 단계 위)의 '교수님 후기.xlsx'야.
 
 ### 설명 말투 (설명·요약·오답 재설명 전부 적용)
 1. 웃기고 재밌게: 세포·분자·병원체·약물·장기를 캐릭터처럼 의인화하고 상황극·과장·드립을 적극 써. 교과서 문체 금지 — 친한 선배가 카페에서 썰 풀듯이.
@@ -2176,6 +2176,8 @@ const PROMPT_VARS=[
   {k:'{블록이름}', scope:'block', d:'지금 보고 있는 블록(과목) 이름', v:()=>blockNameNow()},
   {k:'{과목명}', scope:'block', d:'{블록이름}과 같음', v:()=>blockNameNow()},
   {k:'{블록폴더}', scope:'block', d:'Vault 안 블록 폴더 경로 (설정 → 옵시디언 → 블록 폴더)', v:()=>obsFolder()},
+  {k:'{학기폴더}', scope:'block', d:'블록 폴더가 들어 있는 한 단계 위 폴더 (예: 1학년 2학기). 상위 폴더가 없으면 비어 있음', v:()=>obsFolder().split('/').filter(Boolean).slice(0,-1).join('/')},
+  {k:'{후기파일}', scope:'block', d:'학기 폴더의 교수님 후기.xlsx 경로 (예: 1학년 2학기/교수님 후기.xlsx)', v:()=>{ const p=obsFolder().split('/').filter(Boolean).slice(0,-1).join('/'); return (p?p+'/':'')+'교수님 후기.xlsx'; }},
   {k:'{Vault}', scope:'block', d:'옵시디언 Vault 이름 (설정 → 옵시디언)', v:()=>obsVault()},
   {k:'{시작일}', scope:'block', d:'블록 첫날', v:()=>{ const d=SCHOOL_DAYS && SCHOOL_DAYS[0]; return d ? `${d.date}(${d.dow})` : ''; }},
   {k:'{시험일}', scope:'block', d:'시험 당일', v:()=>{ const d=S && dInfo(S.examDay); return d ? `${d.date}(${d.dow})` : ''; }},
