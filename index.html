@@ -682,6 +682,8 @@
   .ttpanel{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh-1);margin-bottom:12px}
   .ttpanel>summary{cursor:pointer;list-style:none;padding:11px 16px;font-size:13px;font-weight:800;display:flex;align-items:center;gap:6px}
   .ttpanel>summary::-webkit-details-marker{display:none}
+  .ttclear{display:flex;justify-content:flex-end;padding:0 16px 12px}
+  .ttclear .reset:hover{color:var(--warn);border-color:var(--warn)}
   .ttpanel>summary::after{content:'▾';margin-left:auto;color:var(--faint);transition:transform var(--t-mid) var(--ease)}
   .ttpanel:not([open])>summary::after{transform:rotate(-90deg)}
   .ttinline{padding:0 12px 10px}
@@ -1026,6 +1028,7 @@
       <details class="ttpanel" id="ttPanel" open>
         <summary>시간표</summary>
         <div class="ttinline" id="ttInline"></div>
+        <div class="ttclear"><button type="button" class="reset" id="ttClearAll" title="등록한 강의를 모두 지웁니다(과제는 남김)">시간표 비우기 (강의 전체 삭제)</button></div>
       </details>
       <div class="listbox">
         <div class="lh"><h2>전체 강의</h2><button class="reset" data-a="reset">이 블록 초기화</button></div>
@@ -2847,7 +2850,7 @@ function timetablePromptText(){
 1강 | 세포 손상과 적응 | 홍길동 | 9/15 | 1교시
 2강 | 염증 (1) | 김철수 | 9/16 | 5-6교시 | 실습
 규칙:
-- 강의번호는 시간표에 번호가 있으면 그 번호, 없으면 날짜·교시 순서대로 1강부터.
+- 강의번호는 시간표에 번호가 있으면 그 번호 그대로(예: 5강, CBL 6, TBL 1, 병리학 실습 1 — 이름이 있는 번호도 줄이거나 '강'으로 바꾸지 마), 없으면 날짜·교시 순서대로 1강부터.
 - 같은 강의가 연속 교시면 한 줄로 '5-6교시'. 교시는 1·2·3·5·6·7·8교시만 있어 (4교시는 점심).
 - 제목이 같은 강의가 여러 번이면 '(1)', '(2)'를 붙여 구분.
 - 교수명을 모르면 '미정'.
@@ -6057,6 +6060,9 @@ function timeStatsHtml(block){
    알아내고, 나머지는 순서대로 강의명 → 교수명으로 읽는다. 추가하기 전에 표로 먼저 보여준다. */
 const BULK_SPLIT=/\t|\s*\|\s*|\s{2,}/;
 const RE_CODE=/^(\d+\s*강(?:\s*\(\d+\))?|[Ll]\d+|\d{1,3})$/;
+/* 첫 칸이면 CBL 6 · TBL 1 · 병리학 실습 1 · 미생물학 실습 2처럼 "이름 + 번호" 모양도 코드로 본다.
+   (첫 칸에만 — 강의명이 "…병리 1"처럼 숫자로 끝나는 경우를 코드로 잘못 읽지 않게. 시간표 줄은 코드로 시작한다) */
+const RE_CODE_NAMED=/^(?:[A-Za-z]{2,6}|[가-힣A-Za-z]+(?:\s[가-힣A-Za-z]+){0,2})\s*\d{1,3}$/;
 function bulkDayOf(tok){
   const t=String(tok).trim();
   let m=t.match(/^(?:\d{4}[-.\/]\s*)?(\d{1,2})\s*[-.\/]\s*(\d{1,2})\.?$/) || t.match(/^(\d{1,2})\s*월\s*(\d{1,2})\s*일$/);
@@ -6069,7 +6075,11 @@ function bulkDayOf(tok){
   if(m){ const n=parseInt(m[1],10); return (n>=1 && n<=MAXDAY) ? {day:n} : {day:null, bad:`Day${n}은 블록 기간 밖입니다`}; }
   return null;
 }
-function normCode(c){ return /^\d+$/.test(c) ? `${parseInt(c,10)}강` : c.replace(/\s+/g,''); }
+function normCode(c){
+  if(/^\d+$/.test(c)) return `${parseInt(c,10)}강`;
+  if(/^\d+\s*강/.test(c) || /^[Ll]\d+$/.test(c)) return c.replace(/\s+/g,'');
+  return c.replace(/\s+/g,' '); // CBL 6 · 병리학 실습 1 — 띄어쓰기는 한 칸으로 두어 이름이 읽히게
+}
 function parseBulkLine(line, fallbackDay){
   const raw=String(line||'').trim(); if(!raw) return null;
   const out={code:'', title:'', prof:'', type:'강의', day:fallbackDay, bad:'', period:null, span:1};
@@ -6090,16 +6100,16 @@ function parseBulkLine(line, fallbackDay){
     if(pm && takePeriod(pm[1])) t=t.replace(pm[1],' ');
     const dm=t.match(/(?:^|\s)((?:\d{4}[-.])?\d{1,2}[\/.-]\d{1,2}|\d{1,2}월\s*\d{1,2}일|D(?:ay)?\s*\d+)(?=\s|$)/i);
     if(dm){ const r=bulkDayOf(dm[1]); if(r){ if(r.bad) out.bad=r.bad; else out.day=r.day; t=t.replace(dm[1],' '); } }
-    const cm=t.match(/^\s*(\d+\s*강(?:\s*\(\d+\))?|[Ll]\d+|\d{1,3})[.)]?\s+/);
+    const cm=t.match(/^\s*(\d+\s*강(?:\s*\(\d+\))?|[Ll]\d+|\d{1,3}|[A-Za-z]{2,6}\s*\d{1,3}|[가-힣]+(?:\s[가-힣]+)?\s*실습\s*\d{1,3})[.)]?\s+/);
     if(cm){ out.code=normCode(cm[1]); t=t.slice(cm[0].length); }
     if(/\(?\s*실습\s*\)?\s*$/.test(t)){ out.type='실습'; t=t.replace(/\(?\s*실습\s*\)?\s*$/,''); }
     rest=[t.replace(/\s+/g,' ').trim()];
   } else {
-    fields.forEach(f=>{
+    fields.forEach((f,fi)=>{
       if(takePeriod(f)) return;
       const r=bulkDayOf(f);
       if(r){ if(r.bad) out.bad=r.bad; else out.day=r.day; return; }
-      if(!out.code && RE_CODE.test(f)){ out.code=normCode(f); return; }
+      if(!out.code && (RE_CODE.test(f) || (fi===0 && RE_CODE_NAMED.test(f)))){ out.code=normCode(f); return; }
       if(f==='실습' || f==='강의'){ out.type=f; return; }
       rest.push(f);
     });
@@ -6143,6 +6153,19 @@ document.getElementById('bulkTtPrompt').onclick=async e=>{
     ta.select(); try{ document.execCommand('copy'); }catch(e2){} document.body.removeChild(ta);
   }
   showToast('시간표 PDF용 프롬프트를 복사했습니다. 결과를 이 칸에 붙여넣어 주세요.');
+};
+/* 시간표 비우기 — 등록한 강의(과제 제외)를 모두 지운다. 시간표는 등록한 강의로 만들어지므로 강의를 지우면 시간표도 빈다.
+   잘못 넣은 시간표를 지우고 다시 붙여넣을 때 쓴다 */
+document.getElementById('ttClearAll').onclick=()=>{
+  if(!S) return;
+  const lecs=LEC.filter(l=>l.type!=='과제');
+  if(!lecs.length){ showToast('지울 강의가 없습니다.'); return; }
+  const withProgress=lecs.filter(l=>{ const st=S.lec[l.id]; return st && (st.enc!=null || st.r[1] || st.r[2]); }).length;
+  askConfirm(`강의 ${lecs.length}개를 모두 지울까요?`, `시간표가 비워지고 강의별 진도·체크 기록도 함께 삭제됩니다${withProgress?` (진행한 강의 ${withProgress}개 포함)`:''}. 과제는 남습니다. 삭제 직후 알림의 되돌리기로만 복구할 수 있습니다.`, ()=>{
+    lecs.forEach(l=>{ const idx=LEC.findIndex(x=>x.id===l.id); if(idx>=0) LEC.splice(idx,1); delete S.lec[l.id]; purgePulled(l.id); });
+    S.todayLock=null; saveApp(); render();
+    toastUndo(`강의 ${lecs.length}개를 지웠습니다.`);
+  }, '모두 삭제');
 };
 document.getElementById('bulkAddBtn').onclick=()=>{
   if(!S) return;
