@@ -59,12 +59,39 @@
   }
   .wrap{max-width:1080px;margin:0 auto}
 
-  .blocktabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-  .blocktab{padding:8px 15px;border-radius:9px;border:1px solid var(--line);background:var(--surface);font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted)}
-  .blocktab.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-  .blocktab.add{background:var(--surface);border:1px dashed var(--faint);color:var(--muted)}
-  .blocktab.add:hover{color:var(--accent-ink);border-color:var(--accent-ink)}
-  .blocktabgrp{display:inline-flex;align-items:center;gap:2px}
+  /* 블록 선택 — 파일철 인덱스 탭. 블록이 많아지면 옆으로 밀어 넘기고(양끝이 흐려짐), ▾ 목록으로 한 번에 고른다.
+     고른 탭은 아래 줄과 이어져 앞으로 나오고, 탭 윗줄 색은 그 블록의 포인트 컬러 */
+  .blocktabs{display:flex;align-items:flex-end;gap:8px;margin-bottom:14px;min-width:0}
+  .bt-rail{flex:1;min-width:0;position:relative;border-bottom:1.5px solid var(--line);padding-top:6px}
+  .bt-scroll{display:flex;align-items:flex-end;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;overscroll-behavior-x:contain;padding:0 4px;margin-bottom:-1.5px}
+  .bt-scroll::-webkit-scrollbar{display:none}
+  .bt-rail.fade-l .bt-scroll{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 28px);mask-image:linear-gradient(to right,transparent 0,#000 28px)}
+  .bt-rail.fade-r .bt-scroll{-webkit-mask-image:linear-gradient(to left,transparent 0,#000 28px);mask-image:linear-gradient(to left,transparent 0,#000 28px)}
+  .bt-rail.fade-l.fade-r .bt-scroll{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 28px,#000 calc(100% - 28px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 28px,#000 calc(100% - 28px),transparent 100%)}
+  .blocktab{position:relative;flex:0 0 auto;display:flex;align-items:center;gap:6px;max-width:176px;margin-right:-5px;padding:7px 15px 6px;border:1.5px solid var(--line);border-bottom-color:var(--line);border-radius:12px 12px 0 0;background:var(--surface2);font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer;user-select:none;outline:none;z-index:1}
+  .blocktab::before{content:'';position:absolute;left:10px;right:10px;top:-1.5px;height:3px;border-radius:0 0 3px 3px;background:var(--tc,var(--point));opacity:.5}
+  .blocktab .bt-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .blocktab:hover{color:var(--ink);background:#fff;z-index:2}
+  .blocktab:hover::before{opacity:.85}
+  .blocktab:focus-visible{box-shadow:0 0 0 2px var(--accent)}
+  .blocktab.on{z-index:5;background:var(--surface);color:var(--ink);padding:9px 12px 8px 17px;border-bottom-color:var(--surface);box-shadow:0 -2px 8px rgba(0,0,0,.05)}
+  .blocktab.on::before{opacity:1;left:8px;right:8px;height:4px}
+  .bt-act{flex:0 0 auto;width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:11px;line-height:1;cursor:pointer}
+  .bt-act svg{width:12px;height:12px}
+  .bt-act:hover{background:var(--accent-soft);color:var(--accent-ink)}
+  .bt-act.del:hover{background:var(--warn-soft);color:var(--warn)}
+  .bt-tools{flex:0 0 auto;display:flex;align-items:center;gap:6px;position:relative;padding-bottom:3px}
+  .bt-btn{height:28px;min-width:28px;padding:0 10px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px}
+  .bt-btn:hover{color:var(--accent-ink);border-color:var(--accent-ink)}
+  .bt-btn.add{border-style:dashed;border-color:var(--faint)}
+  .bt-btn.list{display:none}
+  .bt-rail.over~.bt-tools .bt-btn.list{display:flex}
+  .bt-menu{display:none;position:absolute;right:0;top:34px;z-index:40;min-width:200px;max-width:280px;max-height:320px;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh-pop);padding:5px}
+  .bt-menu.on{display:block}
+  .bt-menu button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:none;background:transparent;padding:8px 10px;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer}
+  .bt-menu button:hover{background:var(--accent-soft)}
+  .bt-menu button.on{font-weight:800;background:var(--accent-soft)}
+  .bt-menu .dot{flex:0 0 auto;width:9px;height:9px;border-radius:50%;background:var(--tc,var(--point));border:1px solid rgba(0,0,0,.15)}
   .tabdel{width:18px;height:18px;border:none;border-radius:50%;background:transparent;color:var(--faint);font-size:12px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
   .tabdel:hover{background:var(--warn-soft);color:var(--warn)}
   .tabedit{width:34px;height:24px;border:none;border-radius:7px;background:transparent;color:var(--faint);font-size:11px;line-height:1;white-space:nowrap;cursor:pointer;padding:0 5px}
@@ -210,6 +237,29 @@
   .copybtn.copied{background:var(--accent);color:var(--on-accent)}
   .pcard .pactions,.pcard .pedit-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
   .pcard .pmod{color:var(--accent-ink);font-weight:700}
+  /* 프롬프트 목록 — 오늘 카드처럼 접힌 한 줄이 기본이고, 눌러야 전체 문구·수정이 펼쳐진다 */
+  .pcard.pdrag{grid-column:1/-1;padding:0;overflow:hidden}
+  .pcard.pdrag:hover{transform:none}
+  .pcard .phead{display:flex;align-items:center;gap:9px;padding:11px 14px;cursor:pointer}
+  .pcard .phead:hover .pname{color:var(--accent-ink)}
+  .pcard .phead:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:14px}
+  .pcard .pname{font-family:var(--sans);font-weight:800;font-size:13px;color:var(--ink);flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color var(--t-fast) var(--ease)}
+  .pcard .pwhen-inline{flex:1 1 0;min-width:0;font-size:10.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pcard .pquickcopy{flex:0 0 auto;border:none;background:var(--accent-soft);color:var(--accent-ink);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer}
+  .pcard .pquickcopy.copied{background:var(--accent);color:var(--on-accent)}
+  .pcard .pchev{flex:0 0 auto;color:var(--faint);font-size:12px;transition:transform var(--t-mid) var(--ease)}
+  .pcard.open .pchev{transform:rotate(180deg)}
+  .pcard .pbody{display:none;padding:2px 16px 14px;border-top:1px solid var(--line)}
+  .pcard .pbody .pwhen{margin:10px 0 8px}
+  .pcard .pbody .ptext{max-height:none}
+  @media(max-width:560px){ .pcard .pwhen-inline{display:none} }
+  .varcard .vartbl{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
+  .varcard .vartbl th{text-align:left;font-weight:700;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line)}
+  .varcard .vartbl td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+  .varcard .vartbl code{font-family:Consolas,'Pretendard',monospace;font-size:11px;background:var(--accent-soft);border-radius:6px;padding:2px 7px;cursor:pointer;white-space:nowrap;border:none;color:var(--ink)}
+  .varcard .vartbl code:hover{background:var(--point-soft)}
+  .varcard .vartbl .val{color:var(--muted);word-break:break-all}
+  .varcard .vargrp td{background:var(--surface2);font-weight:800;font-size:10.5px;color:var(--muted)}
   .peditbtn,.pcancelbtn,.presetbtn,.psavedefaultbtn{margin-top:9px;border:none;color:var(--ink);background:var(--surface2);border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer}
   .presetbtn{color:var(--warn);background:var(--warn-soft)}
   .psavedefaultbtn{color:var(--accent-ink);background:var(--accent-soft)}
@@ -1262,6 +1312,8 @@ const expandedAssignLists=new Set(); // 전체 강의 탭 과제 체크리스트
 let onboardingOpen=false;
 let checklistCardOpen=false;
 let instructionBodyOpen=false;
+let varCardOpen=false;
+const openPromptIds=new Set(); // 프롬프트 모음에서 펼쳐 둔 프롬프트 — 다시 그려도 접히지 않게
 
 /* 기본 프롬프트(p1~p5)를 한 번만 '프롬프트 목록'으로 옮긴다. 이후로는 기본/직접 추가 구분 없이
    전부 이름·단계·설명·내용을 고치고 삭제할 수 있다. 예전에 고쳐둔 문구는 그대로 이어받는다. */
@@ -1273,12 +1325,12 @@ function builtinPromptEntry(p, app){
 /* 콘텐츠 버전 9: 공부 흐름을 사용설명서대로(Claude Code + 옵시디언) 바꾼다. 예전 기본 프롬프트(블록 시작·
    시험 회고·필기 비교 등)는 지우고, 기본 프롬프트는 새 문구·새 순서로, 지침·상세 체크리스트는 새 흐름
    기본값으로 되돌린다. 직접 추가한 프롬프트는 그대로 맨 뒤에 남긴다(이름 앞 Ⓐ~Ⓜ 기호만 뗀다). */
-const CONTENT_VERSION=10;
+const CONTENT_VERSION=12;
 const OLD_BUILTIN_IDS=['p1','p2','p3','p4','p5','pa','pd','pf','pm'];
 function migrateBuiltinPrompts(app){
   if((app.contentVersion||0) >= CONTENT_VERSION) return;
-  /* 버전 10: 전체 예상 기출문제(CBT) 프롬프트를 학교 CBT 화면 양식으로 */
-  if((app.contentVersion||0) === 9){
+  /* 버전 10~11: 전체 예상 기출문제(CBT) 프롬프트를 학교 CBT 화면 양식(종합시험 CBT와 같은 UI)으로 */
+  if([9,10,11].includes(app.contentVersion||0)){
     const pt=app.customPrompts.find(cp=>cp && cp.id==='pt'), p=PROMPTS().find(x=>x.id==='pt');
     if(pt && p){ pt.text=p.x; pt.when=p.w; }
     app.contentVersion=CONTENT_VERSION;
@@ -1906,8 +1958,8 @@ const CUSTOM_INSTRUCTIONS_TEMPLATE = `### 과목 설정 (블록마다 이 부분
 51. 앵커 인출 훈련·백지 인출 점검: 한 번에 한 문제(한 챕터)씩, 내가 답하기 전엔 답 공개 X. 끝에 카드 목록 — Spaced Repetition 형식 '앞 :: 뒤'(역인출은 '앞 ::: 뒤'), 내가 확인하면 정리본 맨 아래 '## 카드'에.
 
 ### 시험 전 총정리: 전체 예상 기출문제 (CBT)
-52. 요청하면 전 강의 정리본·족보·족보 분석을 읽고, 강의 목록의 '시험 n문항'만큼(실제 시험 문항 수·비중 그대로) 전체 예상 기출문제를 내. 출제 우선순위는 15번, 강의별 예상 기출 때 낸 문제와 똑같은 문제는 피하고 같은 개념은 다른 각도로.
-53. 결과물은 '{과목 폴더}/분석/전체 예상 기출.html' 파일 하나 — 학교 컴퓨터 시험(NSDevil CBT) 화면 모방: 본인확인(시험시간 입력) → 문항 목록(전체/안 푼/체크) → 문제 화면(선지별 '오답 확인' 취소선, 체크·계산기·메모장, 이전/다음) → 정답지 형식 답안 확인 + 마우스 서명 → 제출하면 종료 화면, '채점 보기'를 눌러야 점수·해설. 5지선다 객관식만, 외부 라이브러리 없이 오프라인으로. 세부 화면은 '전체 예상 기출문제 (CBT)' 프롬프트를 따라. 먼저 강의별 문항 수 표를 보여주고 확인받은 뒤 만들어.`;
+52. 요청하면 전 강의 정리본·족보·족보 분석을 읽고, 강의 목록의 '시험 n문항'만큼(실제 시험 문항 수·비중 그대로, 총 문항 수 = 시험에 나오는 강의들의 문항 수 합계) 전체 예상 기출문제를 내. 시험 시간은 이 지침의 '시험 시간'(시험 공지 기준, 설정에서 수정)을 따라. 출제 우선순위는 15번, 강의별 예상 기출 때 낸 문제와 똑같은 문제는 피하고 같은 개념은 다른 각도로.
+53. 결과물은 '{과목 폴더}/분석/전체 예상 기출.html' 파일 하나 — 학교 컴퓨터 시험(NSDevil CBT) 화면 모방(종합시험 CBT와 같은 UI·UX, 글꼴은 Pretendard): 본인확인(시험시간 입력) → 문항 목록(전체/안 푼/체크) → 문제 화면(선지별 '오답 확인' 취소선, 체크·계산기·메모장, 이전/다음) → 정답지 형식 답안 확인 + 마우스 서명 → 제출하면 종료 화면, '채점 보기'를 눌러야 점수·해설. 5지선다 객관식만, 외부 라이브러리 없이. 세부 화면은 '전체 예상 기출문제 (CBT)' 프롬프트를 따라. 먼저 강의별 문항 수 표를 보여주고 확인받은 뒤 만들어.`;
 function customInstructionsBase(){
   const v = App.customInstructionDefault;
   return (typeof v==='string' && v.trim().length) ? v : CUSTOM_INSTRUCTIONS_TEMPLATE;
@@ -1969,7 +2021,7 @@ function lectureListText(){
       return `${lecNoteName(l)}${prof && prof!=='미정' ? ` (${prof})` : ''} — 시험 ${q}문항 · 예상 기출 ${q*examQMult()}문제`;
     });
   if(!rows.length) return '';
-  return `### 강의 목록 (강의 번호·제목·교수는 이 목록 기준 — 다시 묻지 마. 정리본 노트 이름은 '—' 앞부분(교수 제외) 그대로)\n${rows.join('\n')}\n\n`;
+  return `### 강의 목록 (강의 번호·제목·교수는 이 목록 기준 — 다시 묻지 마. 정리본 노트 이름은 '—' 앞부분(교수 제외) 그대로)\n${rows.join('\n')}\n\n시험 총 ${examTotalQ()}문항 · ${rows.length}개 강의 · 시험 시간 ${examMinutes()}분\n\n`;
 }
 function customInstructions(){
   return lectureListText() + customInstructionsBody();
@@ -2114,17 +2166,40 @@ function lecNoteName(l){
 }
 function obsUri(path){ return `obsidian://open?vault=${encodeURIComponent(obsVault())}&file=${encodeURIComponent(path)}`; }
 function lecNotePath(l){ return `${obsFolder()}/정리본/${lecNoteName(l)}`; }
-/* 프롬프트 안의 {강의} {강의번호} {강의명} {교수} {시험문항수} {예상기출수} {블록폴더}를 그 강의 정보로 채운다 */
+/* ===== 프롬프트 지정어 =====
+   프롬프트 안에 {블록이름}처럼 적어 두면 복사할 때 현재 설정값으로 바뀐다. 아래 목록 하나가 치환과
+   프롬프트 모음 탭의 '지정어' 안내를 같이 만든다(지정어를 추가할 땐 여기에만 한 줄 넣으면 된다).
+   block: 어디서 복사하든 채워짐 / lecture: 오늘 카드의 프롬포트 복사처럼 강의가 정해진 곳에서만 채워짐 */
+function blockNameNow(){ const b=App.blocks.find(x=>x.id===App.active); return b ? b.name : ''; }
+const PROMPT_VARS=[
+  {k:'{블록이름}', scope:'block', d:'지금 보고 있는 블록(과목) 이름', v:()=>blockNameNow()},
+  {k:'{과목명}', scope:'block', d:'{블록이름}과 같음', v:()=>blockNameNow()},
+  {k:'{블록폴더}', scope:'block', d:'Vault 안 블록 폴더 경로 (설정 → 옵시디언 → 블록 폴더)', v:()=>obsFolder()},
+  {k:'{Vault}', scope:'block', d:'옵시디언 Vault 이름 (설정 → 옵시디언)', v:()=>obsVault()},
+  {k:'{시작일}', scope:'block', d:'블록 첫날', v:()=>{ const d=SCHOOL_DAYS && SCHOOL_DAYS[0]; return d ? `${d.date}(${d.dow})` : ''; }},
+  {k:'{시험일}', scope:'block', d:'시험 당일', v:()=>{ const d=S && dInfo(S.examDay); return d ? `${d.date}(${d.dow})` : ''; }},
+  {k:'{시험까지}', scope:'block', d:'시험까지 남은 날 (예: D-12)', v:()=>S ? `D-${Math.max(0,S.examDay-S.cur)}` : ''},
+  {k:'{오늘}', scope:'block', d:'오늘 Day와 날짜 (예: Day3 · 10/16(금))', v:()=>{ const d=S && dInfo(S.cur); return d ? `Day${d.day} · ${d.date}(${d.dow})` : ''; }},
+  {k:'{강의수}', scope:'block', d:'시험에 나오는 강의 수 (과제·시험범위 제외 강의는 뺌)', v:()=>String(examLecs().length)},
+  {k:'{총문항수}', scope:'block', d:'시험 총 문항 수 (강의별 시험 문항 수의 합)', v:()=>String(examTotalQ())},
+  {k:'{시험시간}', scope:'block', d:'시험 시간(분) — 설정에 넣은 값, 없으면 문항 수 × 39초', v:()=>String(examMinutes())},
+  {k:'{강의별문항}', scope:'block', d:'강의마다 한 줄 "강의 노트 이름 — n문항" 목록', v:()=>examLecs().map(x=>`${lecNoteName(x)} — ${lecExamQ(x)}문항`).join('\n')},
+  {k:'{강의}', scope:'lecture', d:'정리본 노트 이름 (예: 26강. 기타항생제)', v:l=>lecNoteName(l)},
+  {k:'{강의번호}', scope:'lecture', d:'강의 번호 (예: 26강)', v:l=>lecNoteName(l).split('.')[0]},
+  {k:'{강의명}', scope:'lecture', d:'강의 제목', v:l=>String(l.title||'')},
+  {k:'{교수}', scope:'lecture', d:'담당 교수 (미정이면 "교수 미정")', v:l=>(l.prof && l.prof!=='미정') ? l.prof : '교수 미정'},
+  {k:'{수업일}', scope:'lecture', d:'그 강의의 수업 날짜', v:l=>{ const d=dInfo(l.day); return d ? `${d.date}(${d.dow})` : ''; }},
+  {k:'{시험문항수}', scope:'lecture', d:'그 강의의 시험 문항 수', v:l=>String(lecExamQ(l))},
+  {k:'{예상기출수}', scope:'lecture', d:'그 강의의 예상 기출 문제 수 (시험 문항 수 × 배수)', v:l=>String(lecExamQ(l)*examQMult())},
+];
 function fillPromptVars(text, l){
-  let t=String(text||'').replaceAll('{블록폴더}', obsFolder());
-  if(!l) return t;
-  const q=lecExamQ(l), name=lecNoteName(l);
-  return t.replaceAll('{강의}', name)
-    .replaceAll('{강의번호}', name.split('.')[0])
-    .replaceAll('{강의명}', String(l.title||''))
-    .replaceAll('{교수}', (l.prof && l.prof!=='미정') ? l.prof : '교수 미정')
-    .replaceAll('{시험문항수}', String(q))
-    .replaceAll('{예상기출수}', String(q*examQMult()));
+  let t=String(text||'');
+  PROMPT_VARS.forEach(p=>{
+    if(!t.includes(p.k)) return;
+    if(p.scope==='lecture'){ if(l) t=t.replaceAll(p.k, p.v(l)); }
+    else t=t.replaceAll(p.k, p.v());
+  });
+  return t;
 }
 /* 블록 홈 노트 — 강의별 진도표를 옵시디언 노트로 내보낸다 */
 function blockHomeMarkdown(){
@@ -2275,6 +2350,15 @@ function uploadLeadStats(){
 function examQDefault(){ const v=S && S.plan ? S.plan.examQ : undefined; return (typeof v==='number' && v>=0) ? v : 3; }
 function examQMult(){ const v=S && S.plan ? S.plan.examQMult : undefined; return (typeof v==='number' && v>0) ? v : 3; }
 function lecExamQ(l){ return (l && typeof l.examQ==='number' && l.examQ>=0) ? l.examQ : examQDefault(); }
+/* 시험에 나오는 강의(과제·시험범위 제외 강의는 뺀다)와 그 문항 수 합계 — 전체 예상 기출문제의 총 문항 수 */
+function examLecs(){
+  if(!S || !Array.isArray(LEC)) return [];
+  return LEC.filter(l=>l.type!=='과제' && !(S.lec[l.id] && S.lec[l.id].excluded)).slice().sort((a,b)=>lecSeq(a)-lecSeq(b));
+}
+function examTotalQ(){ return examLecs().reduce((s,l)=>s+lecExamQ(l),0); }
+/* 시험 시간(분): 설정에 직접 넣은 값(시험 공지 기준)이 있으면 그것, 없으면 총 문항 수 × 39초를 분으로 올림 */
+function examMinSet(){ const v=S && S.plan ? S.plan.examMin : undefined; return (typeof v==='number' && v>0) ? Math.round(v) : 0; }
+function examMinutes(){ return examMinSet() || Math.max(1, Math.ceil(examTotalQ()*39/60)); }
 /* 올해 강의록이 올라오기 전에는 인코딩하지 않는다 — 강의록 표시가 없는 강의의 신규는 수업일 전으로
    앞당겨 배정하지 않는다(수업일부터는 올라왔다고 보고 배정, 아직이면 '미루기'). */
 function itemEligible(it, day){
@@ -2737,29 +2821,32 @@ const PT_TEXT = `[{블록폴더}/정리본 · 족보 · 분석 폴더 전부 직
 시험 전 총정리용 전체 예상 기출문제를 만들어줘. 학교 컴퓨터 시험(NSDevil CBT)과 똑같은 화면에서 실전처럼 풀 거야.
 
 ## 1. 문제
-- 강의마다 지침 강의 목록의 '시험 n문항'만큼 — 실제 시험과 같은 문항 수·비중. 문항 순서는 강의 순서대로
+- 총 {총문항수}문항 (시험에 나오는 {강의수}개 강의, 강의마다 아래 표의 문항 수 그대로 — 실제 시험과 같은 문항 수·비중). 문항 순서는 강의 순서대로. 지침 강의 목록의 '시험 n문항'과 다르면 그 목록이 아니라 아래 표를 따라
+{강의별문항}
 - 전부 5지선다 객관식 (단답형 X). 그림이 필요한 문제는 글로 바꿔서 출제
 - 출제 우선순위는 강의별 예상 기출과 같음 (교수 예고 → 족보 반복 → ★강조 → 나머지). 강의별 예상 기출 때 냈던 문제와 똑같은 문제는 피하고, 같은 개념은 다른 각도·다른 선지로
 - 족보 실제 문체 그대로, 문제 안 힌트(굵게 등) 금지. 정답 번호가 한쪽에 몰리지 않게
 - 문항마다 정답 · 선지별 해설 한 줄 · 출처 강의(정리본 노트 이름) · 근거([예고]/[족보 반복: 2025 Q07]/[★강조]/[기타])를 데이터로 넣되, 시험 중에는 화면 어디에도 보이지 않게
 
 ## 2. 결과물
-'{블록폴더}/분석/전체 예상 기출.html' 파일 하나. 인터넷 없이 열리고(외부 라이브러리·폰트 X, 글꼴은 맑은 고딕), 노트북 화면(1280×800 이상) 기준. 푸는 중에 새로고침해도 답·체크·오답 표시·메모·남은 시간이 이어지게 브라우저에 저장 (처음부터 다시 풀기 버튼은 채점 화면에).
+'{블록폴더}/분석/전체 예상 기출.html' 파일 하나. 외부 라이브러리 없이 열리고, 노트북 화면(1280×800 이상) 기준(본문 최소 너비 1240px). 글꼴은 문제·선지·해설·버튼 전부 Pretendard 하나 — <head>에 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css"> 한 줄만 넣고, font-family는 "Pretendard","Pretendard Variable","Malgun Gothic","맑은 고딕",sans-serif (인터넷이 없으면 맑은 고딕으로 대체됨). 굴림체·글자 노이즈 효과는 쓰지 마. 푸는 중에 새로고침해도 답·체크·오답 표시·메모·남은 시간이 이어지게 localStorage에 저장(저장이 막혀도 에러 없이 동작). 맨 아래 오른쪽 구석에 'made by (내 이름)'을 10px 회색 고정 글씨로 아주 작게 넣어줘(내 이름은 모르면 먼저 물어봐).
 
-## 3. 화면 (NSDevil CBT 모방 — 전체: 연한 회색 배경 위 흰 사각형 카드, 진한 검정 띠 제목, 파란 강조색, 각진 모서리, 장식 없이 사무적인 느낌)
-① 본인확인: 맨 위 '{과목명} 예상 기출' 제목 → 검정 띠 '본인확인' → 왼쪽 사진 자리(회색 사람 실루엣), 오른쪽 파란 글씨 '성명'·'학생번호' 밑줄 입력칸(한 번 쓰면 기억) → 표 (교시 | 시험명 '2026_{과목명}' | 총문항수 | 시험시간) — 시험시간 칸에 분 입력(기본값 = 문항 수 × 39초를 분으로 올림), 그 아래 시작~종료 시각이 파란 글씨로 → 맨 아래 파란 '☑ 시험시작' 버튼
-② 문항 목록: 위에 아이콘 버튼 셋 — 전체 문제 / 안 푼 문제 / 체크한 문제 (누르면 그 문항만 보임). 그 아래 정사각형 칸에 가운데 문항 번호가 주르륵 (푼 문항은 칸 색 채움, 체크한 문항은 칸 구석에 체크 표시). 칸을 누르면 그 문제로, 아니면 1번부터 차례로
-③ 문제 풀이: 상단바 — 시험명 · 남은 문항 수 · 남은 시간(분:초, 5분 남으면 빨간색). 아래 연한 회색 배경 위에, 왼쪽 큰 흰 문제 카드 + 오른쪽 같은 높이의 세로로 길고 얇은 메모장(처음부터 켜져 있음, 문항마다 따로 저장)
-   - 문제 카드: 문항 번호 + 발문 → 선지 5개. 선지 사이마다 흐린 회색 가로선으로 구획
-   - 선지 줄을 누르면 그 번호에 선택 표시(검은 동그라미 채움), 다시 누르면 해제. 한 문제에 답 하나
-   - 선지마다 줄 맨 오른쪽에 작은 정사각형 '오답 / 확인' 버튼(두 줄 글씨) — 누르면 그 선지에 취소선이 그어지고(답에서 제외 표시), 다시 누르면 풀림. 취소선과 답 선택은 서로 별개
-   - 선지 아래 도구 줄: 전체 문제(② 목록으로) · 체크(이 문항 체크/해제) · 계산기 · 메모장(오른쪽 메모 칸 켜기/끄기) · 이전 문제 · 다음 문제
-   - 계산기: 누르면 화면 가운데 작은 창으로 뜸 (사칙연산·괄호·소수점·지우기, 끌어서 옮기기, 닫기)
-   - 마지막 문제에서 '다음' → ④로
-④ 답안 확인·제출: 수능 정답지처럼 '1 | (2)' 형식으로 전 문항 답을 여러 단으로 주르륵 (안 푼 문항은 빈칸을 빨갛게, 누르면 그 문제로 돌아감) → 그 아래 마우스로 그리는 서명 칸 + 서명 지우기 → '제출하기' (서명 전에는 비활성, 누르면 "제출하면 답을 바꿀 수 없습니다" 확인 창). 시간이 다 되면 자동으로 ④로 넘어가 서명 없이 제출
-⑤ 제출 후: 실제처럼 '시험이 종료되었습니다' 화면만. 아래 작은 '채점 보기' 버튼을 눌러야 채점 화면 — 점수(맞힌 수/전체, 강의별 정답률 표), 정답지 대조('1 | 내 답 (2) / 정답 (3)', 틀린 문항 빨간색), 문항을 누르면 그 문제를 정답·내 답·선지별 해설·출처 강의·근거와 함께 보기, '틀린 문항만' 보기, 처음부터 다시 풀기
-
-먼저 강의별 문항 수 표(강의 | 시험 문항 수 | 출제 우선 포인트 한 줄)를 보여주고, 내가 확인하면 만들어. 다 만들면 파일 경로와 총 문항 수를 알려줘.`;
+## 3. 화면 (학교 CBT 모방 — 이미 만들어 둔 '종합시험 CBT'와 UI·UX를 똑같이. 장식 없이 사무적이고 각진 모서리)
+공통 색: 배경 #d3d5d9, 카드 흰색, 글자 #222, 보조 글자 #666, 띠 제목 #6b7178(흰 굵은 글씨), 상단바 #e3e5e8, 파란 강조 #1f5fbf(연한 파랑 #e8f0fc), 빨강 #d62828(연한 빨강 #fde8e8), 정답 초록 #1c8a3e(연한 #e6f5ea). 본문 16px. 화면 가운데에 너비 760px 흰 카드 열(좌우 얇은 회색 테두리)을 세우는 구성. 버튼은 흰 바탕+회색 테두리(주요 버튼만 파랑), border-radius 0.
+상단바(②③④ 공통): 높이 60px, 연한 회색 #e3e5e8, 가운데에 '학번 ○○ · 이름 ○○ · 교시 1교시 · 남은 문제 수 ○ · 남은 시간 [mm:ss]' (남은 시간은 흰 바탕 둥근 상자, 5분 이하면 빨간색), 오른쪽 끝에 작은 '초기화' 버튼(누르면 이 시험의 답·체크·메모·시간을 지우고 처음으로, 확인 창).
+① 본인확인: 너비 640px 흰 카드. 맨 위 '{과목명} 예상 기출' 제목(30px 굵게, 가운데) → 회색 띠 '본인확인' → 왼쪽 회색 사람 실루엣 사진 칸(130×160), 오른쪽 파란 굵은 글씨 '성명'·'학생번호' 밑줄 입력칸(한 번 쓰면 기억, 포커스 시 밑줄 파랑) → 표 (교시 | 시험명 '2026_{과목명}' | 총문항수 | 시험시간: 분 입력칸 + 아래 파란 작은 글씨 '시작~종료 시각'). 시험시간 칸의 기본값은 {시험시간}분(시험 공지 기준 — 플래너 설정 '시험 시간'에서 고친 값) → 맨 아래 파란 '☑ 시험시작' 큰 버튼. 이미 시작한 시험이면 버튼이 '▶ 이어서 풀기', 제출했으면 '결과 보기'.
+② 문항 목록: 상단바 + 760px 열. 위에 아이콘 달린 버튼 셋(전체 문제 ▦ / 안 푼 문제 점선 사각형 / 체크한 문제 ✓) — 선택된 필터는 파랑 채움. 그 아래 한 줄 10칸 정사각형 문항 번호 격자(안 푼 칸 흰색, 푼 칸 파랑 채움+흰 글씨, 체크한 칸은 빨간 테두리 + 오른쪽 위 구석에 빨간 동그라미 ✔). 필터에 맞는 문항이 없으면 안내 문구. 아래 범례(안 푼 문항 / 푼 문항 / ✔ 체크한 문항)와 '문제 풀기'(파랑)·'답안 제출' 버튼. 칸을 누르면 그 문제로.
+③ 문제 풀이: 상단바 아래 3열 구성 — 가운데 760px 흰 문제 카드, 오른쪽에 같은 높이의 세로로 긴 메모장, 왼쪽은 빈 여백.
+   - 문제 카드: 문항 번호 '1.'(굵게, 체크하면 번호 위에 빨간 ✔) + 발문(15px). '<보기>'는 얇은 회색 테두리 상자. 선지 5개는 위아래 연한 회색 가로선으로 구획, 14px. 선지 줄 구성: 왼쪽 지름 30px 원 안에 번호 → 선지 글 → 맨 오른쪽 44px 정사각형 '오답/확인'(두 줄, 11px) 버튼
+   - 선지 줄을 누르면 그 번호 원이 회색으로 채워지고 구석에 ✔ 표시, 다시 누르면 해제(답은 하나). '오답/확인'을 누르면 선지 글에 취소선+흐린 글씨, 버튼은 진한 회색 채움(답 선택과 별개). 숫자키 1~5로 선택, ←/→ 키로 이전/다음(메모 입력 중엔 제외)
+   - 카드 맨 아래 도구 줄(위에 가는 선): 왼쪽 오각형 회색 '이전 문제' · 아이콘 버튼 88×74 다섯 개(전체 문제 / 안 푼 문제 / 체크 / 메모장 / 계산기 — 켜진 것은 파랑 테두리+연한 파랑 바탕) · 오른쪽 오각형 회색 '다음 문제'. 첫 문제에서는 '이전'이 비활성, 마지막 문제에서 '다음'을 누르면 ④로
+   - 메모장: 회색 둥근 상자(너비 300px), 위에 회색 띠 '메모장 · n번', 안에 흰 입력칸(placeholder '이 문항에 대한 메모'). 처음부터 켜져 있고 '메모장' 버튼으로 켜고 끔, 문항마다 따로 저장
+   - 계산기: 화면에 뜨는 너비 280px 회색 둥근 창(위 띠를 끌어 옮기기, ×로 닫기). 위에 수식(작은 글씨)·결과(24px 굵게) 표시, 아래 4열 버튼 C ( ) ← / 7 8 9 ÷ / 4 5 6 × / 1 2 3 − / 0 . = + ('='는 파랑)
+④ 답안 확인·제출: 상단바 + 760px 열. 회색 띠 '답안 확인' → 안내 한 줄(빈칸은 빨간색, 누르면 그 문제로) → 5단 표(칸마다 왼쪽 번호 칸 + 오른쪽 '①~⑤' 답, 안 푼 문항은 빨간 바탕) → 회색 띠 '서명' → 마우스로 그리는 서명 칸(420×130) + 오른쪽에 '서명 지우기'·'문제로 돌아가기'·'제출하기'(파랑, 서명 전에는 비활성) → 안내 '위 칸에 마우스로 서명한 뒤 제출할 수 있습니다.' 제출 누르면 "제출하면 답을 바꿀 수 없습니다" 확인 창. 시간이 다 되면 자동으로 이 화면을 보여준 뒤 서명 없이 제출
+⑤ 제출 후: 가운데 흰 카드에 '시험이 종료되었습니다'(26px) + '수고하셨습니다.' + 아래 작은 회색 '채점 보기' 버튼만. 이걸 눌러야 채점 화면
+⑥ 채점 화면: 상단바(시험명·이름만) + 가운데 최대 1140px — 점수 카드(파랑 큰 숫자 '맞힌 수 / 전체' + 소요 시간 등 한 줄, '처음부터 다시 풀기' 버튼) → '강의별 정답률' 표(강의 | 문항 | 정답 | 정답률 막대) → '정답 대조'(5단 표, 칸에 '번호 | 내 답 → 정답', 틀린 문항은 빨간 바탕·빨간 글씨, 오른쪽 위 체크박스 '틀린 문항만'). 문항을 누르면 큰 팝업으로 그 문제를 그대로 보여주되 정답 선지는 초록 바탕, 내 오답 선지는 빨간 바탕 + 꼬리표('정답'/'내 답'), 아래에 출처 강의·근거 상자(파랑 굵은 글씨)와 해설. 해설은 '핵심 해설 / 상세 해설 / 오답 분석(선지별 한 줄, 목록) / 주의' 소제목(회색 바탕 + 파랑 왼쪽 선)으로 나누고, '주의'는 연한 노랑 상자
+- 시험 중에는 정답·해설·출처가 화면 어디에도 보이지 않고, 푼 문항 수 외에는 채점 정보가 새지 않게
+먼저 강의별 문항 수 표(강의 | 시험 문항 수 | 출제 우선 포인트 한 줄)와 총 {총문항수}문항·시험시간 {시험시간}분을 보여주고, 내가 확인하면 만들어. 다 만들면 파일 경로와 총 문항 수를 알려줘.`;
 function PROMPTS(){ return [
   {id:'pv', t:'블록 폴더 만들기', w:'블록 첫날 — 플래너의 CLAUDE.md 저장으로도 폴더가 만들어짐', x:PV_TEXT},
   {id:'pi', t:'족보 노트 만들기', w:'블록 시작, 족보를 받았을 때 (해설 없이 문항 노트만)', x:PI_TEXT},
@@ -2911,26 +2998,69 @@ document.addEventListener('click', e=>{
 }, true);
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
+const BT_ICON_EDIT='<svg viewBox="0 0 12 12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"><path d="M2 10l.5-2.3L8.2 2a1 1 0 0 1 1.4 0l.4.4a1 1 0 0 1 0 1.4L4.3 9.5z"/></svg>';
 function renderBlockTabs(){
-  const box=document.getElementById('blockTabs'); box.innerHTML='';
+  const box=document.getElementById('blockTabs');
+  const prevLeft=box.querySelector('.bt-scroll') ? box.querySelector('.bt-scroll').scrollLeft : 0;
+  box.innerHTML='';
+  const rail=el(`<div class="bt-rail"><div class="bt-scroll" role="tablist" aria-label="블록 선택"></div></div>`);
+  const sc=rail.querySelector('.bt-scroll');
+  let activeTab=null;
   App.blocks.forEach(b=>{
-    const grp=el(`<span class="blocktabgrp"></span>`);
-    const t=el(`<button class="blocktab ${b.id===App.active?'on':''}">${esc(b.name)}</button>`);
-    t.onclick=()=>{ activateBlock(b.id); saveApp(); render(); };
-    const edit=el(`<button class="tabedit" title="블록 정보 수정">수정</button>`);
-    edit.onclick=(e)=>{ e.stopPropagation(); openEditBlockModal(b); };
-    const del=el(`<button class="tabdel" title="블록 삭제">×</button>`);
-    del.onclick=(e)=>{
-      e.stopPropagation();
-      askConfirm(`"${b.name}" 블록을 삭제하시겠습니까?`, '이 블록의 강의와 진도 기록이 모두 삭제됩니다.', ()=>{ deleteBlock(b.id); toastUndo('블록을 삭제했습니다.'); }, '삭제');
-    };
-    grp.appendChild(t); grp.appendChild(edit); grp.appendChild(del);
-    box.appendChild(grp);
+    const on=b.id===App.active;
+    const t=el(`<div class="blocktab${on?' on':''}" role="tab" tabindex="0" aria-selected="${on}" style="--tc:${pointOf(b)}" title="${esc(b.name)}"><span class="bt-name">${esc(b.name)}</span></div>`);
+    const pick=()=>{ if(b.id===App.active) return; activateBlock(b.id); saveApp(); render(); };
+    t.onclick=pick;
+    t.onkeydown=e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); pick(); } };
+    if(on){
+      activeTab=t;
+      /* 수정·삭제는 지금 고른 탭에만 붙는다 — 다른 탭을 지나가다 잘못 누르는 일이 없게 */
+      const edit=el(`<span class="bt-act" role="button" title="블록 정보 수정" aria-label="블록 정보 수정">${BT_ICON_EDIT}</span>`);
+      edit.onclick=e=>{ e.stopPropagation(); openEditBlockModal(b); };
+      const del=el(`<span class="bt-act del" role="button" title="블록 삭제" aria-label="블록 삭제">×</span>`);
+      del.onclick=e=>{
+        e.stopPropagation();
+        askConfirm(`"${b.name}" 블록을 삭제하시겠습니까?`, '이 블록의 강의와 진도 기록이 모두 삭제됩니다.', ()=>{ deleteBlock(b.id); toastUndo('블록을 삭제했습니다.'); }, '삭제');
+      };
+      t.appendChild(edit); t.appendChild(del);
+    }
+    sc.appendChild(t);
   });
-  const add=el(`<button class="blocktab add">+ 새 블록</button>`);
-  add.onclick=()=> openAddModal();
-  box.appendChild(add);
+  const tools=el(`<div class="bt-tools">
+    <button class="bt-btn list" type="button" title="블록 목록" aria-label="블록 목록">▾</button>
+    <button class="bt-btn add" type="button" title="새 블록 만들기">+ 새 블록</button>
+    <div class="bt-menu" role="menu"></div>
+  </div>`);
+  const menu=tools.querySelector('.bt-menu');
+  App.blocks.forEach(b=>{
+    const item=el(`<button type="button" role="menuitem" class="${b.id===App.active?'on':''}" style="--tc:${pointOf(b)}"><span class="dot"></span><span>${esc(b.name)}</span></button>`);
+    item.onclick=()=>{ menu.classList.remove('on'); if(b.id!==App.active){ activateBlock(b.id); saveApp(); render(); } };
+    menu.appendChild(item);
+  });
+  tools.querySelector('.list').onclick=e=>{ e.stopPropagation(); menu.classList.toggle('on'); };
+  tools.querySelector('.add').onclick=()=> openAddModal();
+  box.appendChild(rail); box.appendChild(tools);
+  /* 넘치면 양끝을 흐리게 하고 ▾ 목록 버튼을 보인다. 고른 탭이 가려져 있으면 보이는 자리로 밀어 둔다 */
+  const sync=()=>{
+    const over=sc.scrollWidth>sc.clientWidth+2;
+    rail.classList.toggle('over', over);
+    rail.classList.toggle('fade-l', over && sc.scrollLeft>2);
+    rail.classList.toggle('fade-r', over && sc.scrollLeft<sc.scrollWidth-sc.clientWidth-2);
+  };
+  sc.addEventListener('scroll', sync, {passive:true});
+  sc.addEventListener('wheel', e=>{ if(Math.abs(e.deltaY)>Math.abs(e.deltaX) && sc.scrollWidth>sc.clientWidth){ sc.scrollLeft+=e.deltaY; e.preventDefault(); } }, {passive:false});
+  requestAnimationFrame(()=>{
+    sc.scrollLeft=prevLeft;
+    if(activeTab){
+      const l=activeTab.offsetLeft, r=l+activeTab.offsetWidth;
+      if(l<sc.scrollLeft+24) sc.scrollLeft=Math.max(0,l-24);
+      else if(r>sc.scrollLeft+sc.clientWidth-24) sc.scrollLeft=r-sc.clientWidth+24;
+    }
+    sync();
+  });
 }
+document.addEventListener('click', e=>{ if(!e.target.closest('.bt-tools')){ const m=document.querySelector('.bt-menu.on'); if(m) m.classList.remove('on'); } });
+window.addEventListener('resize', ()=>{ const r=document.querySelector('.bt-rail'), s=document.querySelector('.bt-scroll'); if(r&&s){ const over=s.scrollWidth>s.clientWidth+2; r.classList.toggle('over',over); r.classList.toggle('fade-r', over && s.scrollLeft<s.scrollWidth-s.clientWidth-2); r.classList.toggle('fade-l', over && s.scrollLeft>2); } });
 function deleteBlock(id){
   const idx = App.blocks.findIndex(b=>b.id===id); if(idx<0) return;
   App.blocks.splice(idx,1);
@@ -2987,9 +3117,13 @@ function renderBanner(){
   /* 링은 항상 "직전에 보여주던 값"에서 출발해 현재 값으로 이어진다. 처음 열 때는 0에서
      차오르고, 이후에는 값이 바뀔 때만 실제로 움직이므로 렌더마다 튀지 않는다. */
   const pd = C*_lastFrac, pg = C-pd;
+  /* 둥근 끝(round cap)은 선 굵기의 반(4.5)만큼 양 끝으로 삐져나온다. 채운 호가 거의 한 바퀴라 남은 틈이
+     둥근 끝 두 개(9)+여유(3)보다 좁으면 두 끝이 맞붙어 한 덩어리로 보이고, 꽉 찼을 땐 시작점에 혹이 생긴다.
+     채운 호가 너무 짧을 때도 점처럼 보인다. 그런 경우엔 평평한 끝(butt)으로 그려 틈이 또렷이 보이게 한다 */
+  const capFor = f => (C*f>=10 && C*(1-f)>=12) ? 'round' : 'butt';
   const svg = `<svg viewBox="0 0 84 84" width="72" height="72">
     <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--surface2)" stroke-width="9"/>
-    <circle class="gring" cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${ringColor}" stroke-width="9" stroke-linecap="round"
+    <circle class="gring" cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${ringColor}" stroke-width="9" stroke-linecap="${capFor(_lastFrac)}"
       transform="rotate(-90 ${cx} ${cy})"
       style="stroke-dasharray:${pd.toFixed(1)} ${pg.toFixed(1)};transition:stroke-dasharray 760ms var(--ease),stroke 240ms linear"/>
   </svg>`;
@@ -3020,7 +3154,13 @@ function renderBanner(){
     }
   }
   const ring=b.querySelector('.gring');
-  if(ring) requestAnimationFrame(()=>{ ring.style.strokeDasharray=`${dash.toFixed(1)} ${gap.toFixed(1)}`; });
+  if(ring) requestAnimationFrame(()=>{
+    /* 차오르는 동안은 둥근 끝, 다 차거나 비는 순간(애니메이션이 끝난 뒤)에는 butt로 바꿔 꽉 찬 원이 되게 */
+    if(capFor(frac)==='round') ring.setAttribute('stroke-linecap','round');
+    ring.style.strokeDasharray = frac>=0.996 ? `${C.toFixed(1)} 0` : `${dash.toFixed(1)} ${gap.toFixed(1)}`;
+    if(capFor(frac)==='butt') setTimeout(()=>{ if(ring.isConnected) ring.setAttribute('stroke-linecap','butt'); }, 800);
+    else ring.setAttribute('stroke-linecap','round');
+  });
   _lastFrac = frac;
 }
 /* ===== 배터리 =====
@@ -4965,31 +5105,83 @@ function renderPrompts(){
 
   const catOptions=(sel)=> PROMPT_CATS.map(c=>`<option value="${c.key}" ${c.key===sel?'selected':''}>${c.label}</option>`).join('');
 
-  /* 내가 추가한 프롬프트 */
+  /* 프롬프트에서 쓸 수 있는 지정어 — 접혀 있다가 열면 표로 나온다. 지정어를 누르면 복사된다 */
+  const varCard = el(`<div class="pcard instruction-card varcard">
+    <div class="ptitle">지정어 — 프롬프트 안에서 설정값으로 바뀌는 말</div>
+    <div class="pwhen">프롬프트에 <code>{블록이름}</code>처럼 적어 두면 복사할 때 지금 설정값으로 채워집니다</div>
+    <button class="instruction-toggle var-toggle" type="button">${varCardOpen?'지정어 닫기':'지정어 보기'}</button>
+    <div class="var-body" style="display:${varCardOpen?'block':'none'}"></div>
+  </div>`);
+  const varBody=varCard.querySelector('.var-body'), varToggle=varCard.querySelector('.var-toggle');
+  const shortVal=v=>{ const s=String(v||'').replace(/\n/g,' ⏎ '); return s ? (s.length>70 ? s.slice(0,70)+'…' : s) : '(비어 있음)'; };
+  const varRows=scope=> PROMPT_VARS.filter(p=>p.scope===scope).map(p=>{
+    const val = scope==='block' ? shortVal(p.v()) : '강의가 정해진 곳에서 채워짐';
+    return `<tr><td><code data-var="${esc(p.k)}" title="누르면 복사">${esc(p.k)}</code></td><td>${esc(p.d)}</td><td class="val">${esc(val)}</td></tr>`;
+  }).join('');
+  varBody.innerHTML = `<table class="vartbl">
+      <tr><th style="width:24%">지정어</th><th>뜻</th><th style="width:30%">지금 값</th></tr>
+      <tr class="vargrp"><td colspan="3">어디서 복사하든 채워짐</td></tr>${varRows('block')}
+      <tr class="vargrp"><td colspan="3">오늘 카드의 프롬포트 복사에서만 채워짐 (그 강의 기준) — 프롬프트 모음 탭에서 복사하면 그대로 남음</td></tr>${varRows('lecture')}
+    </table>
+    <div class="cphint" style="margin-top:8px">지정어를 누르면 클립보드에 복사됩니다. Custom instruction 템플릿에서는 따로 <code>{과목명}</code> <code>{시작일}</code> <code>{시험일}</code> <code>{과목 폴더}</code> <code>{교수 이름 (담당 강의 범위)}</code> <code>{교수 후기 요약 …}</code>가 쓰이고, 지침 맨 위의 강의 목록은 자동으로 만들어집니다. 목록에 없는 중괄호 글자는 그대로 남습니다.</div>`;
+  varBody.querySelectorAll('code[data-var]').forEach(c=>{ c.onclick=()=> copyPlain(c.dataset.var, `${c.dataset.var} 복사됨`); });
+  varToggle.onclick=()=>{
+    if(varCardOpen){ varCardOpen=false; varToggle.textContent='지정어 보기'; foldClose(varBody); }
+    else { varCardOpen=true; varToggle.textContent='지정어 닫기'; foldOpen(varBody); }
+  };
+  box.appendChild(varCard);
+
+  /* 프롬프트 목록 — 접힌 한 줄이 기본(이름·단계·언제·복사), 눌러서 전체 문구를 보거나 수정 */
   const promptCards=[];
   customPrompts().forEach(cp=>{
-    const c = el(`<div class="pcard pdrag" data-pid="${esc(cp.id)}">
-      <div class="ptitle"><span class="flowgrip" title="끌어서 순서 바꾸기" aria-hidden="true">⋮⋮</span> ${esc(cp.name || '이름 없는 프롬프트')}</div>
-      <div class="pwhen"><span class="badge cat">${catLabel(cp.cat)}</span>${cp.when?' '+esc(cp.when):''}</div>
-      <div class="ptext">${esc(cp.text || '')}</div>
-      <div class="cpedit" style="display:none">
-        <div class="cprow">
-          <input class="cpname" type="text" value="${esc(cp.name || '')}" placeholder="이름 (예: 족보 해설 보완)">
-          <select class="cpcat">${catOptions(cp.cat)}</select>
+    const isOpen=openPromptIds.has(cp.id);
+    const c = el(`<div class="pcard pdrag${isOpen?' open':''}" data-pid="${esc(cp.id)}">
+      <div class="phead" role="button" tabindex="0" aria-expanded="${isOpen}">
+        <span class="flowgrip" title="끌어서 순서 바꾸기" aria-hidden="true">⋮⋮</span>
+        <span class="pname">${esc(cp.name || '이름 없는 프롬프트')}</span>
+        <span class="badge cat">${catLabel(cp.cat)}</span>
+        <span class="pwhen-inline">${esc(cp.when || '')}</span>
+        <button class="pquickcopy" type="button" title="프롬프트 복사">복사</button>
+        <span class="pchev" aria-hidden="true">▾</span>
+      </div>
+      <div class="pbody" style="display:${isOpen?'block':'none'}">
+        <div class="pwhen">${cp.when?esc(cp.when):'언제 쓰는지 적혀 있지 않습니다'}</div>
+        <div class="ptext">${esc(cp.text || '')}</div>
+        <div class="cpedit" style="display:none">
+          <div class="cprow">
+            <input class="cpname" type="text" value="${esc(cp.name || '')}" placeholder="이름 (예: 족보 해설 보완)">
+            <select class="cpcat">${catOptions(cp.cat)}</select>
+          </div>
+          <input class="cpwhen" type="text" value="${esc(cp.when || '')}" placeholder="언제 쓰는지 (선택, 예: 수업 당일, 강의 채팅에서)">
+          <textarea class="pedit-input" style="display:block;margin-top:0">${esc(cp.text || '')}</textarea>
         </div>
-        <input class="cpwhen" type="text" value="${esc(cp.when || '')}" placeholder="언제 쓰는지 (선택, 예: 수업 당일, 강의 채팅에서)">
-        <textarea class="pedit-input" style="display:block;margin-top:0">${esc(cp.text || '')}</textarea>
-      </div>
-      <div class="pactions">
-        <button class="copybtn" type="button">프롬포트 복사</button>
-        <button class="peditbtn" type="button">수정</button>
-        <button class="presetbtn cpdelbtn" type="button">삭제</button>
-      </div>
-      <div class="pedit-actions" style="display:none">
-        <button class="psavebtn copybtn" type="button">저장</button>
-        <button class="pcancelbtn" type="button">취소</button>
+        <div class="pactions">
+          <button class="copybtn" type="button">프롬포트 복사</button>
+          <button class="peditbtn" type="button">수정</button>
+          <button class="presetbtn cpdelbtn" type="button">삭제</button>
+        </div>
+        <div class="pedit-actions" style="display:none">
+          <button class="psavebtn copybtn" type="button">저장</button>
+          <button class="pcancelbtn" type="button">취소</button>
+        </div>
       </div>
     </div>`);
+    const head=c.querySelector('.phead'), pbody=c.querySelector('.pbody');
+    const toggle=()=>{
+      const nowOpen=!c.classList.contains('open');
+      c.classList.toggle('open', nowOpen);
+      head.setAttribute('aria-expanded', String(nowOpen));
+      if(nowOpen){ openPromptIds.add(cp.id); foldOpen(pbody); } else { openPromptIds.delete(cp.id); foldClose(pbody); }
+    };
+    head.onclick=e=>{ if(e.target.closest('.flowgrip,.pquickcopy')) return; toggle(); };
+    head.onkeydown=e=>{ if((e.key==='Enter' || e.key===' ') && e.target===head){ e.preventDefault(); toggle(); } };
+    const qc=c.querySelector('.pquickcopy');
+    qc.onclick=e=>{
+      e.stopPropagation();
+      copyPlain(fillPromptVars(cp.text || ''), `${cp.name} 프롬프트를 복사했습니다.`);
+      qc.textContent='복사됨'; qc.classList.add('copied');
+      setTimeout(()=>{ qc.textContent='복사'; qc.classList.remove('copied'); }, 1200);
+    };
     const tv=c.querySelector('.ptext'), form=c.querySelector('.cpedit');
     const va=c.querySelector('.pactions'), ea=c.querySelector('.pedit-actions');
     va.querySelector('.copybtn').onclick=e=>copyText(fillPromptVars(cp.text || ''), e.target);
@@ -6970,6 +7162,10 @@ function renderSettings(){
       <input class="stin num" data-plan="examQMult" type="number" step="1" min="1" max="10" value="${examQMult()}"><span class="stunit">배</span>
     </div></div>
     <p class="sethint">강의 목록과 함께 지침에 들어가, 예상 기출문제를 '시험 문항 수 × 배수'만큼 냅니다. 강의마다 다르면 전체 강의 탭 '수정'에서 바꿉니다.</p>
+    <div class="setrow"><span class="setlbl">시험 시간</span><div class="stgrp">
+      <input class="stin num" data-plan="examMin" type="number" step="1" min="0" max="600" placeholder="자동" value="${examMinSet()||''}"><span class="stunit">분 (현재 ${examMinutes()}분 · 총 ${examTotalQ()}문항 · ${examLecs().length}강의)</span>
+    </div></div>
+    <p class="sethint">전체 예상 기출문제(CBT)의 시험 시간입니다. 시험 공지가 나오면 그 시간을 넣으세요. 비워 두면 총 문항 수 × 39초(올림)로 자동 계산합니다. 총 문항 수는 시험에 나오는 강의 수와 강의별 문항 수(위 기본값, 강의별 '수정'에서 바꾼 값)를 합친 값입니다.</p>
     <div class="setrow"><span class="setlbl">복습 간격</span><div class="stgrp">
       <span class="stunit">1차</span><input class="stin num" data-plan="gap1" type="number" step="1" min="0" max="14" value="${G1()}"><span class="stunit">일 뒤</span>
       <span class="stunit">2차</span><input class="stin num" data-plan="gap2" type="number" step="1" min="0" max="21" value="${G2()}"><span class="stunit">일 뒤</span>
@@ -7061,16 +7257,17 @@ function renderSettings(){
     body.querySelectorAll('[data-plan]').forEach(inp=> inp.addEventListener('change', ()=>{
       const k=inp.dataset.plan;
       let v=parseFloat(inp.value);
+      if(k==='examMin' && (inp.value.trim()==='' || v===0)){ if(S.plan) delete S.plan.examMin; saveApp(); const keep=body.scrollTop; renderSettings(); body.scrollTop=keep; return; }
       if(isNaN(v)){ renderSettings(); return; }
       if(inp.dataset.pct) v=v/100;
-      const lim={gap1:[0,14], gap2:[0,21], newLead:[0,2], rampFrac:[0,0.5], rampLoad:[0.1,1], buffer:[1,Math.max(1,Math.min(10,S.examDay-2))], examQ:[0,50], examQMult:[1,10]}[k];
+      const lim={gap1:[0,14], gap2:[0,21], newLead:[0,2], rampFrac:[0,0.5], rampLoad:[0.1,1], buffer:[1,Math.max(1,Math.min(10,S.examDay-2))], examQ:[0,50], examQMult:[1,10], examMin:[1,600]}[k];
       v=Math.max(lim[0], Math.min(lim[1], v));
-      if(k==='gap1'||k==='gap2'||k==='newLead'||k==='buffer'||k==='examQ'||k==='examQMult') v=Math.round(v);
+      if(k==='gap1'||k==='gap2'||k==='newLead'||k==='buffer'||k==='examQ'||k==='examQMult'||k==='examMin') v=Math.round(v);
       if(!S.plan) S.plan={};
       S.plan[k]=v;
       if(k==='gap1' && G2()<v) S.plan.gap2=v; // 2차는 1차보다 앞설 수 없다
       if(k==='gap2' && v<G1()) S.plan.gap2=G1();
-      if(k!=='examQ' && k!=='examQMult') S.todayLock=null; // 문항 수는 계획과 무관 — 오늘 몫은 그대로
+      if(k!=='examQ' && k!=='examQMult' && k!=='examMin') S.todayLock=null; // 문항 수는 계획과 무관 — 오늘 몫은 그대로
       saveApp(); render();
       const keep=body.scrollTop; renderSettings(); body.scrollTop=keep;
     }));
