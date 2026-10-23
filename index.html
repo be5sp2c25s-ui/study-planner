@@ -74,6 +74,10 @@
   .blocktab:hover{color:var(--ink);background:#fff;z-index:2}
   .blocktab:hover::before{opacity:.85}
   .blocktab:focus-visible{box-shadow:0 0 0 2px var(--accent)}
+  .blocktab[draggable="true"]{cursor:grab}
+  .blocktab.dragging{opacity:.4}
+  .blocktab.drop-before,.blocktab.on.drop-before{box-shadow:-3px 0 0 0 var(--ink)}
+  .blocktab.drop-after,.blocktab.on.drop-after{box-shadow:3px 0 0 0 var(--ink)}
   .blocktab.on{z-index:5;background:var(--surface);color:var(--ink);padding:9px 12px 8px 17px;border-bottom-color:var(--surface);box-shadow:0 -2px 8px rgba(0,0,0,.05)}
   .blocktab.on::before{opacity:1;left:8px;right:8px;height:4px}
   .bt-act{flex:0 0 auto;width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:11px;line-height:1;cursor:pointer}
@@ -3122,6 +3126,7 @@ document.addEventListener('click', e=>{
 }, true);
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
+let btDragId=null; // 끌고 있는 블록 탭의 id
 const BT_ICON_EDIT='<svg viewBox="0 0 12 12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"><path d="M2 10l.5-2.3L8.2 2a1 1 0 0 1 1.4 0l.4.4a1 1 0 0 1 0 1.4L4.3 9.5z"/></svg>';
 function renderBlockTabs(){
   const box=document.getElementById('blockTabs');
@@ -3132,7 +3137,31 @@ function renderBlockTabs(){
   let activeTab=null;
   App.blocks.forEach(b=>{
     const on=b.id===App.active;
-    const t=el(`<div class="blocktab${on?' on':''}" role="tab" tabindex="0" aria-selected="${on}" style="--tc:${pointOf(b)}" title="${esc(b.name)}"><span class="bt-name">${esc(b.name)}</span></div>`);
+    const t=el(`<div class="blocktab${on?' on':''}" role="tab" tabindex="0" draggable="true" aria-selected="${on}" style="--tc:${pointOf(b)}" title="${esc(b.name)} · 끌어서 순서 바꾸기"><span class="bt-name">${esc(b.name)}</span></div>`);
+    /* 끌어서 순서 바꾸기 — 놓을 자리는 탭의 왼쪽/오른쪽 절반으로 정하고, 순서는 저장된다(▾ 목록도 같은 순서) */
+    const clearDrop=()=>sc.querySelectorAll('.blocktab').forEach(x=>x.classList.remove('drop-before','drop-after'));
+    t.addEventListener('dragstart', e=>{
+      btDragId=b.id; t.classList.add('dragging');
+      if(e.dataTransfer){ e.dataTransfer.effectAllowed='move'; try{ e.dataTransfer.setData('text/plain', b.id); }catch(err){} }
+    });
+    t.addEventListener('dragend', ()=>{ btDragId=null; t.classList.remove('dragging'); clearDrop(); });
+    t.addEventListener('dragover', e=>{
+      if(!btDragId || btDragId===b.id) return;
+      e.preventDefault();
+      const r=t.getBoundingClientRect(), after=e.clientX>r.left+r.width/2;
+      t.classList.toggle('drop-after', after); t.classList.toggle('drop-before', !after);
+    });
+    t.addEventListener('dragleave', ()=>t.classList.remove('drop-before','drop-after'));
+    t.addEventListener('drop', e=>{
+      if(!btDragId || btDragId===b.id) return;
+      e.preventDefault();
+      const after=t.classList.contains('drop-after'); clearDrop();
+      const from=App.blocks.findIndex(x=>x.id===btDragId); if(from<0) return;
+      const [moved]=App.blocks.splice(from,1);
+      let to=App.blocks.findIndex(x=>x.id===b.id); if(after) to++;
+      App.blocks.splice(to,0,moved);
+      btDragId=null; saveApp(); render();
+    });
     const pick=()=>{ if(b.id===App.active) return; activateBlock(b.id); saveApp(); render(); };
     t.onclick=pick;
     t.onkeydown=e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); pick(); } };
