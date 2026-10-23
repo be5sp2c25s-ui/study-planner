@@ -2303,12 +2303,14 @@ function claudeMdSection(){
   const block=App.blocks.find(b=>b.id===App.active);
   return `${CLAUDE_MD_START}\n# ${block?.name||''} 블록 지침\n\n> 이 구간은 스터디플래너가 만든 지침입니다. 고치려면 플래너의 프롬프트 모음 탭(학습 전략 · Custom instruction 템플릿)에서 고치고 '연결한 파일 업데이트'를 누르세요.\n\n${customInstructions()}\n${CLAUDE_MD_END}`;
 }
-/* 파일 안의 플래너 구간만 바꾼다. 구간이 없으면: 빈 파일은 구간만, 내용이 있으면 맨 끝에 덧붙임(직접 쓴 글은 그대로) */
+/* 파일 안의 플래너 구간(마커 사이)만 바꾼다. 마커가 없는 파일은 빈 파일/예전 방식 파일이면 구간으로 통째로 바꾸고,
+   그 밖의 내용이 있는 파일은 null — 예전에 직접 붙여넣은 지침 사본 뒤에 새로 덧붙이면 지침이 두 벌이 되므로,
+   덧붙이지 않고 호출한 쪽이 '전체를 지침으로 바꿀지' 물어본다 */
 function mergeClaudeMd(prev, section){
   const a=prev.indexOf(CLAUDE_MD_START), b=prev.indexOf(CLAUDE_MD_END);
   if(a>=0 && b>a) return prev.slice(0,a)+section+prev.slice(b+CLAUDE_MD_END.length);
   if(prev.startsWith(CLAUDE_MD_LEGACY) || !prev.trim()) return section+'\n';
-  return prev.replace(/\s*$/,'')+'\n\n'+section+'\n';
+  return null;
 }
 async function writeVaultFile(fh, text){ const w=await fh.createWritable(); await w.write(text); await w.close(); }
 function currentBlock(){ return App.blocks.find(b=>b.id===App.active); }
@@ -2375,6 +2377,19 @@ async function updateClaudeMd(interactive){
     if(perm!=='granted'){ if(interactive) showToast('이 파일에 쓸 권한이 없습니다.'); return false; }
     const prev=await (await fh.getFile()).text();
     const next=mergeClaudeMd(prev, section);
+    if(next===null){
+      /* 플래너가 만든 적 없는 내용이 있는 파일 — 자동 업데이트는 건드리지 않고, 버튼으로 눌렀을 때만 물어본다 */
+      if(!interactive) return false;
+      askConfirm(`${fh.name} 전체를 지침으로 바꿀까요?`, '이 파일에는 플래너가 넣지 않은 내용(예전에 직접 붙여넣은 지침 등)이 있습니다. 바꾸면 파일 전체가 최신 지침 하나로 교체되고, 이전 내용은 사라집니다. 이후 업데이트부터는 지침 구간만 바뀝니다.',
+        ()=>{
+          writeVaultFile(fh, section+'\n').then(()=>{
+            _claudeMdSaved[block.id]=section;
+            showToast(`${fh.name} 전체를 최신 지침으로 바꿨습니다.`, {long:true});
+            if(S.onboarding){ S.onboarding.claudeMd=true; saveApp(); render(); }
+          }).catch(e=>showToast('업데이트하지 못했습니다: '+(e.message||e)));
+        }, '전체 바꾸기');
+      return false;
+    }
     if(next!==prev) await writeVaultFile(fh, next);
     _claudeMdSaved[block.id]=section;
     if(interactive) showToast(next===prev ? `${fh.name}은(는) 이미 최신입니다.` : `${fh.name}에 지침을 업데이트했습니다.`, {long:true});
@@ -5065,7 +5080,7 @@ function renderPrompts(){
     const b=currentBlock();
     const linked=b && b.claudeMdFile;
     vaultStatus.innerHTML = linked
-      ? `연결된 파일: <b>${esc(b.claudeMdFile)}</b> · 자동 업데이트 <button class="linkbtn vault-auto" type="button">${b.claudeMdAuto?'켜짐 (끄기)':'꺼짐 (켜기)'}</button><br>업데이트는 파일 안의 '스터디플래너 지침' 구간만 바꾸고, 직접 쓴 나머지 내용은 그대로 둡니다. Chrome·Edge에서만 되며, 브라우저를 새로 열면 첫 업데이트 때 권한을 한 번 더 묻습니다.`
+      ? `연결된 파일: <b>${esc(b.claudeMdFile)}</b> · 자동 업데이트 <button class="linkbtn vault-auto" type="button">${b.claudeMdAuto?'켜짐 (끄기)':'꺼짐 (켜기)'}</button><br>업데이트는 파일 안의 '스터디플래너 지침' 구간만 바꾸고, 직접 쓴 나머지 내용은 그대로 둡니다. (구간이 아직 없는 파일에 다른 내용이 있으면 처음 한 번 파일 전체를 지침으로 바꿀지 물어봅니다.) Chrome·Edge에서만 되며, 브라우저를 새로 열면 첫 업데이트 때 권한을 한 번 더 묻습니다.`
       : `아직 연결한 파일이 없습니다. <b>CLAUDE.md 파일 선택</b>으로 지침을 넣을 .md 파일(보통 블록 폴더의 CLAUDE.md)을 고르세요. Chrome·Edge에서만 됩니다.`;
     const au=vaultStatus.querySelector('.vault-auto');
     if(au) au.onclick=()=>{ b.claudeMdAuto=!b.claudeMdAuto; saveApp(); paintVaultStatus(); showToast(b.claudeMdAuto?'강의 목록·학습 전략이 바뀌면 연결한 파일을 자동으로 업데이트합니다.':'자동 업데이트를 껐습니다. 필요할 때 \'연결한 파일 업데이트\'를 누르세요.', {long:true}); };
