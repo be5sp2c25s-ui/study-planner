@@ -1749,7 +1749,7 @@ function profReviewPromptTemplate(){
 const builtinPromptText = (id, fallback)=> fillPromptVars((promptById(id)||{}).text || fallback);
 const ONBOARD_ITEMS = [
   {key:'lectures', label:'강의 한 번에 추가 (시간표 PDF → Claude → 전체 강의 탭에 붙여넣기)', get prompt(){ return timetablePromptText(); }},
-  {key:'vaultFolder', label:'Vault에 블록 폴더 만들기 (Claude Code)', get prompt(){ return builtinPromptText('pv', PV_TEXT); }},
+  {key:'vaultFolder', label:'Vault에 블록 폴더 만들기 (정리본·족보·분석·자료)', action:'makeFolders', btn:'폴더 만들기'},
   {
     key:'profReview',
     label:'교수 후기 엑셀을 자료 폴더에 넣고 → 학습 전략 생성',
@@ -1759,7 +1759,8 @@ const ONBOARD_ITEMS = [
     }
   },
   {key:'pasteStrategy', label:'학습 전략을 프롬프트 모음 탭 \'학습 전략 붙여넣기\'에 저장', action:'openPrompts', btn:'열기'},
-  {key:'claudeMd', label:'지침을 블록 폴더 CLAUDE.md에 저장 (이후 바뀌면 자동 갱신)', action:'saveClaudeMd', btn:'저장'},
+  {key:'claudeMdLink', label:'지침을 넣을 CLAUDE.md 파일 선택 (연결)', action:'linkClaudeMd', btn:'파일 선택'},
+  {key:'claudeMd', label:'연결한 파일에 지침 업데이트', action:'updateClaudeMd', btn:'업데이트'},
   {key:'jokboNotes', label:'족보 노트 만들기 (해설 없이 문항만)', get prompt(){ return builtinPromptText('pi', PI_TEXT); }},
   {key:'jokboAnalysis', label:'족보 출제 패턴 분석 → 교수별 한 줄 요약을 학습 전략에 추가', get prompt(){ return builtinPromptText('pj', PJ_TEXT); }},
 ];
@@ -2244,14 +2245,20 @@ function downloadText(filename, text){
   a.download=filename; document.body.appendChild(a); a.click();
   setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
-/* ===== Vault에 직접 쓰기 (블록 CLAUDE.md) =====
-   Chrome·Edge의 File System Access API로 Vault 폴더를 한 번 연결해 두면, 블록 폴더(정리본·족보·분석·자료)를
-   만들고 지침을 '{블록 폴더}/CLAUDE.md'에 바로 저장한다. 연결한 폴더 정보는 이 브라우저(IndexedDB)에만 남는다.
-   한 번 저장한 블록은 지침(강의 목록·학습 전략 포함)이 바뀔 때마다 조용히 다시 저장한다 — 브라우저가 이미
-   쓰기 권한을 준 상태일 때만. 권한을 다시 물어야 하면 다음에 저장 버튼을 누를 때 묻는다. */
-const CLAUDE_MD_MARK='<!-- 스터디플래너가 저장한 파일 -->';
+/* ===== Vault에 직접 쓰기 =====
+   Chrome·Edge의 File System Access API로 세 가지를 따로 한다(프롬프트 모음 탭 Custom instructions 카드의 버튼).
+   ① 블록 폴더 만들기: Vault 폴더를 한 번 연결해 두면 '{블록 폴더}/정리본·족보·분석·자료'를 만든다 (파일은 안 만듦)
+   ② CLAUDE.md 파일 선택: 지침을 계속 갱신해 쓸 .md 파일(보통 블록 폴더의 CLAUDE.md)을 직접 골라 연결한다
+   ③ 연결한 파일 업데이트: 연결한 파일 안의 '스터디플래너 지침' 구간만 최신 지침으로 바꾼다 — 파일의 나머지
+      내용(직접 쓴 안내 문구 등)은 건드리지 않는다. 구간이 없으면 파일 맨 끝에 붙인다.
+   '자동 업데이트'를 켜 두면 강의 목록·학습 전략이 바뀔 때마다 조용히 ③을 한다(브라우저가 쓰기 권한을 이미 준 상태일 때만).
+   고른 폴더·파일 정보는 이 브라우저(IndexedDB)에만 남는다. */
+const CLAUDE_MD_START='<!-- 스터디플래너 지침 시작 (이 구간은 플래너가 다시 씁니다 — 직접 고치지 마세요) -->';
+const CLAUDE_MD_END='<!-- 스터디플래너 지침 끝 -->';
+const CLAUDE_MD_LEGACY='<!-- 스터디플래너가 저장한 파일 -->'; // 예전 방식으로 저장한 파일(통째로 플래너 것)
 const VAULT_SUBFOLDERS=['정리본','족보','분석','자료'];
 function vaultSupported(){ return typeof window.showDirectoryPicker==='function' && typeof indexedDB!=='undefined'; }
+function filePickSupported(){ return typeof window.showOpenFilePicker==='function' && typeof indexedDB!=='undefined'; }
 function vaultDb(){
   return new Promise((res,rej)=>{
     const rq=indexedDB.open('sp-vault',1);
@@ -2259,16 +2266,18 @@ function vaultDb(){
     rq.onsuccess=()=>res(rq.result); rq.onerror=()=>rej(rq.error);
   });
 }
-async function vaultHandle(){
+async function vaultGet(key){
   try{
     const db=await vaultDb();
-    return await new Promise(res=>{ const r=db.transaction('h').objectStore('h').get('root'); r.onsuccess=()=>res(r.result||null); r.onerror=()=>res(null); });
+    return await new Promise(res=>{ const r=db.transaction('h').objectStore('h').get(key); r.onsuccess=()=>res(r.result||null); r.onerror=()=>res(null); });
   }catch(e){ return null; }
 }
-async function setVaultHandle(h){
+async function vaultPut(key, h){
   const db=await vaultDb();
-  await new Promise((res,rej)=>{ const tx=db.transaction('h','readwrite'); tx.objectStore('h').put(h,'root'); tx.oncomplete=res; tx.onerror=()=>rej(tx.error); });
+  await new Promise((res,rej)=>{ const tx=db.transaction('h','readwrite'); tx.objectStore('h').put(h,key); tx.oncomplete=res; tx.onerror=()=>rej(tx.error); });
 }
+const vaultHandle=()=>vaultGet('root');
+const setVaultHandle=h=>vaultPut('root', h);
 /* interactive: 버튼으로 부른 경우 — 연결이 없으면 폴더를 고르게 하고, 권한도 물어본다. repick: 다시 고르기 */
 async function vaultRoot(interactive, repick){
   let h = repick ? null : await vaultHandle();
@@ -2290,50 +2299,93 @@ async function vaultDir(root, path){
   for(const part of String(path).split('/').map(s=>s.trim()).filter(Boolean)) d=await d.getDirectoryHandle(part, {create:true});
   return d;
 }
-function claudeMdText(){
+function claudeMdSection(){
   const block=App.blocks.find(b=>b.id===App.active);
-  return `${CLAUDE_MD_MARK}\n# ${block?.name||''} 블록 지침\n\n> 스터디플래너가 저장한 파일입니다. 여기서 고치지 말고 플래너의 프롬프트 모음 탭(학습 전략 · Custom instruction 템플릿)에서 고치면 다시 저장됩니다.\n\n${customInstructions()}`;
+  return `${CLAUDE_MD_START}\n# ${block?.name||''} 블록 지침\n\n> 이 구간은 스터디플래너가 만든 지침입니다. 고치려면 플래너의 프롬프트 모음 탭(학습 전략 · Custom instruction 템플릿)에서 고치고 '연결한 파일 업데이트'를 누르세요.\n\n${customInstructions()}\n${CLAUDE_MD_END}`;
+}
+/* 파일 안의 플래너 구간만 바꾼다. 구간이 없으면: 빈 파일은 구간만, 내용이 있으면 맨 끝에 덧붙임(직접 쓴 글은 그대로) */
+function mergeClaudeMd(prev, section){
+  const a=prev.indexOf(CLAUDE_MD_START), b=prev.indexOf(CLAUDE_MD_END);
+  if(a>=0 && b>a) return prev.slice(0,a)+section+prev.slice(b+CLAUDE_MD_END.length);
+  if(prev.startsWith(CLAUDE_MD_LEGACY) || !prev.trim()) return section+'\n';
+  return prev.replace(/\s*$/,'')+'\n\n'+section+'\n';
 }
 async function writeVaultFile(fh, text){ const w=await fh.createWritable(); await w.write(text); await w.close(); }
-const _claudeMdSaved={}; // 블록별로 마지막에 저장한 내용 — 같으면 다시 쓰지 않는다
-async function saveClaudeMd(interactive){
-  const block=App.blocks.find(b=>b.id===App.active);
-  if(!S || !block || !obsFolder(block)) return false;
-  if(!interactive && !block.claudeMdOn) return false; // 버튼으로 한 번 저장한 블록만 자동 갱신
-  if(!vaultSupported()){
-    if(interactive) showToast('이 브라우저에서는 Vault에 직접 저장할 수 없습니다. Chrome·Edge에서 열거나, 전체 지침 복사 후 CLAUDE.md에 붙여넣어 주세요.', {long:true});
-    return false;
-  }
-  const folder=obsFolder(block), text=claudeMdText(), sig=folder+'\n'+text;
-  if(!interactive && _claudeMdSaved[block.id]===sig) return false;
+function currentBlock(){ return App.blocks.find(b=>b.id===App.active); }
+/* ① 블록 폴더 만들기 — 폴더만 만든다(CLAUDE.md 같은 파일은 만들지 않음) */
+async function makeBlockFolders(){
+  const block=currentBlock();
+  if(!S || !block) return false;
+  const folder=obsFolder(block);
+  if(!folder){ showToast('설정 → 옵시디언에서 블록 폴더를 먼저 정해 주세요.'); return false; }
+  if(!vaultSupported()){ showToast('이 브라우저에서는 폴더를 직접 만들 수 없습니다. Chrome·Edge에서 열거나, Claude Code에 "블록 폴더 만들기" 프롬프트를 쓰세요.', {long:true}); return false; }
   try{
-    const root=await vaultRoot(interactive);
-    if(!root){ if(interactive) showToast('Vault 폴더에 쓸 권한이 없습니다.'); return false; }
+    const root=await vaultRoot(true);
+    if(!root){ showToast('Vault 폴더에 쓸 권한이 없습니다.'); return false; }
     const dir=await vaultDir(root, folder);
     for(const sub of VAULT_SUBFOLDERS) await dir.getDirectoryHandle(sub, {create:true});
-    const fh=await dir.getFileHandle('CLAUDE.md', {create:true});
-    const prev=await (await fh.getFile()).text();
-    const done=async()=>{
-      await writeVaultFile(fh, text);
-      _claudeMdSaved[block.id]=sig;
-      if(!block.claudeMdOn){ block.claudeMdOn=true; saveApp(); }
-      if(interactive) showToast(`${folder}/CLAUDE.md에 지침을 저장했습니다. 이제 지침이 바뀌면 자동으로 다시 저장됩니다.`, {long:true});
-    };
-    if(prev.trim() && !prev.startsWith(CLAUDE_MD_MARK)){
-      if(!interactive) return false; // 직접 쓴 CLAUDE.md는 몰래 덮어쓰지 않는다
-      askConfirm('CLAUDE.md를 덮어쓸까요?', `${folder}/CLAUDE.md에 플래너가 만들지 않은 내용이 있습니다. 덮어쓰면 그 내용은 사라집니다.`,
-        ()=>{ done().then(()=>{ if(S.onboarding){ S.onboarding.claudeMd=true; saveApp(); render(); } }).catch(e=>showToast('저장하지 못했습니다: '+e.message)); }, '덮어쓰기');
-      return false;
-    }
-    await done();
+    showToast(`${folder} 폴더를 만들었습니다 (${VAULT_SUBFOLDERS.join(' · ')}).`, {long:true});
     return true;
   }catch(e){
-    if(interactive && e && e.name!=='AbortError') showToast('저장하지 못했습니다: '+(e.message||e));
+    if(e && e.name!=='AbortError') showToast('폴더를 만들지 못했습니다: '+(e.message||e));
+    return false;
+  }
+}
+/* ② 지침을 계속 갱신해 쓸 .md 파일 고르기 — 블록 폴더가 이미 있으면 거기서 열린다 */
+async function linkClaudeMd(){
+  const block=currentBlock();
+  if(!S || !block) return false;
+  if(!filePickSupported()){ showToast('이 브라우저에서는 파일을 직접 고를 수 없습니다. Chrome·Edge에서 열거나, 전체 지침 복사 후 붙여넣어 주세요.', {long:true}); return false; }
+  try{
+    let startIn;
+    try{ /* 폴더를 만들지 않고, 이미 있을 때만 그 폴더에서 열기 */
+      let d=await vaultHandle();
+      if(d) for(const part of obsFolder(block).split('/').map(s=>s.trim()).filter(Boolean)) d=await d.getDirectoryHandle(part);
+      startIn=d||undefined;
+    }catch(e){ startIn=undefined; }
+    const [fh]=await window.showOpenFilePicker({id:'claudemd', ...(startIn?{startIn}:{}), multiple:false,
+      types:[{description:'Markdown 파일 (.md)', accept:{'text/markdown':['.md']}}]});
+    let perm=await fh.queryPermission({mode:'readwrite'});
+    if(perm!=='granted') perm=await fh.requestPermission({mode:'readwrite'});
+    if(perm!=='granted'){ showToast('이 파일에 쓸 권한이 없습니다.'); return false; }
+    await vaultPut('md:'+block.id, fh);
+    block.claudeMdFile=fh.name;
+    saveApp();
+    showToast(`${fh.name} 파일을 연결했습니다. '연결한 파일 업데이트'를 누르면 지침이 들어갑니다.`, {long:true});
+    return true;
+  }catch(e){
+    if(e && e.name!=='AbortError') showToast('파일을 연결하지 못했습니다: '+(e.message||e));
+    return false;
+  }
+}
+/* ③ 연결한 파일의 플래너 구간을 최신 지침으로 */
+const _claudeMdSaved={}; // 블록별로 마지막에 쓴 구간 — 같으면 다시 쓰지 않는다(자동 업데이트용)
+async function updateClaudeMd(interactive){
+  const block=currentBlock();
+  if(!S || !block || !block.claudeMdFile) { if(interactive) showToast('먼저 \'CLAUDE.md 파일 선택\'으로 파일을 연결해 주세요.'); return false; }
+  if(!interactive && !block.claudeMdAuto) return false;
+  if(!filePickSupported()) return false;
+  const section=claudeMdSection();
+  if(!interactive && _claudeMdSaved[block.id]===section) return false;
+  try{
+    const fh=await vaultGet('md:'+block.id);
+    if(!fh){ if(interactive) showToast('연결한 파일 정보가 이 브라우저에 없습니다. \'CLAUDE.md 파일 선택\'을 다시 해 주세요.'); return false; }
+    let perm=await fh.queryPermission({mode:'readwrite'});
+    if(perm!=='granted' && interactive) perm=await fh.requestPermission({mode:'readwrite'});
+    if(perm!=='granted'){ if(interactive) showToast('이 파일에 쓸 권한이 없습니다.'); return false; }
+    const prev=await (await fh.getFile()).text();
+    const next=mergeClaudeMd(prev, section);
+    if(next!==prev) await writeVaultFile(fh, next);
+    _claudeMdSaved[block.id]=section;
+    if(interactive) showToast(next===prev ? `${fh.name}은(는) 이미 최신입니다.` : `${fh.name}에 지침을 업데이트했습니다.`, {long:true});
+    return true;
+  }catch(e){
+    if(interactive) showToast('업데이트하지 못했습니다: '+(e.message||e));
     return false;
   }
 }
 let _claudeMdTimer=null;
-function scheduleClaudeMdSync(){ clearTimeout(_claudeMdTimer); _claudeMdTimer=setTimeout(()=>{ saveClaudeMd(false); }, 1200); }
+function scheduleClaudeMdSync(){ clearTimeout(_claudeMdTimer); _claudeMdTimer=setTimeout(()=>{ updateClaudeMd(false); }, 1200); }
 async function copyPlain(text, msg){
   try{ await navigator.clipboard.writeText(text); }
   catch(e){
@@ -4011,8 +4063,9 @@ function renderOnboarding(){
         if(instructionToggle && instructionToggle.textContent==='지침 열기') instructionToggle.click();
         return;
       }
-      if(it.action==='saveClaudeMd'){
-        saveClaudeMd(true).then(ok=>{ if(ok){ S.onboarding[it.key]=true; saveApp(); render(); } });
+      const vaultAct={makeFolders:makeBlockFolders, linkClaudeMd:linkClaudeMd, updateClaudeMd:()=>updateClaudeMd(true)}[it.action];
+      if(vaultAct){
+        vaultAct().then(ok=>{ if(ok){ S.onboarding[it.key]=true; saveApp(); render(); } });
         return;
       }
       const existing = wrap.querySelector('.opromptbox');
@@ -4942,8 +4995,13 @@ function renderPrompts(){
     <div class="instruction-actions">
       <button class="instruction-toggle" type="button">지침 열기</button>
       <button class="copybtn" type="button">전체 지침 복사</button>
-      <button class="instruction-toggle claudemd-save" type="button" title="블록 폴더의 CLAUDE.md에 바로 저장합니다 (Chrome·Edge)">CLAUDE.md에 저장</button>
     </div>
+    <div class="instruction-actions vault-actions">
+      <button class="instruction-toggle vault-mkdir" type="button" title="Vault에 블록 폴더와 정리본·족보·분석·자료 폴더를 만듭니다 (Chrome·Edge)">블록 폴더 만들기</button>
+      <button class="instruction-toggle vault-link" type="button" title="지침을 계속 갱신해 쓸 .md 파일을 직접 골라 연결합니다 (Chrome·Edge)">CLAUDE.md 파일 선택</button>
+      <button class="instruction-toggle vault-update" type="button" title="연결한 파일 안의 플래너 지침 구간을 최신으로 바꿉니다">연결한 파일 업데이트</button>
+    </div>
+    <div class="cphint vault-status"></div>
     <div class="instruction-body">
 
       <div class="instruction-sub" data-sub="reviews">
@@ -5000,9 +5058,22 @@ function renderPrompts(){
     }
   };
   instructionCard.querySelector('.copybtn').onclick=e=>copyText(customInstructions(),e.target);
-  instructionCard.querySelector('.claudemd-save').onclick=()=>{
-    saveClaudeMd(true).then(ok=>{ if(ok && S.onboarding){ S.onboarding.claudeMd=true; saveApp(); render(); } });
+  /* 블록 폴더 만들기 · CLAUDE.md 파일 선택 · 연결한 파일 업데이트 — 셋은 서로 독립 */
+  const doneOnb=key=>{ if(S.onboarding && S.onboarding[key]!==true){ S.onboarding[key]=true; saveApp(); } };
+  const vaultStatus=instructionCard.querySelector('.vault-status');
+  const paintVaultStatus=()=>{
+    const b=currentBlock();
+    const linked=b && b.claudeMdFile;
+    vaultStatus.innerHTML = linked
+      ? `연결된 파일: <b>${esc(b.claudeMdFile)}</b> · 자동 업데이트 <button class="linkbtn vault-auto" type="button">${b.claudeMdAuto?'켜짐 (끄기)':'꺼짐 (켜기)'}</button><br>업데이트는 파일 안의 '스터디플래너 지침' 구간만 바꾸고, 직접 쓴 나머지 내용은 그대로 둡니다. Chrome·Edge에서만 되며, 브라우저를 새로 열면 첫 업데이트 때 권한을 한 번 더 묻습니다.`
+      : `아직 연결한 파일이 없습니다. <b>CLAUDE.md 파일 선택</b>으로 지침을 넣을 .md 파일(보통 블록 폴더의 CLAUDE.md)을 고르세요. Chrome·Edge에서만 됩니다.`;
+    const au=vaultStatus.querySelector('.vault-auto');
+    if(au) au.onclick=()=>{ b.claudeMdAuto=!b.claudeMdAuto; saveApp(); paintVaultStatus(); showToast(b.claudeMdAuto?'강의 목록·학습 전략이 바뀌면 연결한 파일을 자동으로 업데이트합니다.':'자동 업데이트를 껐습니다. 필요할 때 \'연결한 파일 업데이트\'를 누르세요.', {long:true}); };
   };
+  paintVaultStatus();
+  instructionCard.querySelector('.vault-mkdir').onclick=()=>{ makeBlockFolders().then(ok=>{ if(ok){ doneOnb('vaultFolder'); render(); } }); };
+  instructionCard.querySelector('.vault-link').onclick=()=>{ linkClaudeMd().then(ok=>{ if(ok){ doneOnb('claudeMdLink'); render(); } }); };
+  instructionCard.querySelector('.vault-update').onclick=()=>{ updateClaudeMd(true).then(ok=>{ if(ok){ doneOnb('claudeMd'); render(); } }); };
 
   // 학습 전략 섹션: 수정/저장/취소
   const reviewsSub = instructionCard.querySelector('[data-sub="reviews"]');
@@ -7196,8 +7267,8 @@ function renderSettings(){
     ${hasBlock?`<div class="setrow"><label for="stObsFolder">블록 폴더 <span class="setsub">현재 블록</span></label><input id="stObsFolder" class="stin wide" type="text" maxlength="80" value="${esc(obsFolder(block))}"></div>`:''}
     <p class="sethint">Vault 이름을 넣으면 오늘 카드에 '옵시디언' 버튼이 생겨 그 강의 정리본(블록 폴더/정리본/nn강. 강의제목)을 바로 엽니다. 프롬프트의 {블록폴더}도 이 값으로 채워집니다.</p>
     ${hasBlock?`<div class="stacts" style="justify-content:flex-start"><button class="stbtn" type="button" id="stObsHome">블록 홈 노트 받기 (.md)</button><button class="stbtn" type="button" id="stObsHomeCopy">블록 홈 노트 복사</button></div>`:''}
-    <div class="stacts" style="justify-content:flex-start"><button class="stbtn" type="button" id="stVaultPick">Vault 폴더 연결 (CLAUDE.md 자동 저장)</button></div>
-    <p class="sethint">Chrome·Edge에서만 됩니다. Vault 폴더를 한 번 고르면 프롬프트 모음 탭의 'CLAUDE.md에 저장'이 블록 폴더(정리본·족보·분석·자료 포함)와 CLAUDE.md를 바로 만들고, 그 뒤로는 강의 목록·학습 전략이 바뀔 때마다 자동으로 다시 저장합니다. 브라우저를 다시 열면 첫 저장 때 권한을 한 번 더 묻습니다.</p>
+    <div class="stacts" style="justify-content:flex-start"><button class="stbtn" type="button" id="stVaultPick">Vault 폴더 연결 (폴더 만들기용)</button></div>
+    <p class="sethint">Chrome·Edge에서만 됩니다. Vault 폴더를 한 번 고르면 프롬프트 모음 탭의 '블록 폴더 만들기'가 블록 폴더와 정리본·족보·분석·자료 폴더를 만듭니다. 지침을 넣을 파일은 같은 카드의 'CLAUDE.md 파일 선택'으로 따로 고릅니다. 브라우저를 다시 열면 첫 사용 때 권한을 한 번 더 묻습니다.</p>
   </section>
 
   <section class="setsec" data-sec="display">
