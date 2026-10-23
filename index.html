@@ -2249,7 +2249,7 @@ function downloadText(filename, text){
 }
 /* ===== Vault에 직접 쓰기 =====
    Chrome·Edge의 File System Access API로 세 가지를 따로 한다(프롬프트 모음 탭 Custom instructions 카드의 버튼).
-   ① 블록 폴더 만들기: Vault 폴더를 한 번 연결해 두면 '{블록 폴더}/정리본·족보·분석·자료'를 만든다 (파일은 안 만듦)
+   ① 블록 폴더 만들기: Vault 폴더를 한 번 연결해 두면 '{블록 폴더}/정리본·족보·분석·자료'와 빈 CLAUDE.md(없을 때만)를 만든다
    ② CLAUDE.md 파일 선택: 지침을 계속 갱신해 쓸 .md 파일(보통 블록 폴더의 CLAUDE.md)을 직접 골라 연결한다
    ③ 연결한 파일 업데이트: 연결한 파일 안의 '스터디플래너 지침' 구간만 최신 지침으로 바꾼다 — 파일의 나머지
       내용(직접 쓴 안내 문구 등)은 건드리지 않는다. 구간이 없으면 파일 맨 끝에 붙인다.
@@ -2342,7 +2342,7 @@ async function listVaultFolders(){
 }
 async function writeVaultFile(fh, text){ const w=await fh.createWritable(); await w.write(text); await w.close(); }
 function currentBlock(){ return App.blocks.find(b=>b.id===App.active); }
-/* ① 블록 폴더 만들기 — 폴더만 만든다(CLAUDE.md 같은 파일은 만들지 않음) */
+/* ① 블록 폴더 만들기 — 하위 폴더와, 없을 때만 빈 CLAUDE.md를 만든다 */
 async function makeBlockFolders(){
   const block=currentBlock();
   if(!S || !block) return false;
@@ -2359,11 +2359,15 @@ async function makeBlockFolders(){
     const go=async()=>{
       const dir=await vaultDir(root, folder);
       for(const sub of VAULT_SUBFOLDERS) await dir.getDirectoryHandle(sub, {create:true});
-      showToast(`${where} 폴더를 ${exists?'확인했습니다 (빠진 하위 폴더만 채움)':'만들었습니다'} — ${VAULT_SUBFOLDERS.join(' · ')}`, {long:true});
+      /* 지침을 넣을 CLAUDE.md가 없으면 빈 파일을 만든다(이미 있으면 그대로 — create:true는 기존 파일 내용을 지우지 않음).
+         그래야 새 블록에서 바로 'CLAUDE.md 파일 선택'을 할 수 있다 */
+      let madeMd=false;
+      try{ await dir.getFileHandle('CLAUDE.md'); }catch(e){ await dir.getFileHandle('CLAUDE.md', {create:true}); madeMd=true; }
+      showToast(`${where} 폴더를 ${exists?'확인했습니다 (빠진 하위 폴더만 채움)':'만들었습니다'} — ${VAULT_SUBFOLDERS.join(' · ')}${madeMd?' · 빈 CLAUDE.md':''}. 다음은 'CLAUDE.md 파일 선택'.`, {long:true});
       if(S.onboarding){ S.onboarding.vaultFolder=true; saveApp(); render(); }
     };
     if(exists){ await go(); return true; }
-    askConfirm('이 위치에 블록 폴더를 만들까요?', `${where}\n(그 안에 ${VAULT_SUBFOLDERS.join(' · ')} 폴더)`, ()=>{ go().catch(e=>showToast('폴더를 만들지 못했습니다: '+(e.message||e))); }, '만들기');
+    askConfirm('이 위치에 블록 폴더를 만들까요?', `${where}\n(그 안에 ${VAULT_SUBFOLDERS.join(' · ')} 폴더와 빈 CLAUDE.md)`, ()=>{ go().catch(e=>showToast('폴더를 만들지 못했습니다: '+(e.message||e))); }, '만들기');
     return false;
   }catch(e){
     if(e && e.name!=='AbortError') showToast('폴더를 만들지 못했습니다: '+(e.message||e));
@@ -5049,7 +5053,7 @@ function renderPrompts(){
       <button class="copybtn" type="button">전체 지침 복사</button>
     </div>
     <div class="instruction-actions vault-actions">
-      <button class="instruction-toggle vault-mkdir" type="button" title="Vault에 블록 폴더와 정리본·족보·분석·자료 폴더를 만듭니다 (Chrome·Edge)">블록 폴더 만들기</button>
+      <button class="instruction-toggle vault-mkdir" type="button" title="Vault에 블록 폴더와 정리본·족보·분석·자료 폴더, 빈 CLAUDE.md를 만듭니다 (Chrome·Edge)">블록 폴더 만들기</button>
       <button class="instruction-toggle vault-link" type="button" title="지침을 계속 갱신해 쓸 .md 파일을 직접 골라 연결합니다 (Chrome·Edge)">CLAUDE.md 파일 선택</button>
       <button class="instruction-toggle vault-update" type="button" title="연결한 파일 안의 플래너 지침 구간을 최신으로 바꿉니다">연결한 파일 업데이트</button>
     </div>
