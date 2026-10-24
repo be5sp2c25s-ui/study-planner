@@ -167,6 +167,26 @@
   .panel{background:var(--surface);border:1px solid transparent;border-radius:16px;padding:15px 16px;box-shadow:var(--sh-2)}
   .panel h2{font-family:var(--sans);font-weight:800;font-size:13px;margin:0 0 3px;color:var(--ink)}
   .panel .hint{font-size:11px;color:var(--muted);margin:0 0 9px}
+  /* 시작 가이드 탭 — 블록을 만든 첫날부터 첫 강의(신규 카드)까지 */
+  .guide{display:flex;flex-direction:column;gap:12px}
+  .guide .gd-lead{font-size:12px;line-height:1.6;color:var(--muted);margin:0}
+  .guide details.gd{background:var(--surface);border-radius:16px;padding:14px 16px;box-shadow:var(--sh-2)}
+  .guide details.gd > summary{cursor:pointer;font-family:var(--disp);font-weight:800;font-size:13px;color:var(--ink);list-style:none;display:flex;justify-content:space-between;gap:8px}
+  .guide details.gd > summary::-webkit-details-marker{display:none}
+  .guide details.gd > summary small{font-family:var(--sans);font-weight:600;font-size:11px;color:var(--muted)}
+  .guide ol.gd-steps{list-style:none;margin:12px 0 0;padding:0;counter-reset:gd}
+  .guide ol.gd-steps > li{counter-increment:gd;position:relative;padding:0 0 12px 30px;margin:0 0 12px;border-bottom:1px solid var(--line);font-size:12px;line-height:1.6;color:var(--ink)}
+  .guide ol.gd-steps > li:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+  .guide ol.gd-steps > li::before{content:counter(gd);position:absolute;left:0;top:1px;width:20px;height:20px;border-radius:50%;background:var(--ink);color:var(--surface);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .guide .gd-t{font-weight:800;font-size:12.5px}
+  .guide .gd-where{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:20px;background:var(--bg);color:var(--muted)}
+  .guide .gd-why{color:var(--muted);margin-top:2px}
+  .guide .gd-do{margin-top:4px}
+  .guide .gd-tip{margin-top:6px;padding:7px 10px;border-radius:10px;background:var(--bg);font-size:11.5px;line-height:1.55}
+  .guide kbd,.guide code{font-family:var(--mono,ui-monospace,Consolas,monospace);font-size:11px;background:var(--bg);border-radius:5px;padding:0 5px}
+  .guide table.gd-tbl{width:100%;border-collapse:collapse;margin-top:10px;font-size:11.5px;line-height:1.5}
+  .guide table.gd-tbl th,.guide table.gd-tbl td{text-align:left;vertical-align:top;padding:6px 8px;border-bottom:1px solid var(--line)}
+  .guide table.gd-tbl th{font-weight:800;color:var(--muted);white-space:nowrap}
   .card{border:1px solid transparent;border-radius:12px;padding:10px 11px;background:var(--surface);margin-bottom:8px;box-shadow:var(--sh-1);transition:transform var(--t-mid) var(--ease),box-shadow var(--t-mid) var(--ease)}
   .card:hover{transform:translateY(-1px);box-shadow:var(--sh-2)}
   .card .top{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:3px}
@@ -1109,6 +1129,7 @@
       <button class="tab" data-tab="plan">학습 계획</button>
       <button class="tab" data-tab="list">전체 강의</button>
       <button class="tab" data-tab="prompts">프롬프트 모음</button>
+      <button class="tab" data-tab="guide">시작 가이드</button>
     </div>
 
     <div class="panelset on" id="tab-today">
@@ -1178,6 +1199,146 @@
 
     <div class="panelset" id="tab-prompts">
       <div class="plib" id="plib"></div>
+    </div>
+
+    <div class="panelset" id="tab-guide">
+      <div class="guide">
+        <p class="gd-lead">새 블록을 만든 첫날부터 첫 강의를 끝낼 때까지의 순서입니다. 내용은 <b>옵시디언</b>, 일정은 <b>플래너</b>, 만드는 일은 <b>Claude Code</b>가 맡습니다. 한 번 해 두면 다음 블록에서는 1번~10번만 반복하면 됩니다.</p>
+
+        <details class="gd" open>
+          <summary><span>① 블록을 만든 첫날 — 사전 준비</span><small>2~3시간 · 블록당 한 번</small></summary>
+          <ol class="gd-steps">
+            <li>
+              <div class="gd-t">블록 만들기<span class="gd-where">플래너 상단</span></div>
+              <div class="gd-why">블록 이름·기간·시험일이 있어야 크레딧이 날짜별로 나뉩니다.</div>
+              <div class="gd-do">블록 이름(예: 감염과 면역 1차), 시작일, 시험일을 입력합니다. 시험 전 비워 둘 날(기본 2일)은 설정 → 학습 계획에서 바꿀 수 있습니다.</div>
+            </li>
+            <li>
+              <div class="gd-t">강의 한 번에 추가<span class="gd-where">전체 강의 탭</span></div>
+              <div class="gd-why">강의를 하나씩 입력하면 오래 걸립니다. 시간표 PDF를 Claude가 읽어 줄글로 바꿔 줍니다.</div>
+              <div class="gd-do"><b>여러 강의 한 번에 추가</b>를 열고 <b>시간표 PDF용 프롬프트 복사</b> → 시간표 PDF와 함께 Claude에 붙여넣기 → 돌려받은 줄글을 칸에 붙여넣기 → 미리보기를 확인하고 <b>추가</b>.</div>
+              <div class="gd-tip"><code>CBL 6</code> · <code>TBL 1</code> · <code>병리학 실습 1</code>처럼 이름이 있는 번호도 그대로 인식합니다. 잘못 넣었으면 <b>시간표 비우기</b>로 강의를 모두 지우고(과제는 남음, 직후 되돌리기 가능) 다시 붙여넣으세요.</div>
+            </li>
+            <li>
+              <div class="gd-t">강의별 설정 확인<span class="gd-where">전체 강의 탭 → 수정</span></div>
+              <div class="gd-why">시험 문항 수는 예상 기출문제 개수(문항 수 × 3)를 정하고, 난이도는 크레딧을 늘리거나 줄입니다.</div>
+              <div class="gd-do">기본값과 다른 강의만 <b>수정</b>에서 시험 문항 수·난이도(쉬움 ×0.75 / 어려움 ×1.5)를 고칩니다.</div>
+            </li>
+            <li>
+              <div class="gd-t">Vault 블록 폴더 만들기<span class="gd-where">설정 → 옵시디언 → 사전 준비</span></div>
+              <div class="gd-why">Claude Code와 옵시디언이 같은 폴더를 봐야 Claude가 저장한 노트가 옵시디언에 바로 나타납니다.</div>
+              <div class="gd-do">설정 → 옵시디언에서 <b>Vault 폴더 고르기</b>(jaesuh)와 <b>블록 폴더</b>(<code>1학년 2학기/블록 이름</code>)를 정한 뒤, 사전 준비의 <b>폴더 만들기</b>를 누릅니다. 위치를 보여 주고 확인받은 뒤 <code>정리본 · 족보 · 분석 · 자료</code> 폴더와 빈 <code>CLAUDE (블록 이름) 지침.md</code>가 생깁니다.</div>
+              <div class="gd-tip">Chrome·Edge에서만 됩니다(VS Code 미리보기·사파리 X). 이전 블록의 <code>정리본/전날 요약.md</code>가 있으면 새 블록 정리본 폴더에 복사해 두세요.</div>
+            </li>
+            <li>
+              <div class="gd-t">학습 전략 생성<span class="gd-where">사전 준비 · Claude Code</span></div>
+              <div class="gd-why">교수별 출제 경향·짤족/탈족·시간을 쓸 파트를 미리 알고 시작하면 정리본의 강조점이 달라집니다.</div>
+              <div class="gd-do">학기 폴더의 <code>교수님 후기.xlsx</code>를 확인하고, <b>학습 전략 생성</b> 프롬프트를 VS Code의 Claude Code에 붙여넣습니다. 그 블록 교수님 후기만 골라 전략 코드블록을 보여 주고, 확인하면 세부 사실을 <code>분석/교수 후기 정리.md</code>로 저장합니다.</div>
+            </li>
+            <li>
+              <div class="gd-t">학습 전략 붙여넣기<span class="gd-where">프롬프트 모음 탭</span></div>
+              <div class="gd-do">Claude가 보여 준 전략 코드블록을 <b>학습 전략 붙여넣기</b>에 저장합니다. 이후 만드는 모든 정리본이 이 전략을 참고합니다.</div>
+            </li>
+            <li>
+              <div class="gd-t">CLAUDE (블록 이름) 지침.md 연결 · 업데이트<span class="gd-where">사전 준비 → 파일 선택 → 업데이트</span></div>
+              <div class="gd-why">Claude Code는 폴더의 지침 파일을 자동으로 읽습니다. 여기에 강의 목록·학습 전략·정리본 형식이 들어가야 이름 규칙이 어긋나지 않습니다.</div>
+              <div class="gd-do"><b>파일 선택</b>으로 4번에서 만든 지침 파일을 고르고 <b>업데이트</b>를 누릅니다. 플래너는 파일 안의 "스터디플래너 지침" 구간만 바꾸고, 직접 쓴 내용은 그대로 둡니다.</div>
+              <div class="gd-tip">강의를 추가·수정하거나 학습 전략을 바꾼 뒤에는 업데이트를 다시 누르거나 <b>자동 업데이트</b>를 켜 두세요. 지침을 고치고 싶으면 파일이 아니라 플래너에서 고칩니다.</div>
+            </li>
+            <li>
+              <div class="gd-t">족보 노트 만들기<span class="gd-where">사전 준비 · Claude Code</span></div>
+              <div class="gd-why">족보를 문항 하나당 노트 하나로 만들어 두면, 정리본에 <code>[[2023 Q54]]</code> 링크로 이어집니다.</div>
+              <div class="gd-do">족보 PDF를 <code>자료</code> 폴더에 넣고 <b>족보 노트 만들기</b> 프롬프트를 붙여넣은 뒤 첫 줄에 파일 이름을 적습니다. 먼저 족보 첫 페이지 강의 구성과 올해 강의 목록 대조표를 보여 주니 확인하세요. <b>해설은 쓰지 않습니다</b> — 해설은 각 강의의 신규 카드에서 채웁니다.</div>
+            </li>
+            <li>
+              <div class="gd-t">족보 출제 패턴 분석<span class="gd-where">사전 준비 · Claude Code</span></div>
+              <div class="gd-do"><b>족보 출제 패턴 분석</b>을 붙여넣어 요약 표를 확인하고 <code>분석/족보 분석.md</code>로 저장합니다. 마지막의 교수별 한 줄 요약을 학습 전략 칸에 추가하면 지침 파일은 자동으로 갱신됩니다.</div>
+            </li>
+            <li>
+              <div class="gd-t">블록 홈 노트 받기<span class="gd-where">설정 → 옵시디언</span></div>
+              <div class="gd-do"><b>블록 홈 노트 받기</b>로 받은 <code>00 블록 홈.md</code>를 블록 폴더에 넣습니다. 일주일에 한 번 다시 받아 덮어쓰면 진도표가 갱신됩니다.</div>
+            </li>
+          </ol>
+          <div class="gd-tip">4~9번은 오늘 탭의 <b>블록 사전 준비</b> 체크리스트에 같은 순서로 들어 있고, 줄마다 프롬프트 복사·폴더 만들기·파일 선택·업데이트 버튼이 붙어 있습니다. 한 번에 다 못 해도 체크하면서 이어서 하면 됩니다.</div>
+        </details>
+
+        <details class="gd" open>
+          <summary><span>② 첫 강의 시작 — 신규 카드</span><small>강의 하나에 보통 2~3시간</small></summary>
+          <p class="gd-lead" style="margin-top:8px">올해 강의록이 올라온 날(보통 수업 전)에 하는 일입니다. 하루 시작은 플래너 → VS Code → 옵시디언 순서로 세 프로그램을 엽니다.</p>
+          <ol class="gd-steps">
+            <li>
+              <div class="gd-t">강의록 올라옴 체크<span class="gd-where">오늘 탭</span></div>
+              <div class="gd-do">ETL에 새 강의록이 올라왔으면 <b>미리 신규 학습하기</b>나 전체 강의 탭의 <b>강의록 올라옴</b>을 누릅니다. 그 강의가 오늘 계획의 최우선이 됩니다. 아직 못 올라온 강의는 "강의록 대기"로 표시되고 수업일 전에는 자동 배정되지 않습니다.</div>
+            </li>
+            <li>
+              <div class="gd-t">자료 준비<span class="gd-where">Vault 자료 폴더</span></div>
+              <div class="gd-do">올해 강의록과 작년 필기를 <code>블록 폴더/자료</code>에 저장합니다. 파일 이름에는 강의 번호를 넣습니다: <code>26강 강의록.pdf</code> · <code>26강 작년 필기.pdf</code>.</div>
+            </li>
+            <li>
+              <div class="gd-t">프롬프트 복사<span class="gd-where">오늘 카드 → 프롬프트 복사</span></div>
+              <div class="gd-do"><b>신규 인코딩 (올해 강의록 + 작년 필기)</b>를 고릅니다. 강의 이름·교수·문항 수·폴더가 자동으로 채워져 복사됩니다. 올해 필기까지 이미 올라왔다면 <b>신규 인코딩 (올해 필기)</b>.</div>
+            </li>
+            <li>
+              <div class="gd-t">Claude Code에 붙여넣기<span class="gd-where">VS Code</span></div>
+              <div class="gd-do">붙여넣은 프롬프트 첫 줄의 "파일 이름을 여기에" 자리에 파일 이름을 적습니다: <code>26강 강의록.pdf, 26강 작년 필기.pdf</code></div>
+            </li>
+            <li>
+              <div class="gd-t">목차 확인</div>
+              <div class="gd-do">Claude가 올해와 작년 슬라이드 차이표, 대단원 목차·우선순위 표를 보여 줍니다. 빠진 게 있으면 말하고, 괜찮으면 "진행해"라고 답합니다.</div>
+            </li>
+            <li>
+              <div class="gd-t">노트 생성</div>
+              <div class="gd-do">Claude가 <code>정리본/26강. 기타항생제.md</code>를 만들고, 강의록 뒤 족보 문항의 해설을 족보 노트에 채웁니다. 끝나면 바뀐 파일 목록과 '족보 해설 채운 문항' 목록을 알려 줍니다. 노트 맨 끝의 '올해 필기에서 확인할 것' 목록은 나중에 보완 카드에서 씁니다.</div>
+              <div class="gd-tip">노트를 만들거나 고칠 때는 항상 <b>먼저 보여 주고 → 내가 확인하면 → 노트에 반영 → 바뀐 파일 목록</b> 순서입니다. 표가 마음에 안 들면 반영 전에 고쳐 달라고 하세요.</div>
+            </li>
+            <li>
+              <div class="gd-t">옵시디언에서 읽기<span class="gd-where">카드의 옵시디언 버튼 · Ctrl+O</span></div>
+              <div class="gd-do">오른쪽 사이드바에 <b>개요</b>를 띄우고 챕터 순서대로 읽습니다. 요약 콜아웃까지 읽으면 챕터 하나가 끝입니다.</div>
+              <div class="gd-tip">족보 라벨 <code>[[2023 Q54]]</code>은 Ctrl+마우스 올리기로 <b>미리보기만</b> 하세요(풀이는 1차 때). 그림 자리(figure)에는 강의록 그림을 캡처해 붙여넣고, 이해 안 되거나 더 넣고 싶은 건 뽀모도로 창의 메모에 한 줄씩 적어 흐름을 끊지 않습니다.</div>
+            </li>
+            <li>
+              <div class="gd-t">예상 기출문제 풀기<span class="gd-where">카드 → 프롬프트 복사 → 예상 기출문제</span></div>
+              <div class="gd-do">Claude Code에 붙여넣으면 시험 문항 수 × 3만큼(예: 3문항 → 9문제) 한 번에 나옵니다. 노트를 덮고 전부 답한 뒤 보내면 채점·출제 근거·틀린 것만 재설명·재출제를 해 줍니다. 메모해 둔 것은 "이거 정리본에 넣어줘"라고 하면 마지막에 '정리본에 넣을 것' 목록을 보여 주고, 확인하면 노트에 넣어 줍니다.</div>
+            </li>
+            <li>
+              <div class="gd-t">완료 체크<span class="gd-where">오늘 카드 → 완료</span></div>
+              <div class="gd-do">신규 카드를 <b>완료</b>하면 1차·2차 복습 날짜가 자동으로 잡힙니다(1차는 다음 날, 2차는 3일 뒤가 기본).</div>
+            </li>
+          </ol>
+          <div class="gd-tip">공부를 시작할 때 🍅 <b>25분 집중</b>을 켜고 카드의 ▶ 타이머도 함께 켜면 걸린 시간이 기록되어, 나중에 크레딧을 실측 비율로 맞추는 데 쓰입니다.</div>
+        </details>
+
+        <details class="gd">
+          <summary><span>③ 그다음 단계 — 보완 · 1차 · 2차</span><small>읽기가 아니라 꺼내 보기</small></summary>
+          <table class="gd-tbl">
+            <tr><th>보완 (0.5)</th><td>미리 인코딩한 강의의 올해 필기가 올라온 날. <b>정리본을 먼저 읽고</b> 올해 필기를 넘기며 비교 → 올해 필기를 <code>자료</code>에 저장 → <b>강의록 보완</b> 프롬프트 → Claude가 달라진 점 표를 보여 주면 "반영해줘".</td></tr>
+            <tr><th>1차 (0.5)</th><td>신규 다음 날. 열기 전 2~3분은 <b>개요만 보고</b> 챕터마다 핵심을 떠올리기 → 족보 풀기(문제와 선지만 보고 답 → 정답 콜아웃 펼치기) → <b>족보 오답 정리</b>("틀린 문항: 번호") → <b>앵커 인출 훈련</b>으로 카드 만들기.</td></tr>
+            <tr><th>2차 (0.25)</th><td>신규 3일 뒤. 카드 복습 → <b>백지 인출 점검</b>(정리본을 덮고 챕터 제목만 보고 기억나는 것 말하기) → <code>오답</code> 태그가 붙은 족보 다시 풀기 → 그래도 막힌 챕터만 요약 콜아웃 → 본문.</td></tr>
+          </table>
+        </details>
+
+        <details class="gd">
+          <summary><span>④ 매일 시작과 마무리</span><small>순서가 중요합니다</small></summary>
+          <table class="gd-tbl">
+            <tr><th>시작 5분</th><td>플래너 · VS Code · 옵시디언 열기. ETL에 새 강의록이 있는지 확인하고 <b>강의록 올라옴</b> 체크.</td></tr>
+            <tr><th>계획 5분</th><td>오늘 탭에서 진도와 카드 목록 확인. 못 하는 항목은 <b>미루기</b>, 순서는 ⋮⋮를 끌어서 바꾸기.</td></tr>
+            <tr><th>공부</th><td>카드를 하나씩: 🍅 25분 집중 → 메모는 한 줄씩 → 끝나면 <b>완료</b>.</td></tr>
+            <tr><th>마무리 15분</th><td>옵시디언에서 오늘 나온 카드만 복습 → 메모함을 <b>해결 / 계획에 추가 / 정리본에 반영</b>으로 정리(여러 개면 전체 복사 후 "이 메모들 해당 정리본에 반영해줘") → 플래너에서 남은 항목은 미루기.</td></tr>
+          </table>
+          <div class="gd-tip">기억할 세 문장 — ① 내용은 옵시디언, 일정은 플래너, 만드는 일은 Claude Code. ② 강의록이 올라오면 바로 "강의록 올라옴", 못 하면 미루기. ③ 복습은 다시 읽기가 아니라 꺼내 보기.</div>
+        </details>
+
+        <details class="gd">
+          <summary><span>⑤ 막혔을 때</span></summary>
+          <table class="gd-tbl">
+            <tr><th>노트가 옵시디언에 안 보임</th><td>왼쪽 파일 목록에서 폴더를 접었다 폅니다. 그래도 없으면 Claude Code에 "어느 경로에 저장했어?" 하고 묻고, 설정의 블록 폴더와 같은지 확인.</td></tr>
+            <tr><th>Claude가 형식을 안 지킴</th><td>"템플릿 폴더의 정리본 템플릿과 블록 지침 다시 읽고 형식 맞춰줘". 자주 그러면 프롬프트 모음 탭에서 <b>연결한 파일 업데이트</b>.</td></tr>
+            <tr><th>정리본을 통째로 다시 씀</th><td>옵시디언 <kbd>Ctrl</kbd>+<kbd>P</kbd> → "파일 복구". 앞으로는 "필요한 부분만 고쳐줘"라고 분명히.</td></tr>
+            <tr><th>옵시디언 버튼이 안 열림</th><td>Vault 이름이 <code>jaesuh</code>인지, 블록 폴더 경로가 맞는지 확인. 정리본 노트가 아직 없으면 열 노트가 없습니다.</td></tr>
+            <tr><th>실수로 체크·삭제</th><td>알림의 <b>되돌리기</b> 또는 <kbd>Ctrl</kbd>+<kbd>Z</kbd>.</td></tr>
+          </table>
+        </details>
+      </div>
     </div>
   </div>
 </div>
@@ -1262,7 +1423,7 @@
     #vfTree .vfempty{color:var(--muted);padding:4px 8px;font-size:11px;font-weight:500}
   </style>
   <div id="vfTree"></div>
-  <label style="display:flex;align-items:center;gap:7px;margin:10px 0 4px;font-size:12px;font-weight:600"><input type="checkbox" id="vfMd"> 빈 CLAUDE.md도 함께 만들기 (이미 있으면 그대로)</label>
+  <label style="display:flex;align-items:center;gap:7px;margin:10px 0 4px;font-size:12px;font-weight:600"><input type="checkbox" id="vfMd"> 빈 CLAUDE (블록 이름) 지침.md도 함께 만들기 (이미 있으면 그대로)</label>
   <div class="nbstatus" id="vfNote" style="margin-top:6px"></div>
   <div class="acts">
     <button class="no" id="vfReset" type="button">기본값으로</button>
@@ -1913,7 +2074,7 @@ const ONBOARD_ITEMS = [
     }
   },
   {key:'pasteStrategy', label:'학습 전략을 프롬프트 모음 탭 \'학습 전략 붙여넣기\'에 저장', action:'openPrompts', btn:'열기'},
-  {key:'claudeMdLink', label:'지침을 넣을 CLAUDE.md 파일 선택 (연결)', action:'linkClaudeMd', btn:'파일 선택'},
+  {key:'claudeMdLink', label:'지침을 넣을 CLAUDE (블록 이름) 지침.md 파일 선택 (연결)', action:'linkClaudeMd', btn:'파일 선택'},
   {key:'claudeMd', label:'연결한 파일에 지침 업데이트', action:'updateClaudeMd', btn:'업데이트'},
   {key:'jokboNotes', label:'족보 노트 만들기 (해설 없이 문항만)', get prompt(){ return builtinPromptText('pi', PI_TEXT); }},
   {key:'jokboAnalysis', label:'족보 출제 패턴 분석 → 교수별 한 줄 요약을 학습 전략에 추가', get prompt(){ return builtinPromptText('pj', PJ_TEXT); }},
@@ -2006,7 +2167,7 @@ const CUSTOM_INSTRUCTIONS_TEMPLATE = `### 과목 설정 (블록마다 이 부분
 아래 모든 규칙의 {과목명}은 위 설정값으로 읽어.
 
 ### 역할
-너는 {과목명}을 전공 지식이 없는 사람도 한 번에 이해하도록 쉽고 웃기고 명쾌하게 가르치는 '세계 최고의 {과목명} 교수'야. 이 블록 폴더는 {과목명} 블록(2~3주 집중 학습 후 시험 1회) 공부 전용이야. 나는 VS Code의 Claude Code로 옵시디언 Vault를 열고 너와 작업해 — 이 지침은 블록 폴더의 CLAUDE.md야. 목표는 '한 번 이해하고 끝'이 아니라 장기 기억 — 재독이 아니라 인출로 공부해.
+너는 {과목명}을 전공 지식이 없는 사람도 한 번에 이해하도록 쉽고 웃기고 명쾌하게 가르치는 '세계 최고의 {과목명} 교수'야. 이 블록 폴더는 {과목명} 블록(2~3주 집중 학습 후 시험 1회) 공부 전용이야. 나는 VS Code의 Claude Code로 옵시디언 Vault를 열고 너와 작업해 — 이 지침은 블록 폴더의 CLAUDE ({과목명}) 지침.md야. 목표는 '한 번 이해하고 끝'이 아니라 장기 기억 — 재독이 아니라 인출로 공부해.
 
 ### 전체 학습 흐름
 | 단계 | 시점 | 담당 | 내용 |
@@ -2404,8 +2565,8 @@ function downloadText(filename, text){
 }
 /* ===== Vault에 직접 쓰기 =====
    Chrome·Edge의 File System Access API로 세 가지를 따로 한다(프롬프트 모음 탭 Custom instructions 카드의 버튼).
-   ① 블록 폴더 만들기: Vault 폴더를 한 번 연결해 두면 '{블록 폴더}/정리본·족보·분석·자료'와 빈 CLAUDE.md(없을 때만)를 만든다
-   ② CLAUDE.md 파일 선택: 지침을 계속 갱신해 쓸 .md 파일(보통 블록 폴더의 CLAUDE.md)을 직접 골라 연결한다
+   ① 블록 폴더 만들기: Vault 폴더를 한 번 연결해 두면 '{블록 폴더}/정리본·족보·분석·자료'와 빈 CLAUDE (블록 이름) 지침.md(없을 때만)를 만든다
+   ② CLAUDE (블록 이름) 지침.md 파일 선택: 지침을 계속 갱신해 쓸 .md 파일(보통 블록 폴더의 CLAUDE (블록 이름) 지침.md)을 직접 골라 연결한다
    ③ 연결한 파일 업데이트: 연결한 파일 안의 '스터디플래너 지침' 구간만 최신 지침으로 바꾼다 — 파일의 나머지
       내용(직접 쓴 안내 문구 등)은 건드리지 않는다. 구간이 없으면 파일 맨 끝에 붙인다.
    '자동 업데이트'를 켜 두면 강의 목록·학습 전략이 바뀔 때마다 조용히 ③을 한다(브라우저가 쓰기 권한을 이미 준 상태일 때만).
@@ -2610,7 +2771,7 @@ function openFolderLayoutModal(){
     if(list.join('\n')===VAULT_SUBFOLDERS.join('\n')) delete App.vaultSubfolders; else App.vaultSubfolders=list;
     if(md.checked) delete App.vaultMakeMd; else App.vaultMakeMd=false;
     saveApp(); close(); render();
-    showToast(`블록 폴더 구성을 저장했습니다 — ${list.length?list.join(' · '):'하위 폴더 없음'}${md.checked?' · 빈 CLAUDE.md':''}`, {long:true});
+    showToast(`블록 폴더 구성을 저장했습니다 — ${list.length?list.join(' · '):'하위 폴더 없음'}${md.checked?' · 빈 CLAUDE (블록 이름) 지침.md':''}`, {long:true});
   };
   m.classList.add('on');
 }
@@ -2637,7 +2798,9 @@ async function listVaultFolders(){
 }
 async function writeVaultFile(fh, text){ const w=await fh.createWritable(); await w.write(text); await w.close(); }
 function currentBlock(){ return App.blocks.find(b=>b.id===App.active); }
-/* ① 블록 폴더 만들기 — 하위 폴더와, 없을 때만 빈 CLAUDE.md를 만든다 */
+/* 블록 지침 파일 이름 — 'CLAUDE (블록 이름) 지침.md' */
+function blockMdName(block){ return `CLAUDE (${String((block && block.name) || '').replace(/[\\\\/:*?"<>|#^\[\]]/g,' ').replace(/\s+/g,' ').trim()}) 지침.md`; }
+/* ① 블록 폴더 만들기 — 하위 폴더와, 없을 때만 빈 지침 파일을 만든다 */
 async function makeBlockFolders(){
   const block=currentBlock();
   if(!S || !block) return false;
@@ -2651,19 +2814,19 @@ async function makeBlockFolders(){
     let exists=true, d=root;
     for(const part of folder.split('/').filter(Boolean)){ try{ d=await d.getDirectoryHandle(part); }catch(e){ exists=false; break; } }
     const where=`${root.name} / ${folder.split('/').filter(Boolean).join(' / ')}`;
-    const subs=vaultSubfolders(), wantMd=vaultMakeMd();
+    const subs=vaultSubfolders(), wantMd=vaultMakeMd(), mdName=blockMdName(block);
     const go=async()=>{
       const dir=await vaultDir(root, folder);
       for(const sub of subs) await vaultDir(dir, sub); // 'Vault 폴더 구성'에서 정한 하위 폴더 (/ 로 안쪽 폴더도)
-      /* 지침을 넣을 CLAUDE.md가 없으면 빈 파일을 만든다(이미 있으면 그대로 — create:true는 기존 파일 내용을 지우지 않음).
-         그래야 새 블록에서 바로 'CLAUDE.md 파일 선택'을 할 수 있다 */
+      /* 지침을 넣을 CLAUDE (블록 이름) 지침.md가 없으면 빈 파일을 만든다(이미 있으면 그대로 — create:true는 기존 파일 내용을 지우지 않음).
+         그래야 새 블록에서 바로 'CLAUDE (블록 이름) 지침.md 파일 선택'을 할 수 있다 */
       let madeMd=false;
-      if(wantMd){ try{ await dir.getFileHandle('CLAUDE.md'); }catch(e){ await dir.getFileHandle('CLAUDE.md', {create:true}); madeMd=true; } }
-      showToast(`${where} 폴더를 ${exists?'확인했습니다 (빠진 하위 폴더만 채움)':'만들었습니다'}${subs.length?' — '+subs.join(' · '):''}${madeMd?' · 빈 CLAUDE.md':''}.${wantMd?" 다음은 'CLAUDE.md 파일 선택'.":''}`, {long:true});
+      if(wantMd){ try{ await dir.getFileHandle(mdName); }catch(e){ await dir.getFileHandle(mdName, {create:true}); madeMd=true; } }
+      showToast(`${where} 폴더를 ${exists?'확인했습니다 (빠진 하위 폴더만 채움)':'만들었습니다'}${subs.length?' — '+subs.join(' · '):''}${madeMd?' · 빈 '+mdName:''}.${wantMd?" 다음은 'CLAUDE (블록 이름) 지침.md 파일 선택'.":''}`, {long:true});
       if(S.onboarding){ S.onboarding.vaultFolder=true; saveApp(); render(); }
     };
     if(exists){ await go(); return true; }
-    askConfirm('이 위치에 블록 폴더를 만들까요?', `${where}\n(그 안에 ${subs.length?subs.join(' · ')+' 폴더':'하위 폴더 없음'}${wantMd?(subs.length?'와 ':', ')+'빈 CLAUDE.md':''})`, ()=>{ go().catch(e=>showToast('폴더를 만들지 못했습니다: '+(e.message||e))); }, '만들기');
+    askConfirm('이 위치에 블록 폴더를 만들까요?', `${where}\n(그 안에 ${subs.length?subs.join(' · ')+' 폴더':'하위 폴더 없음'}${wantMd?(subs.length?'와 ':', ')+'빈 '+mdName:''})`, ()=>{ go().catch(e=>showToast('폴더를 만들지 못했습니다: '+(e.message||e))); }, '만들기');
     return false;
   }catch(e){
     if(e && e.name!=='AbortError') showToast('폴더를 만들지 못했습니다: '+(e.message||e));
@@ -2701,14 +2864,14 @@ async function linkClaudeMd(){
 const _claudeMdSaved={}; // 블록별로 마지막에 쓴 구간 — 같으면 다시 쓰지 않는다(자동 업데이트용)
 async function updateClaudeMd(interactive){
   const block=currentBlock();
-  if(!S || !block || !block.claudeMdFile) { if(interactive) showToast('먼저 \'CLAUDE.md 파일 선택\'으로 파일을 연결해 주세요.'); return false; }
+  if(!S || !block || !block.claudeMdFile) { if(interactive) showToast('먼저 \'CLAUDE (블록 이름) 지침.md 파일 선택\'으로 파일을 연결해 주세요.'); return false; }
   if(!interactive && !block.claudeMdAuto) return false;
   if(!filePickSupported()) return false;
   const section=claudeMdSection();
   if(!interactive && _claudeMdSaved[block.id]===section) return false;
   try{
     const fh=await vaultGet('md:'+block.id);
-    if(!fh){ if(interactive) showToast('연결한 파일 정보가 이 브라우저에 없습니다. \'CLAUDE.md 파일 선택\'을 다시 해 주세요.'); return false; }
+    if(!fh){ if(interactive) showToast('연결한 파일 정보가 이 브라우저에 없습니다. \'CLAUDE (블록 이름) 지침.md 파일 선택\'을 다시 해 주세요.'); return false; }
     let perm=await fh.queryPermission({mode:'readwrite'});
     if(perm!=='granted' && interactive) perm=await fh.requestPermission({mode:'readwrite'});
     if(perm!=='granted'){ if(interactive) showToast('이 파일에 쓸 권한이 없습니다.'); return false; }
@@ -3135,7 +3298,7 @@ const TIMETABLE_PROMPT_TEMPLATE = `[시간표 PDF 첨부]
 - 날짜·교시를 읽기 애매한 칸은 코드블록 밖에 [확인 필요]로 따로 알려줘.`;
 function timetablePromptTemplate(){ return promptOverrideText('timetable', TIMETABLE_PROMPT_TEMPLATE); }
 function timetablePromptText(){ return fillPromptVars(timetablePromptTemplate()); }
-/* 기본 프롬프트 — 블록 폴더의 CLAUDE.md를 읽는 Claude Code 기준. {강의} 등은 오늘 카드에서 복사할 때 채워진다.
+/* 기본 프롬프트 — 블록 폴더의 CLAUDE (블록 이름) 지침.md를 읽는 Claude Code 기준. {강의} 등은 오늘 카드에서 복사할 때 채워진다.
    노트를 만들거나 고치는 프롬프트는 전부 "먼저 보여주고 → 내가 확인하면 → 노트에 반영" 순서다. */
 const PB_TEXT = `[읽을 파일: {블록폴더}/자료/ 의 올해 강의록 필기 — 파일 이름을 여기에]
 {강의} ({교수}) 올해 필기로 인코딩할게.
@@ -3200,7 +3363,7 @@ const PL_TEXT = `[{강의} 정리본 노트 다 읽었어 — {블록폴더}/정
 - 채점 때 문제마다 출제 근거 표시 ([예고] / [족보 반복: 2025 Q07] / [★강조] / [기타]). 틀린 것만 단서 → 앵커 → 기억 사슬로 다시 설명하고 비슷한 문제로 재출제
 - 끝나면 '정리본에 넣을 것' 목록 (내가 넣어달라고 한 것 포함) → 내가 확인하면 정리본 노트에 반영`;
 const PV_TEXT = `Vault에 이 블록 폴더 '{블록폴더}'를 만들고, 그 안에 정리본 · 족보 · 분석 · 자료 폴더를 만들어줘.
-- 이전 블록 폴더에 '분석/전날 요약.md'가 있으면 새 블록의 분석 폴더에 복사 (경로는 노트 안에서 스스로 찾으니 그대로)
+- 이전 블록 폴더에 '정리본/전날 요약.md'가 있으면 새 블록의 정리본 폴더에 복사 (경로는 노트 안에서 스스로 찾으니 그대로)
 - 끝나면 만든 폴더 목록`;
 const PC_TEXT = `[읽을 곳: {블록폴더}/족보 의 '상태: 해설 전' 노트 · 선배 해설 파일이 있으면 {블록폴더}/자료/ 파일 이름을 여기에]
 해설이 아직 없는 족보 문항의 정답·해설을 만들어줘. 강의를 적어 주면 그 강의 문항만.
@@ -3250,7 +3413,7 @@ const PT_TEXT = `[{블록폴더}/정리본 · 족보 · 분석 폴더 전부 직
 - 시험 중에는 정답·해설·출처가 화면 어디에도 보이지 않고, 푼 문항 수 외에는 채점 정보가 새지 않게
 먼저 강의별 문항 수 표(강의 | 시험 문항 수 | 출제 우선 포인트 한 줄)와 총 {총문항수}문항·시험시간 {시험시간}분을 보여주고, 내가 확인하면 만들어. 다 만들면 파일 경로와 총 문항 수를 알려줘.`;
 function PROMPTS(){ return [
-  {id:'pv', t:'블록 폴더 만들기', w:'블록 첫날 — 플래너의 CLAUDE.md 저장으로도 폴더가 만들어짐', x:PV_TEXT},
+  {id:'pv', t:'블록 폴더 만들기', w:'블록 첫날 — 플래너의 CLAUDE (블록 이름) 지침.md 저장으로도 폴더가 만들어짐', x:PV_TEXT},
   {id:'pi', t:'족보 노트 만들기', w:'블록 시작, 족보를 받았을 때 (해설 없이 문항 노트만)', x:PI_TEXT},
   {id:'pj', t:'족보 출제 패턴 분석', w:'블록 시작, 족보 노트를 만든 뒤 → 교수별 한 줄 요약을 학습 전략에 추가', x:PJ_TEXT},
   {id:'pg', t:'신규 인코딩 (올해 강의록 + 작년 필기)', w:'올해 강의록이 올라온 날, 수업 전 — 보통 이걸 씀', x:PG_TEXT},
@@ -5395,9 +5558,9 @@ function renderPrompts(){
       <button class="copybtn" type="button">전체 지침 복사</button>
     </div>
     <div class="instruction-actions vault-actions">
-      <button class="instruction-toggle vault-mkdir" type="button" title="Vault에 블록 폴더와 정리본·족보·분석·자료 폴더, 빈 CLAUDE.md를 만듭니다 (Chrome·Edge)">블록 폴더 만들기</button>
+      <button class="instruction-toggle vault-mkdir" type="button" title="Vault에 블록 폴더와 정리본·족보·분석·자료 폴더, 빈 CLAUDE (블록 이름) 지침.md를 만듭니다 (Chrome·Edge)">블록 폴더 만들기</button>
       <button class="instruction-toggle vault-layout" type="button" title="블록 폴더 만들기가 만드는 폴더 구성을 고칩니다">폴더 구성</button>
-      <button class="instruction-toggle vault-link" type="button" title="지침을 계속 갱신해 쓸 .md 파일을 직접 골라 연결합니다 (Chrome·Edge)">CLAUDE.md 파일 선택</button>
+      <button class="instruction-toggle vault-link" type="button" title="지침을 계속 갱신해 쓸 .md 파일을 직접 골라 연결합니다 (Chrome·Edge)">CLAUDE (블록 이름) 지침.md 파일 선택</button>
       <button class="instruction-toggle vault-update" type="button" title="연결한 파일 안의 플래너 지침 구간을 최신으로 바꿉니다">연결한 파일 업데이트</button>
     </div>
     <div class="cphint vault-status"></div>
@@ -5457,7 +5620,7 @@ function renderPrompts(){
     }
   };
   instructionCard.querySelector('.copybtn').onclick=e=>copyText(customInstructions(),e.target);
-  /* 블록 폴더 만들기 · CLAUDE.md 파일 선택 · 연결한 파일 업데이트 — 셋은 서로 독립 */
+  /* 블록 폴더 만들기 · CLAUDE (블록 이름) 지침.md 파일 선택 · 연결한 파일 업데이트 — 셋은 서로 독립 */
   const doneOnb=key=>{ if(S.onboarding && S.onboarding[key]!==true){ S.onboarding[key]=true; saveApp(); } };
   const vaultStatus=instructionCard.querySelector('.vault-status');
   const paintVaultStatus=()=>{
@@ -5465,7 +5628,7 @@ function renderPrompts(){
     const linked=b && b.claudeMdFile;
     vaultStatus.innerHTML = linked
       ? `연결된 파일: <b>${esc(b.claudeMdFile)}</b> · 자동 업데이트 <button class="linkbtn vault-auto" type="button">${b.claudeMdAuto?'켜짐 (끄기)':'꺼짐 (켜기)'}</button><br>업데이트는 파일 안의 '스터디플래너 지침' 구간만 바꾸고, 직접 쓴 나머지 내용은 그대로 둡니다. (구간이 아직 없는 파일에 다른 내용이 있으면 처음 한 번 파일 전체를 지침으로 바꿀지 물어봅니다.) Chrome·Edge에서만 되며, 브라우저를 새로 열면 첫 업데이트 때 권한을 한 번 더 묻습니다.`
-      : `아직 연결한 파일이 없습니다. <b>CLAUDE.md 파일 선택</b>으로 지침을 넣을 .md 파일(보통 블록 폴더의 CLAUDE.md)을 고르세요. Chrome·Edge에서만 됩니다.`;
+      : `아직 연결한 파일이 없습니다. <b>CLAUDE (블록 이름) 지침.md 파일 선택</b>으로 지침을 넣을 .md 파일(보통 블록 폴더의 CLAUDE (블록 이름) 지침.md)을 고르세요. Chrome·Edge에서만 됩니다.`;
     const au=vaultStatus.querySelector('.vault-auto');
     if(au) au.onclick=()=>{ b.claudeMdAuto=!b.claudeMdAuto; saveApp(); paintVaultStatus(); showToast(b.claudeMdAuto?'강의 목록·학습 전략이 바뀌면 연결한 파일을 자동으로 업데이트합니다.':'자동 업데이트를 껐습니다. 필요할 때 \'연결한 파일 업데이트\'를 누르세요.', {long:true}); };
   };
@@ -5724,7 +5887,7 @@ function render(){
   studySync();
   SCHEDULE = computeSchedule();
   renderHeader(); renderBanner(); renderLoadPanel(); renderToday(); renderPlan(); renderTimetableViews(); renderList(); renderPrompts();
-  scheduleClaudeMdSync(); // 강의 목록·학습 전략이 바뀌었으면 CLAUDE.md도 다시 저장
+  scheduleClaudeMdSync(); // 강의 목록·학습 전략이 바뀌었으면 CLAUDE (블록 이름) 지침.md도 다시 저장
   pomoSyncLauncher();
   if(document.getElementById('pomoFull').classList.contains('on')) renderPfMemos();
   if(typeof moveTabInk==='function') requestAnimationFrame(moveTabInk);
@@ -7747,7 +7910,7 @@ function renderSettings(){
     <p class="sethint" id="stObsPreview"></p>`:''}
     <p class="sethint">정리본은 <code>Vault / 블록 폴더 / 정리본 / nn강. 강의제목</code>에 저장되고, 오늘 카드의 '옵시디언' 버튼이 그 노트를 바로 엽니다. 프롬프트의 {블록폴더}도 이 값으로 채워집니다. 칸을 누르면 Vault 안에 이미 있는 폴더가 목록으로 나옵니다(Vault 폴더를 고른 뒤).</p>
     ${hasBlock?`<div class="stacts" style="justify-content:flex-start"><button class="stbtn" type="button" id="stObsHome">블록 홈 노트 받기 (.md)</button><button class="stbtn" type="button" id="stObsHomeCopy">블록 홈 노트 복사</button></div>`:''}
-    <p class="sethint">Vault 폴더 고르기는 Chrome·Edge에서만 됩니다. 한 번 고르면 프롬프트 모음 탭의 '블록 폴더 만들기'가 위치를 보여 주고 확인받은 뒤 블록 폴더와 정리본·족보·분석·자료 폴더를 만듭니다. 지침을 넣을 파일은 같은 카드의 'CLAUDE.md 파일 선택'으로 따로 고릅니다. 브라우저를 다시 열면 첫 사용 때 권한을 한 번 더 묻습니다.</p>
+    <p class="sethint">Vault 폴더 고르기는 Chrome·Edge에서만 됩니다. 한 번 고르면 프롬프트 모음 탭의 '블록 폴더 만들기'가 위치를 보여 주고 확인받은 뒤 블록 폴더와 정리본·족보·분석·자료 폴더를 만듭니다. 지침을 넣을 파일은 같은 카드의 'CLAUDE (블록 이름) 지침.md 파일 선택'으로 따로 고릅니다. 브라우저를 다시 열면 첫 사용 때 권한을 한 번 더 묻습니다.</p>
   </section>
 
   <section class="setsec" data-sec="display">
