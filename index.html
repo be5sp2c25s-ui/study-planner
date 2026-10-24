@@ -933,6 +933,121 @@
     *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   }
   html.rm *,html.rm *::before,html.rm *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+
+  /* ======================================================================
+     옵시디언·macOS 스킨 — 위 규칙들을 덮어쓴다(이 블록만 지우면 예전 모양으로 돌아감).
+     연한 회색 바탕 위 흰 카드, 얇은 테두리, 그림자 거의 없음, 회색 알약 선택, 보라색은 스위치·포커스에만.
+     ====================================================================== */
+  :root{
+    --bg:#F6F6F7; --surface:#FFFFFF; --surface2:#F2F2F4;
+    --ink:#222222; --muted:#5C5C62; --faint:#A0A0A6;
+    --line:#E3E3E6; --track:#EBEBEE;
+    --ui:#7B6CD9; --ui-soft:rgba(123,108,217,.16);
+    --win-r:12px; --card-r:10px;
+    --sh-1:0 1px 1px rgba(0,0,0,.025);
+    --sh-2:0 1px 2px rgba(0,0,0,.04);
+    --sh-3:0 1px 3px rgba(0,0,0,.05);
+    --sh-pop:0 22px 70px rgba(0,0,0,.22), 0 0 0 1px rgba(0,0,0,.07);
+    --sans:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;
+    --disp:var(--sans);
+  }
+  body{background:var(--bg);letter-spacing:-.1px}
+  body::before{display:none}
+  ::selection{background:var(--ui-soft)}
+  *::-webkit-scrollbar{width:10px;height:10px}
+  *::-webkit-scrollbar-thumb{background:rgba(0,0,0,.16);border-radius:10px;border:3px solid transparent;background-clip:content-box}
+  *::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.28);background-clip:content-box}
+  *::-webkit-scrollbar-track{background:transparent}
+
+  /* 카드류 — 흰 바탕 + 얇은 테두리, 떠오르는 효과 없음 */
+  .panel,.listbox,.pcard,.flowitem,.ttpanel,.card,.onboard,.compareCard,.eeve,.planrow,.daygrp{box-shadow:none}
+  .panel,.listbox,.pcard,.flowitem,.ttpanel{border:1px solid var(--line);border-radius:var(--card-r)}
+  .card{border:1px solid var(--line);border-radius:9px}
+  .card:hover,.pcard:hover,.flowitem:hover,.planrow:hover{transform:none;box-shadow:none}
+  .flowitem:hover,.pcard:hover,.card:hover{border-color:#D6D6DA}
+  .gaugebar{background:var(--surface);border:1px solid var(--line);box-shadow:none;border-radius:var(--card-r)}
+  header{padding:4px 2px 16px}
+  .brand h1{font-weight:700;letter-spacing:-.4px}
+  .brand .dot,.stepper button,.setbtn{border-color:var(--line);box-shadow:0 1px 1px rgba(0,0,0,.04)}
+  .stepper button:hover,.brand .dot:hover{background:var(--surface2);color:var(--ink);border-color:#CFCFD4}
+  .setbtn:hover{border-color:#CFCFD4;background:var(--surface2)}
+
+  /* 메인 탭 — macOS 세그먼트 컨트롤 (회색 홈 + 흰 알약) */
+  .tabs{display:inline-flex;flex-wrap:wrap;gap:2px;padding:3px;background:#E9E9EC;border-radius:10px;margin:2px 0 16px;max-width:100%}
+  .tab{padding:7px 16px;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--muted);border:none}
+  .tab:hover{color:var(--ink)}
+  .tab.on,.tabs.inkon .tab.on{color:var(--ink)}
+  .tab.on{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.08),0 0 0 .5px rgba(0,0,0,.04)}
+  .tabs.inkon .tab.on{background:transparent;box-shadow:none}
+  .tabink{background:#fff;border-radius:8px;box-shadow:0 1px 2px rgba(0,0,0,.08),0 0 0 .5px rgba(0,0,0,.04)}
+
+  /* 버튼 — 흰 바탕 + 테두리 + 아주 옅은 그림자(맥 기본 버튼) */
+  .stbtn,.reset,.peditbtn,.pcancelbtn,.instruction-toggle,.bt-btn,.add-plan-btn,.expandall{box-shadow:0 1px 1px rgba(0,0,0,.04)}
+  .peditbtn,.pcancelbtn,.instruction-toggle,.psavedefaultbtn{background:var(--surface);border:1px solid var(--line)}
+  .peditbtn:hover,.pcancelbtn:hover,.instruction-toggle:hover,.stbtn:hover,.reset:hover{border-color:#CFCFD4;background:var(--surface2)}
+  .copybtn{background:var(--surface2);border:1px solid transparent}
+  .copybtn:hover{border-color:#CFCFD4}
+
+  /* 입력칸 — 보라색 포커스 링 */
+  .stin:focus,.pedit-input:focus,.opromptedittext:focus,input[type="text"]:focus,input[type="date"]:focus,input[type="number"]:focus,textarea:focus,select:focus{outline:none;border-color:var(--ui)!important;box-shadow:0 0 0 3px var(--ui-soft)}
+  button:focus-visible,[role="button"]:focus-visible,[role="tab"]:focus-visible{outline:2px solid var(--ui);outline-offset:1px}
+
+  /* 스위치·세그먼트 — 옵시디언처럼 켜짐은 보라 */
+  .switch.on{background:var(--ui)}
+  .seg{background:#E9E9EC}
+  .seg button.on{box-shadow:0 1px 2px rgba(0,0,0,.08),0 0 0 .5px rgba(0,0,0,.04)}
+
+  /* 대화상자 — 맥 창처럼 */
+  .mask{background:rgba(0,0,0,.18);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+  .modal{border-radius:var(--win-r);border:none;box-shadow:var(--sh-pop)}
+  .modal h3{font-weight:700;letter-spacing:-.3px}
+  .modal .no{background:var(--surface);border:1px solid var(--line);color:var(--ink)}
+  .modal .no:hover{background:var(--surface2)}
+  .toast{background:rgba(34,34,38,.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.18)}
+
+  /* 블록 탭 — 바탕색에 맞춰 */
+  .bt-rail{border-bottom-color:var(--line)}
+  .blocktab{background:#EDEDF0;border-color:var(--line)}
+  .blocktab:hover{background:#F7F7F9}
+  .blocktab.on{background:var(--bg);border-bottom-color:var(--bg);box-shadow:none}
+
+  /* ===== 설정 — 옵시디언 설정 창 (가운데 창 · 왼쪽 목록 · 오른쪽 내용) ===== */
+  .drawer-mask{background:rgba(0,0,0,.18)}
+  .drawer{top:50%;left:50%;right:auto;bottom:auto;width:min(1000px,94vw);height:min(720px,88vh);border-radius:var(--win-r);
+    box-shadow:var(--sh-pop);overflow:hidden;opacity:0;transform:translate(-50%,-48%) scale(.985);
+    transition:opacity 180ms var(--ease),transform 260ms var(--ease),visibility 0s linear 260ms}
+  .drawer.on{opacity:1;transform:translate(-50%,-50%);transition:opacity 180ms var(--ease),transform 260ms var(--ease)}
+  .dr-head{position:relative;justify-content:center;padding:10px 44px;border-bottom:1px solid var(--line);background:var(--surface)}
+  .dr-head h3{font-size:13px;font-weight:600;color:var(--ink)}
+  .dr-close{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:18px;width:28px;height:28px;padding:0;display:flex;align-items:center;justify-content:center}
+  .dr-body{position:relative;display:grid;grid-template-columns:236px minmax(0,1fr);align-content:start;padding:0;background:var(--surface)}
+  .dr-body>.setsec{grid-column:2}
+  .setnav{grid-column:1;grid-row:1 / span 40;position:sticky;top:0;align-self:start;height:calc(min(720px,88vh) - 47px);overflow-y:auto;
+    background:#F6F6F7;border-right:1px solid var(--line);padding:14px 10px 20px}
+  .setsearch{width:100%;border:1px solid var(--line);border-radius:8px;padding:7px 10px 7px 30px;font-size:12.5px;font-family:var(--sans);color:var(--ink);background:#fff
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23999' stroke-width='1.6' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='4.6'/%3E%3Cpath d='M10.5 10.5 14 14'/%3E%3C/svg%3E") no-repeat 10px 50%/14px}
+  .setnav-h{font-size:11px;font-weight:600;color:var(--faint);padding:14px 10px 6px}
+  .setnav button{display:flex;align-items:center;gap:9px;width:100%;border:none;background:transparent;text-align:left;padding:7px 10px;border-radius:7px;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;font-family:var(--sans)}
+  .setnav button svg{width:16px;height:16px;flex:0 0 auto;color:var(--muted)}
+  .setnav button:hover{background:#ECECEF}
+  .setnav button.on{background:#E4E4E8;font-weight:600}
+  .setsec{border-top:none;margin:18px 26px 4px;padding:6px 18px 12px;background:#F7F7F8;border-radius:12px}
+  .setsec:first-of-type{margin-top:22px}
+  .setsec h4{font-size:15px;font-weight:700;margin:12px 0 8px;letter-spacing:-.2px}
+  .setsec .setrow{border-top:1px solid #EAEAED;padding:9px 0}
+  .setsec h4+.setrow,.setsec .sethint+.setrow{border-top:none}
+  .setrow > label,.setrow > .setlbl{font-size:13px;font-weight:500;color:var(--ink)}
+  .sethint{font-size:11.5px;color:var(--muted)}
+  .setsec.filtered-out{display:none}
+  .setsec .setrow.filtered-out{display:none}
+  .setempty{grid-column:2;padding:40px 26px;color:var(--faint);font-size:13px}
+  @media(max-width:720px){
+    .drawer{width:100vw;height:100vh;height:100dvh;border-radius:0}
+    .dr-body{grid-template-columns:minmax(0,1fr)}
+    .dr-body>.setsec,.setempty{grid-column:1}
+    .setnav{display:none}
+    .setsec{margin:14px 14px 4px}
+  }
 </style>
 
 <div class="wrap">
@@ -1245,7 +1360,7 @@ let App = {blocks:[], active:null, promptOverrides:{}, promptDefaults:{}, custom
 /* ===== 색: 검정 한 가지 + 블록별 포인트 컬러 =====
    기본 골격(흰 바탕·검정 글자·검정 버튼)은 고정이고, 강조에 쓰는 한 가지 색만
    블록마다 직접 고른다. 빨강(--warn)은 지각·경고 전용이라 고르는 색과 무관하게 유지. */
-const BASE={accent:'#111111', soft:'#F0F0F0', ink:'#111111', on:'#FFFFFF', fill:'#9E9E9E',
+const BASE={accent:'#262626', soft:'#EEEEF0', ink:'#222222', on:'#FFFFFF', fill:'#A3A3A8',
             done:'#555555', warn:'#E51E1E', warnSoft:'#FDE7E7', rgb:'17,17,17'};
 const DEFAULT_POINT='#FFE24E';
 function hexToRgb(hex){
@@ -7372,6 +7487,7 @@ function renderMemoBox(){
 const setDrawer=document.getElementById('setDrawer'), setMask=document.getElementById('setMask');
 function drawerOpen(){ return setDrawer.classList.contains('on'); }
 function openSettings(focusSec){
+  setNavQuery=''; // 설정 창을 새로 열 때는 검색어를 비운다
   renderSettings();
   setDrawer.classList.add('on'); setMask.classList.add('on');
   setDrawer.setAttribute('aria-hidden','false');
@@ -7390,6 +7506,62 @@ document.addEventListener('click', e=>{
   const t=e.target.closest('[data-open-settings]'); if(!t) return;
   openSettings(t.dataset.openSettings);
 });
+/* 설정 창 왼쪽 목록 — 옵시디언 설정처럼 검색칸 + 항목 목록. 누르면 그 항목으로 이동, 스크롤하면 지금 항목이 표시된다.
+   검색은 항목 제목·줄 이름·설명에서 찾아 맞는 줄만 남긴다. (좁은 화면에서는 목록을 숨긴다) */
+const SETNAV_ICON={
+  profile:'<path d="M8 8.2a2.6 2.6 0 1 0 0-5.2 2.6 2.6 0 0 0 0 5.2zM3 13.5c.6-2.3 2.6-3.6 5-3.6s4.4 1.3 5 3.6"/>',
+  plan:'<rect x="2.5" y="3" width="11" height="10.5" rx="2"/><path d="M2.5 6.5h11M5.5 1.8v2.4M10.5 1.8v2.4"/>',
+  obsidian:'<path d="M8 1.8 13 5v6L8 14.2 3 11V5z"/><path d="M8 1.8V14.2"/>',
+  display:'<rect x="2" y="3" width="12" height="8.5" rx="1.6"/><path d="M6 14h4"/>',
+  pomo:'<circle cx="8" cy="8.6" r="5.2"/><path d="M8 5.8v2.8l1.8 1.2M6.3 1.8h3.4"/>',
+  data:'<ellipse cx="8" cy="4" rx="5" ry="2"/><path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>',
+  keys:'<rect x="1.8" y="4" width="12.4" height="8" rx="1.6"/><path d="M4.5 6.8h.01M7 6.8h.01M9.5 6.8h.01M12 6.8h.01M5 9.4h6"/>',
+};
+let setNavQuery='';
+function buildSettingsNav(body){
+  const secs=[...body.querySelectorAll('.setsec')];
+  const h3=document.querySelector('#setDrawer .dr-head h3'); if(h3) h3.textContent='설정 — 스터디 플래너';
+  const nav=el(`<nav class="setnav" aria-label="설정 항목">
+    <input class="setsearch" type="search" placeholder="설정 검색..." aria-label="설정 검색" value="${esc(setNavQuery)}">
+    <div class="setnav-h">옵션</div>
+  </nav>`);
+  const titleOf=s=>{ const h=s.querySelector('h4'); return h ? (h.childNodes[0]?.textContent||h.textContent).trim() : ''; };
+  const btns=secs.map(s=>{
+    const k=s.dataset.sec;
+    const b=el(`<button type="button" data-goto="${esc(k)}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SETNAV_ICON[k]||'<circle cx="8" cy="8" r="5"/>'}</svg><span>${esc(titleOf(s))}</span></button>`);
+    b.onclick=()=>{ body.scrollTo({top:Math.max(0, s.offsetTop-14), behavior: reducedMotion()?'auto':'smooth'}); mark(k); };
+    nav.appendChild(b); return b;
+  });
+  const mark=k=> btns.forEach(b=>b.classList.toggle('on', b.dataset.goto===k));
+  body.prepend(nav);
+  /* 스크롤 위치에 맞춰 왼쪽 목록의 현재 항목 표시 */
+  const spy=()=>{
+    const y=body.scrollTop+40; let cur=secs[0];
+    secs.forEach(s=>{ if(!s.classList.contains('filtered-out') && s.offsetTop<=y) cur=s; });
+    if(cur) mark(cur.dataset.sec);
+  };
+  body.onscroll=spy; spy();
+  /* 검색 — 맞는 줄만 남기고, 하나도 없는 항목은 통째로 숨긴다(항목 제목이 맞으면 그 항목 전체를 보여줌) */
+  const search=nav.querySelector('.setsearch');
+  const apply=()=>{
+    const q=setNavQuery.trim().toLowerCase();
+    let any=false;
+    secs.forEach((s,i)=>{
+      const rows=[...s.querySelectorAll('.setrow, .sethint, .stacts, .keys')];
+      if(!q){ s.classList.remove('filtered-out'); rows.forEach(r=>r.classList.remove('filtered-out')); btns[i].style.display=''; any=true; return; }
+      const secHit=titleOf(s).toLowerCase().includes(q);
+      let hit=secHit;
+      rows.forEach(r=>{ const m=secHit || r.textContent.toLowerCase().includes(q); r.classList.toggle('filtered-out', !m); if(m) hit=true; });
+      s.classList.toggle('filtered-out', !hit); btns[i].style.display=hit?'':'none'; if(hit) any=true;
+    });
+    let empty=body.querySelector('.setempty');
+    if(!any && !empty){ empty=el('<div class="setempty">맞는 설정이 없습니다.</div>'); body.appendChild(empty); }
+    if(any && empty) empty.remove();
+    spy();
+  };
+  search.oninput=()=>{ setNavQuery=search.value; apply(); };
+  apply();
+}
 function storageLabel(){
   if(window.storage) return '아티팩트 저장소';
   if(fbDb) return 'Firebase (기기 간 동기화)';
@@ -7509,6 +7681,7 @@ function renderSettings(){
       <dt><kbd>Esc</kbd></dt><dd>창 닫기</dd>
     </dl>
   </section>`;
+  buildSettingsNav(body);
 
   /* 사용자 정보 */
   body.querySelector('#stName').addEventListener('change', e=>{ st.name=e.target.value.trim(); saveApp(); render(); });
