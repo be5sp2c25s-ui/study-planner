@@ -1243,8 +1243,25 @@
 
 <div class="mask" id="vfMask"><div class="modal wide">
   <h3>블록 폴더 구성</h3>
-  <p style="margin-bottom:10px">'블록 폴더 만들기'를 누르면 블록 폴더 안에 아래 폴더들이 만들어집니다. 한 줄에 폴더 하나, <code>분석/기출</code>처럼 <code>/</code>로 안쪽 폴더도 쓸 수 있습니다. 모든 블록에 같이 적용됩니다.</p>
-  <textarea id="vfText" spellcheck="false" style="width:100%;min-height:150px;resize:vertical;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font:12.5px/1.6 var(--sans);background:var(--surface);color:var(--ink)" placeholder="예)&#10;정리본&#10;족보&#10;분석&#10;자료"></textarea>
+  <p style="margin-bottom:10px">'블록 폴더 만들기'를 누르면 블록 폴더 안에 아래 폴더들이 만들어집니다. 폴더를 <b>끌어서 다른 폴더 안에 넣고</b>, <b>+</b> 버튼으로 안쪽 폴더를 추가하고, 이름을 <b>더블클릭</b>해 바꿉니다. 모든 블록에 같이 적용됩니다.</p>
+  <style>
+    #vfTree{border:1px solid var(--line);border-radius:9px;padding:8px;background:var(--surface);color:var(--ink);min-height:150px;max-height:50vh;overflow:auto;font-family:var(--sans);font-size:12.5px;font-weight:600;line-height:1.4;user-select:none}
+    #vfTree .vfrow{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:8px;border:1px dashed transparent}
+    #vfTree .vfrow[draggable=true]{cursor:grab}
+    #vfTree .vfrow:hover{background:var(--accent-soft)}
+    #vfTree .vfrow.over{background:var(--accent-soft);border-color:var(--accent-ink)}
+    #vfTree .vfrow.dragging{opacity:.4}
+    #vfTree .vfic{width:16px;height:16px;flex:0 0 auto;color:var(--muted);fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+    #vfTree .vfrow:hover .vfic,#vfTree .vfrow.over .vfic{color:var(--accent-ink)}
+    #vfTree .vfname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #vfTree .vfroot .vfname{font-weight:800}
+    #vfTree .vfkids{margin-left:15px;border-left:1px solid var(--line);padding-left:5px}
+    #vfTree .vfb{border:0;background:none;color:var(--muted);cursor:pointer;padding:0;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-family:var(--sans);font-size:13px;font-weight:700}
+    #vfTree .vfb:hover{background:var(--surface);color:var(--accent-ink)}
+    #vfTree input{flex:1;min-width:0;font:inherit;padding:2px 7px;border:1px solid var(--accent-ink);border-radius:6px;background:var(--surface);color:var(--ink);outline:none}
+    #vfTree .vfempty{color:var(--muted);padding:4px 8px;font-size:11px;font-weight:500}
+  </style>
+  <div id="vfTree"></div>
   <label style="display:flex;align-items:center;gap:7px;margin:10px 0 4px;font-size:12px;font-weight:600"><input type="checkbox" id="vfMd"> 빈 CLAUDE.md도 함께 만들기 (이미 있으면 그대로)</label>
   <div class="nbstatus" id="vfNote" style="margin-top:6px"></div>
   <div class="acts">
@@ -2486,24 +2503,116 @@ function mergeClaudeMd(prev, section){
 /* ===== 블록 폴더 구성 창 ===== */
 const VF_CORE=['정리본','족보','분석','자료'];
 function openFolderLayoutModal(){
-  const m=document.getElementById('vfMask'), ta=document.getElementById('vfText'), md=document.getElementById('vfMd'), note=document.getElementById('vfNote');
-  ta.value=vaultSubfolders().join('\n'); md.checked=vaultMakeMd(); note.textContent='';
-  const paint=()=>{
-    const cur=normalizeSubfolders(ta.value), missing=VF_CORE.filter(x=>!cur.some(c=>c===x || c.startsWith(x+'/'))); // 분석/기출만 써도 분석 폴더는 생긴다
+  const m=document.getElementById('vfMask'), treeEl=document.getElementById('vfTree'), md=document.getElementById('vfMd'), note=document.getElementById('vfNote');
+  /* 폴더 구성은 경로 목록으로 저장하고, 이 창에서는 트리로 편집한다 (안쪽 폴더가 없는 폴더만 경로로 적어도 부모는 함께 만들어진다) */
+  const build=list=>{ const root={name:'',children:[]}; list.forEach(p=>{ let n=root; p.split('/').forEach(seg=>{ let c=n.children.find(x=>x.name===seg); if(!c){ c={name:seg,children:[]}; n.children.push(c); } n=c; }); }); return root; };
+  const toPaths=(n,pre='')=>n.children.flatMap(c=>c.children.length ? toPaths(c,pre+c.name+'/') : [pre+c.name]);
+  const cleanName=s=>String(s||'').replace(/[\\\/:*?"<>|#^\[\]]/g,' ').trim().replace(/^\.+$/,'');
+  const parentOf=(n,t)=>{ for(const c of n.children){ if(c===t) return n; const r=parentOf(c,t); if(r) return r; } return null; };
+  const hasNode=(n,t)=>n===t || n.children.some(c=>hasNode(c,t));
+  let root=build(vaultSubfolders()), drag=null, editing=null, adding=null;
+  md.checked=vaultMakeMd(); note.textContent='';
+  const paintNote=()=>{
+    const cur=toPaths(root), missing=VF_CORE.filter(x=>!cur.some(c=>c===x || c.startsWith(x+'/'))); // 분석/기출만 써도 분석 폴더는 생긴다
     note.textContent = missing.length ? `주의: ${missing.join(', ')} 폴더가 없습니다. 프롬프트와 지침이 정리본·족보·분석·자료 폴더 이름을 쓰므로, 빼거나 이름을 바꾸면 프롬프트의 경로도 직접 고쳐야 합니다.` : '';
   };
-  ta.oninput=paint; paint();
+  const warn=t=>{ note.textContent=t; };
+  const move=(node,dest)=>{
+    const from=parentOf(root,node);
+    if(!from || from===dest) return;
+    if(hasNode(node,dest)) return warn('폴더를 자기 자신의 안쪽으로 옮길 수는 없습니다.');
+    if(dest.children.some(c=>c.name===node.name)) return warn(`'${node.name}' 폴더가 이미 그 안에 있습니다.`);
+    from.children.splice(from.children.indexOf(node),1); dest.children.push(node);
+    paint();
+  };
+  const commit=(node,val,isNew,parent)=>{
+    const name=cleanName(val);
+    editing=adding=null;
+    let msg='';
+    if(isNew){
+      if(name && !parent.children.some(c=>c.name===name)) parent.children.push({name,children:[]});
+      else if(name) msg=`'${name}' 폴더가 이미 있습니다.`;
+    }else if(name && name!==node.name){
+      const par=parentOf(root,node);
+      if(par.children.some(c=>c!==node && c.name===name)) msg=`'${name}' 폴더가 이미 있습니다.`; else node.name=name;
+    }
+    paint();
+    if(msg) warn(msg);
+  };
+  const input=(val,done)=>{
+    const i=document.createElement('input'); i.value=val; i.maxLength=60; let fin=false;
+    const end=ok=>{ if(fin) return; fin=true; done(ok?i.value:null); };
+    i.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); end(true); } else if(e.key==='Escape'){ e.stopPropagation(); end(false); } };
+    i.onblur=()=>end(true);
+    setTimeout(()=>{ i.focus(); i.select(); });
+    return i;
+  };
+  const SVG={
+    folder:'<path d="M3 7.5A1.5 1.5 0 0 1 4.5 6H9l2 2h8.5A1.5 1.5 0 0 1 21 9.5v8A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z"/>',
+    open:'<path d="M3 17.5V7.5A1.5 1.5 0 0 1 4.5 6H9l2 2h7.5A1.5 1.5 0 0 1 20 9.5V11"/><path d="M3.3 18.2 5.6 12.5a1.5 1.5 0 0 1 1.4-1h13.6a1 1 0 0 1 .95 1.3l-1.8 5.2a1.5 1.5 0 0 1-1.4 1H4.5a1.5 1.5 0 0 1-1.2-.8z"/>',
+    vault:'<path d="M3 7.5A1.5 1.5 0 0 1 4.5 6H9l2 2h8.5A1.5 1.5 0 0 1 21 9.5v8A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z"/><path d="M8 13h8"/>',
+    plus:'<path d="M12 5v14M5 12h14"/>', edit:'<path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z"/>', del:'<path d="M6 6l12 12M18 6 6 18"/>'
+  };
+  const ico=(k,cls='vfic')=>{ const s=document.createElementNS('http://www.w3.org/2000/svg','svg'); s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('class',cls); s.setAttribute('aria-hidden','true'); s.innerHTML=SVG[k]; return s; };
+  const btn=(k,title,fn)=>{ const b=document.createElement('button'); b.type='button'; b.className='vfb'; b.title=title; b.setAttribute('aria-label',title); const s=ico(k,'vfic'); s.style.width=s.style.height='14px'; b.appendChild(s); b.onclick=e=>{ e.stopPropagation(); fn(); }; return b; };
+  const drop=(row,dest)=>{
+    row.ondragover=e=>{ if(drag){ e.preventDefault(); row.classList.add('over'); } };
+    row.ondragleave=()=>row.classList.remove('over');
+    row.ondrop=e=>{ e.preventDefault(); row.classList.remove('over'); if(drag){ const d=drag; drag=null; move(d,dest); } };
+  };
+  const draw=(node,box)=>{
+    node.children.forEach(c=>{
+      const row=document.createElement('div'); row.className='vfrow'; row.draggable=editing!==c;
+      row.appendChild(ico(c.children.length?'open':'folder'));
+      if(editing===c) row.appendChild(input(c.name,v=>v===null?(editing=null,paint()):commit(c,v,false)));
+      else{
+        const nm=document.createElement('span'); nm.className='vfname'; nm.textContent=c.name; nm.title='더블클릭해서 이름 바꾸기'; nm.ondblclick=()=>{ editing=c; paint(); }; row.appendChild(nm);
+        row.appendChild(btn('edit','이름 바꾸기',()=>{ editing=c; paint(); }));
+        row.appendChild(btn('plus','안쪽에 폴더 추가',()=>{ adding=c; paint(); }));
+        row.appendChild(btn('del','폴더 지우기 (안쪽 폴더도 함께)',()=>{ node.children.splice(node.children.indexOf(c),1); paint(); }));
+      }
+      row.ondragstart=e=>{ drag=c; row.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; try{ e.dataTransfer.setData('text/plain',c.name); }catch(_){} };
+      row.ondragend=()=>{ drag=null; row.classList.remove('dragging'); };
+      drop(row,c);
+      box.appendChild(row);
+      if(c.children.length || adding===c){
+        const kids=document.createElement('div'); kids.className='vfkids'; box.appendChild(kids);
+        draw(c,kids);
+        if(adding===c) addRow(c,kids);
+      }
+    });
+  };
+  const addRow=(parent,box)=>{
+    const row=document.createElement('div'); row.className='vfrow';
+    row.appendChild(ico('folder'));
+    row.appendChild(input('',v=>v===null?(adding=null,paint()):commit(null,v,true,parent)));
+    box.appendChild(row);
+  };
+  function paint(){
+    treeEl.textContent='';
+    const top=document.createElement('div'); top.className='vfrow vfroot';
+    top.appendChild(ico('vault'));
+    const nm=document.createElement('span'); nm.className='vfname'; nm.textContent='블록 폴더'; top.appendChild(nm);
+    top.appendChild(btn('plus','폴더 추가',()=>{ adding=root; paint(); }));
+    drop(top,root); treeEl.appendChild(top);
+    const kids=document.createElement('div'); kids.className='vfkids'; treeEl.appendChild(kids);
+    draw(root,kids);
+    if(adding===root) addRow(root,kids);
+    if(!root.children.length && adding!==root){ const e=document.createElement('div'); e.className='vfempty'; e.textContent='하위 폴더 없음 — 블록 폴더만 만듭니다.'; kids.appendChild(e); }
+    paintNote();
+  }
+  paint();
   const close=()=>m.classList.remove('on');
   document.getElementById('vfCancel').onclick=close;
-  document.getElementById('vfReset').onclick=()=>{ ta.value=VAULT_SUBFOLDERS.join('\n'); md.checked=true; paint(); };
+  document.getElementById('vfReset').onclick=()=>{ root=build(VAULT_SUBFOLDERS); editing=adding=null; md.checked=true; paint(); };
   document.getElementById('vfSave').onclick=()=>{
-    const list=normalizeSubfolders(ta.value);
+    const list=normalizeSubfolders(toPaths(root).join('\n'));
     if(list.join('\n')===VAULT_SUBFOLDERS.join('\n')) delete App.vaultSubfolders; else App.vaultSubfolders=list;
     if(md.checked) delete App.vaultMakeMd; else App.vaultMakeMd=false;
     saveApp(); close(); render();
     showToast(`블록 폴더 구성을 저장했습니다 — ${list.length?list.join(' · '):'하위 폴더 없음'}${md.checked?' · 빈 CLAUDE.md':''}`, {long:true});
   };
-  m.classList.add('on'); ta.focus();
+  m.classList.add('on');
 }
 /* 블록 폴더 입력 정리 — 역슬래시→/, 앞뒤 /, 금지 글자 제거, 맨 앞에 Vault 이름을 또 쓴 경우 떼어 냄 */
 function normalizeObsFolder(v){
