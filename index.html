@@ -1640,17 +1640,18 @@ function builtinPromptEntry(p, app){
 /* 콘텐츠 버전 9: 공부 흐름을 사용설명서대로(Claude Code + 옵시디언) 바꾼다. 예전 기본 프롬프트(블록 시작·
    시험 회고·필기 비교 등)는 지우고, 기본 프롬프트는 새 문구·새 순서로, 지침·상세 체크리스트는 새 흐름
    기본값으로 되돌린다. 직접 추가한 프롬프트는 그대로 맨 뒤에 남긴다(이름 앞 Ⓐ~Ⓜ 기호만 뗀다). */
-const CONTENT_VERSION=13;
+const CONTENT_VERSION=14;
 const OLD_BUILTIN_IDS=['p1','p2','p3','p4','p5','pa','pd','pf','pm'];
 function migrateBuiltinPrompts(app){
   if((app.contentVersion||0) >= CONTENT_VERSION) return;
   /* 버전 10~11: 전체 예상 기출문제(CBT) 프롬프트를 학교 CBT 화면 양식(종합시험 CBT와 같은 UI)으로 */
-  if([9,10,11,12].includes(app.contentVersion||0)){
+  if([9,10,11,12,13].includes(app.contentVersion||0)){
     if((app.contentVersion||0) < 12){
       const pt=app.customPrompts.find(cp=>cp && cp.id==='pt'), p=PROMPTS().find(x=>x.id==='pt');
       if(pt && p){ pt.text=p.x; pt.when=p.w; }
     }
-    migrateCardFlow(app);
+    if((app.contentVersion||0) < 13) migrateCardFlow(app);
+    migrateRebuildRules(app);
     app.contentVersion=CONTENT_VERSION;
     return;
   }
@@ -1677,6 +1678,22 @@ function migrateCardFlow(app){
     .replace(`| 3. 2차 복습 | 신규 3일 뒤 | 나 (+요청 시 너) | 카드 복습 → 백지 인출 점검 → 오답 족보 다시 풀기 |`, `| 3. 2차 복습 | 신규 3일 뒤 | 나 | 오답 족보 다시 풀기 → 카드 복습 → 정리본 2회독 |`)
     .replace(`### 복습 도우미 (1차·2차, 요청할 때만)`, `### 복습 도우미 (1차, 요청할 때만)`)
     .replace(`51. 앵커 인출 훈련·백지 인출 점검: 한 번에 한 문제(한 챕터)씩, 내가 답하기 전엔 답 공개 X. 끝에 카드 목록 — Spaced Repetition 형식 '앞 :: 뒤'(역인출은 '앞 ::: 뒤'), 내가 확인하면 정리본 맨 아래 '## 카드'에.`, `51. 앵커 인출 카드: 채팅으로 문제를 내지 말고 정리본·족보를 읽어 카드를 바로 만들어 정리본 맨 아래 '## 카드'에 넣어 (Spaced Repetition 플러그인 형식, 한 줄 카드는 '앞 :: 뒤'). 정방향 = 단서 :: 앵커 → 기억 사슬, 역방향 = 개념 :: 특징·기전·감별점 여러 개. 카드 복습은 내가 옵시디언에서 직접 해.`) : t;
+  ['customInstructionOverride','customInstructionDefault'].forEach(k=>{ app[k]=fix(app[k]); });
+}
+/* 버전 14: 재구성·인출 원칙(45~49)을 최우선 규칙(옮겨 적기 금지·단서→답 반사·우열·최소 분량+무생략)으로.
+   고쳐 둔 지침은 그 구간과 9·35·36번 줄만 새 기본값으로 바꾼다. */
+function migrateRebuildRules(app){
+  const T=CUSTOM_INSTRUCTIONS_TEMPLATE;
+  const sec=/### 재구성·인출 원칙[^\n]*\n[\s\S]*?(?=\n### )/;
+  const line=re=>(T.match(re)||[''])[0];
+  const r9=/^9\. 무생략:.*$/m, r36=/^36\. .*$/m, r35=/^   - 질환·병원체 각론 강의:.*$/m, r35b=/^   - 기전·임상 중심 강의/m;
+  const fix=t=>{
+    if(typeof t!=='string' || !t.trim()) return t;
+    if(sec.test(t)) t=t.replace(sec, ()=>line(sec));
+    t=t.replace(r9, ()=>line(r9)).replace(r36, ()=>line(r36));
+    if(!r35.test(t)) t=t.replace(r35b, m=>line(r35)+'\n'+m);
+    return t;
+  };
   ['customInstructionOverride','customInstructionDefault'].forEach(k=>{ app[k]=fix(app[k]); });
 }
 function normalizeApp(app){
