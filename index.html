@@ -1173,7 +1173,7 @@
         <div class="ttclear"><button type="button" class="reset" id="ttClearAll" title="등록한 강의를 모두 지웁니다(과제는 남김)">시간표 비우기 (강의 전체 삭제)</button></div>
       </details>
       <div class="listbox">
-        <div class="lh"><h2>전체 강의</h2><button class="reset" data-a="reset">이 블록 초기화</button></div>
+        <div class="lh"><h2>전체 강의</h2><span style="display:flex;gap:6px"><button class="reset" id="mergeLecBtn" type="button" title="같은 교수의 연속 강의처럼 한 노트로 묶어 공부할 강의를 합칩니다">강의 합치기</button><button class="reset" data-a="reset">이 블록 초기화</button></span></div>
         <div id="fullList"></div>
         <div class="addlec">
           <input type="text" id="alCode" placeholder="코드(ex. 1강)">
@@ -1474,6 +1474,19 @@
   <div class="acts"><button class="no" id="teClear" style="margin-right:auto">기록 지우기</button><button class="no" id="teCancel">취소</button><button class="yes primary" id="teSave">저장</button></div>
 </div></div>
 
+<div class="mask" id="mgMask"><div class="modal wide">
+  <h3 id="mgHeading">강의 합치기</h3>
+  <p class="hint" style="font-size:11.5px;color:var(--muted);margin:0 0 10px;line-height:1.5">같은 교수의 연속 강의처럼 한 노트로 묶어 공부할 강의를 고르세요. 정리본·보완·복습·퀴즈는 한 덩어리로 다루고, <b>시험 문항 수·예상 기출 수·크레딧은 강의 수만큼 합산</b>돼요. 보완은 묶음의 마지막 수업일에 들어가요.</p>
+  <div class="form-row"><label>합본 이름 (정리본 노트 제목)</label><input type="text" id="mgTitle"></div>
+  <div class="form-row"><label>교수로 좁히기</label><select id="mgProf"></select></div>
+  <div id="mgList" style="max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:9px;padding:4px 8px;margin-bottom:8px"></div>
+  <div id="mgInfo" style="font-size:11.5px;color:var(--muted)"></div>
+  <div class="acts">
+    <button class="no" id="mgCancel" type="button">취소</button>
+    <button class="no" id="mgUnmerge" type="button" style="display:none">합본 풀기</button>
+    <button class="yes primary" id="mgSave" type="button">합치기</button>
+  </div>
+</div></div>
 <div class="mask" id="elMask"><div class="modal wide">
   <h3 id="elTitleHeading">강의 수정</h3>
   <div class="form-row" id="elCodeRow"><label>코드</label><input type="text" id="elCode"></div>
@@ -1843,6 +1856,7 @@ function freshLecState(){
 function activateBlock(id){
   const b=App.blocks.find(x=>x.id===id); if(!b) return;
   App.active=id; SCHOOL_DAYS=b.schoolDays; LEC=b.lec; MAXDAY=SCHOOL_DAYS.length; S=b.state;
+  tidyMerges();
   applyTheme(b);
 }
 async function loadApp(){
@@ -2414,7 +2428,7 @@ function professorListText(){
   LEC.filter(l=>l.type!=='과제' && !(S && S.lec[l.id] && S.lec[l.id].excluded)).forEach(l=>{
     const prof=(l.prof||'').trim(); if(!prof || prof==='미정') return;
     if(!map.has(prof)) map.set(prof, []);
-    map.get(prof).push(String(l.code||'').trim());
+    map.get(prof).push(String(lecBaseCode(l)||'').trim());
   });
   return [...map.entries()].map(([prof,codes])=>{
     const cs=codes.filter(Boolean);
@@ -2431,15 +2445,15 @@ function lectureCodeLabel(code){
 }
 function lectureListText(){
   if(!S || !Array.isArray(LEC)) return '';
-  const rows=LEC.filter(l=>l.type!=='과제' && !(S.lec[l.id] && S.lec[l.id].excluded))
-    .slice().sort((a,b)=>lecSeq(a)-lecSeq(b))
+  const rows=examLecs()
     .map(l=>{
       const prof=(l.prof||'').trim();
-      const q=lecExamQ(l);
-      return `${lecNoteName(l)}${prof && prof!=='미정' ? ` (${prof})` : ''} — 시험 ${q}문항 · 예상 기출 ${q*examQMult()}문제`;
+      const q=lecExamQ(l), g=lecGroup(l);
+      const merged=g.length>1 ? ` · 합본(강의 ${g.length}개를 한 노트로: ${g.map(x=>noteCodeHead(groupBaseCode(x))).join(', ')}) — 정리본·퀴즈는 한 덩어리, 문항 수는 강의별 합산` : '';
+      return `${lecNoteName(l)}${prof && prof!=='미정' ? ` (${prof})` : ''} — 시험 ${q}문항 · 예상 기출 ${q*examQMult()}문제${merged}`;
     });
   if(!rows.length) return '';
-  return `### 강의 목록 (강의 번호·제목·교수는 이 목록 기준 — 다시 묻지 마. 정리본 노트 이름은 '—' 앞부분(교수 제외) 그대로)\n${rows.join('\n')}\n\n시험 총 ${examTotalQ()}문항 · ${rows.length}개 강의 · 시험 시간 ${examMinutes()}분\n\n`;
+  return `### 강의 목록 (강의 번호·제목·교수는 이 목록 기준 — 다시 묻지 마. 정리본 노트 이름은 '—' 앞부분(교수 제외) 그대로)\n${rows.join('\n')}\n\n시험 총 ${examTotalQ()}문항 · ${examLecCount()}개 강의 · 시험 시간 ${examMinutes()}분\n\n`;
 }
 function customInstructions(){
   return lectureListText() + customInstructionsBody();
@@ -2485,7 +2499,55 @@ function customInstructionsBody(){
 
    하루 목표 크레딧은 각 날짜별로 직접 상향·하향 조정할 수 있다(약속 있는 날은 낮추고,
    몰아서 할 수 있는 날은 올리는 식) — 그러면 다음 계산부터 바로 반영된다. */
-function activeLectures(){ return LEC.filter(l=>!S.lec[l.id].excluded); }
+/* ===== 강의 합치기(합본) =====
+   같은 교수의 연속 강의처럼 한 노트로 묶어 공부할 강의들. 가장 앞선 강의(대표)가 묶음 전체를 대신해
+   신규·보완·1차·2차 세션을 한 벌만 갖고, 나머지(멤버)는 mergeInto=대표 id로 표시만 남는다.
+   - 시험 문항·예상 기출은 멤버 수만큼 합산(lecExamQ), 크레딧도 멤버 수만큼(stageCost)
+   - 대표의 code/title은 합본 표시로 바뀌고 원래 값은 mergeBase에 보관(풀면 되돌림)
+   - 보완 세션은 묶음의 마지막 수업일에 들어간다(supDay) */
+function isMergedChild(l){ return !!l && l.mergeInto!=null && LEC.some(o=>o.id===l.mergeInto); }
+function mergeKids(l){ return l ? LEC.filter(o=>o.mergeInto===l.id).sort((a,b)=>lecSeq(a)-lecSeq(b)) : []; }
+function lecGroup(l){ return [l, ...mergeKids(l)]; }
+function groupSize(l){ return (l && l.type!=='과제') ? 1+mergeKids(l).length : 1; }
+function lecBaseCode(l){ return l && l.mergeBase ? l.mergeBase.code : (l ? l.code : ''); }
+function lecBaseTitle(l){ return l && l.mergeBase ? l.mergeBase.title : (l ? l.title : ''); }
+function groupBaseCode(x){ return x.mergeBase ? x.mergeBase.code : x.code; }
+function supDay(l){ return lecGroup(l).reduce((m,o)=>Math.max(m,o.day), l.day); }
+function mergedCode(codes){
+  const nums=codes.map(c=>{ const m=String(c||'').trim().match(/^(\d+)\s*(강?)$/); return m?{n:parseInt(m[1],10),g:m[2]}:null; });
+  if(nums.every(Boolean)){
+    const suf=nums[0].g, ns=nums.map(x=>x.n).sort((a,b)=>a-b);
+    return ns.every((n,i)=>i===0||n===ns[i-1]+1) ? `${ns[0]}-${ns[ns.length-1]}${suf}` : ns.join('+')+suf;
+  }
+  return codes.join(' + ');
+}
+function mergeAutoTitle(lecs){
+  const bases=[...new Set(lecs.map(l=>String(lecBaseTitle(l)).replace(/[\s\-–]*[\(（]?\d+[\)）]?\s*$/,'').trim()))];
+  return (bases.length===1 && bases[0]) ? bases[0] : lecs.map(l=>lecBaseTitle(l)).join(' · ');
+}
+function unmergeGroup(p){
+  mergeKids(p).forEach(k=>{ delete k.mergeInto; });
+  if(p.mergeBase){ p.code=p.mergeBase.code; p.title=p.mergeBase.title; delete p.mergeBase; }
+  S.todayLock=null;
+}
+function mergeLectures(ids, title){
+  const lecs=ids.map(id=>LEC.find(l=>l.id===id)).filter(l=>l && l.type!=='과제' && S.lec[l.id] && !S.lec[l.id].excluded && !isMergedChild(l) && !mergeKids(l).length);
+  if(lecs.length<2) return null;
+  lecs.sort((a,b)=>a.day-b.day || lecSeq(a)-lecSeq(b));
+  const p=lecs[0], code=mergedCode(lecs.map(l=>l.code)), name=(title||'').trim() || mergeAutoTitle(lecs);
+  p.mergeBase={code:p.code, title:p.title};
+  lecs.slice(1).forEach(k=>{ k.mergeInto=p.id; purgePulled(k.id); });
+  p.code=code; p.title=name;
+  S.todayLock=null;
+  return p;
+}
+/* 지워서 멤버가 없어진 대표/대표가 없어진 멤버를 원래대로 되돌린다 */
+function tidyMerges(){
+  if(!Array.isArray(LEC)) return;
+  LEC.forEach(l=>{ if(l.mergeInto!=null && !LEC.some(o=>o.id===l.mergeInto)) delete l.mergeInto; });
+  LEC.forEach(l=>{ if(l.mergeBase && !mergeKids(l).length){ l.code=l.mergeBase.code; l.title=l.mergeBase.title; delete l.mergeBase; } });
+}
+function activeLectures(){ return LEC.filter(l=>!S.lec[l.id].excluded && !isMergedChild(l)); }
 /* ===== 강의 번호 =====
    "3강", "12강 (2)", "L7" 처럼 코드 안에 든 숫자를 강의 번호로 읽는다. 숫자가 없으면
    수업일 → 등록 순서로 갈음한다. 계획을 세울 때 같은 단계(신규/1차/2차)끼리는 항상
@@ -2517,13 +2579,13 @@ function supPending(st){ return !!st && st.supFrom!=null && st.supDone==null; }
    수업일에 보완 세션이 무조건 그날 계획에 들어간다(신규가 아직이면 신규 바로 뒤에).
    수업일이 아직이면 미리보기에서 수업일에 보완 몫을 잡아 둔다. */
 function supEligible(l, st){ return !!l && l.type!=='과제' && !!st && !st.excluded && st.supFrom==null && st.supDone==null; }
-function classDaySupAhead(l, st){ return supEligible(l, st) && l.day > S.cur && l.day <= usableDays(); }
+function classDaySupAhead(l, st){ return supEligible(l, st) && supDay(l) > S.cur && supDay(l) <= usableDays(); }
 function autoClassDaySup(){
   if(S.cur<1 || S.cur>usableDays()) return [];
   const added=[];
   activeLectures().forEach(l=>{
     const st=S.lec[l.id];
-    if(l.day!==S.cur || !supEligible(l, st)) return;
+    if(supDay(l)!==S.cur || !supEligible(l, st)) return;
     st.supFrom=S.cur; st.supDone=null;
     added.push(l.id);
   });
@@ -2568,7 +2630,7 @@ const DIFF_MULT={easy:0.75, normal:1, hard:1.5};
 function diffMult(l){ return (l && DIFF_MULT[l.diff]) || 1; }
 function stageCost(l, type){
   if(type==='assign') return l ? itemTotalCost(l) : 1;
-  return typeCost(type)*diffMult(l);
+  return typeCost(type)*diffMult(l)*groupSize(l);
 }
 function itemCost(it){ return stageCost(byId(it.lecId), it.type); }
 function remainingCredits(){
@@ -2592,10 +2654,23 @@ function obsFolder(block){
   block = block || App.blocks.find(b=>b.id===App.active);
   return String((block && (block.obsFolder || block.name)) || '').trim();
 }
+function noteCodeHead(code){
+  const c=String(code||'').trim();
+  const m=c.match(/^(\d+)\s*강?\s*(.*)$/);
+  return m ? String(parseInt(m[1],10)).padStart(2,'0')+'강'+(m[2]?' '+m[2]:'') : c;
+}
 function lecNoteName(l){
-  const code=String(l.code||'').trim();
-  const m=code.match(/^(\d+)\s*강?\s*(.*)$/);
-  const head = m ? String(parseInt(m[1],10)).padStart(2,'0')+'강'+(m[2]?' '+m[2]:'') : code;
+  const kids=mergeKids(l);
+  let head;
+  if(kids.length){ // 합본: 07강-08강 (이어지는 번호) / 07강+09강
+    const codes=[lecBaseCode(l), ...kids.map(k=>k.code)];
+    const nums=codes.map(c=>{ const m=String(c||'').trim().match(/^(\d+)\s*강?$/); return m?parseInt(m[1],10):null; });
+    const two=n=>String(n).padStart(2,'0')+'강';
+    if(nums.every(n=>n!=null)){
+      const ns=nums.slice().sort((a,b)=>a-b);
+      head = ns.every((n,i)=>i===0||n===ns[i-1]+1) ? `${two(ns[0])}-${two(ns[ns.length-1])}` : ns.map(two).join('+');
+    } else head=codes.map(noteCodeHead).join('+');
+  } else head=noteCodeHead(l.code);
   return `${head}. ${String(l.title||'').trim()}`.replace(/[\\/:*?"<>|#^\[\]]/g,' ').replace(/\s+/g,' ').trim();
 }
 function obsUri(path){ return `obsidian://open?vault=${encodeURIComponent(obsVault())}&file=${encodeURIComponent(path)}`; }
@@ -2617,7 +2692,7 @@ const PROMPT_VARS=[
   {k:'{시험일}', scope:'block', d:'시험 당일', v:()=>{ const d=S && dInfo(S.examDay); return d ? `${d.date}(${d.dow})` : ''; }},
   {k:'{시험까지}', scope:'block', d:'시험까지 남은 날 (예: D-12)', v:()=>S ? `D-${Math.max(0,S.examDay-S.cur)}` : ''},
   {k:'{오늘}', scope:'block', d:'오늘 Day와 날짜 (예: Day3 · 10/16(금))', v:()=>{ const d=S && dInfo(S.cur); return d ? `Day${d.day} · ${d.date}(${d.dow})` : ''; }},
-  {k:'{강의수}', scope:'block', d:'시험에 나오는 강의 수 (과제·시험범위 제외 강의는 뺌)', v:()=>String(examLecs().length)},
+  {k:'{강의수}', scope:'block', d:'시험에 나오는 강의 수 (과제·시험범위 제외 강의는 뺌)', v:()=>String(examLecCount())},
   {k:'{총문항수}', scope:'block', d:'시험 총 문항 수 (강의별 시험 문항 수의 합)', v:()=>String(examTotalQ())},
   {k:'{시험시간}', scope:'block', d:'시험 시간(분) — 설정에 넣은 값, 없으면 문항 수 × 39초', v:()=>String(examMinutes())},
   {k:'{강의별문항}', scope:'block', d:'강의마다 한 줄 "강의 노트 이름 — n문항" 목록', v:()=>examLecs().map(x=>`${lecNoteName(x)} — ${lecExamQ(x)}문항`).join('\n')},
@@ -2626,7 +2701,7 @@ const PROMPT_VARS=[
   {k:'{강의명}', scope:'lecture', d:'강의 제목', v:l=>String(l.title||'')},
   {k:'{교수}', scope:'lecture', d:'담당 교수 (미정이면 "교수 미정")', v:l=>(l.prof && l.prof!=='미정') ? l.prof : '교수 미정'},
   {k:'{수업일}', scope:'lecture', d:'그 강의의 수업 날짜', v:l=>{ const d=dInfo(l.day); return d ? `${d.date}(${d.dow})` : ''; }},
-  {k:'{시험문항수}', scope:'lecture', d:'그 강의의 시험 문항 수', v:l=>String(lecExamQ(l))},
+  {k:'{시험문항수}', scope:'lecture', d:'그 강의의 시험 문항 수 (합본이면 멤버 강의 합산)', v:l=>String(lecExamQ(l))},
   {k:'{예상기출수}', scope:'lecture', d:'그 강의의 예상 기출 문제 수 (시험 문항 수 × 배수)', v:l=>String(lecExamQ(l)*examQMult())},
 ];
 function fillPromptVars(text, l){
@@ -2636,6 +2711,11 @@ function fillPromptVars(text, l){
     if(p.scope==='lecture'){ if(l) t=t.replaceAll(p.k, p.v(l)); }
     else t=t.replaceAll(p.k, p.v());
   });
+  const kids=l ? mergeKids(l) : [];
+  if(kids.length){
+    const g=lecGroup(l), q=lecExamQ(l);
+    t+=`\n\n※ 합본 강의: ${g.map(x=>`${noteCodeHead(groupBaseCode(x))}. ${lecBaseTitle(x)}`).join(' + ')} (강의 ${g.length}개를 한 노트로 합쳤어). 위 강의 번호의 강의록·필기·족보를 전부 읽고 하나의 노트로 처리해. 시험 문항·예상 기출은 강의별 문항 수를 합산한 ${q}문항·${q*examQMult()}문제야.`;
+  }
   return t;
 }
 /* 블록 홈 노트 — 강의별 진도표를 옵시디언 노트로 내보낸다 */
@@ -2644,7 +2724,7 @@ function blockHomeMarkdown(){
   const name=block?.name || '블록';
   const first=SCHOOL_DAYS[0], exam=dInfo(S.examDay);
   const mk=v=> v ? '✅' : '⬜';
-  const lecs=LEC.filter(l=>l.type!=='과제' && S.lec[l.id] && !S.lec[l.id].excluded).sort((a,b)=>lecSeq(a)-lecSeq(b));
+  const lecs=LEC.filter(l=>l.type!=='과제' && !isMergedChild(l) && S.lec[l.id] && !S.lec[l.id].excluded).sort((a,b)=>lecSeq(a)-lecSeq(b));
   const rows=lecs.map(l=>{
     const st=S.lec[l.id], di=dInfo(l.day);
     return `| [[${lecNoteName(l)}]] | ${(l.prof||'').replace(/\|/g,'/')} | ${di?di.date:''} | ${lecExamQ(l)} | ${mk(st.upl!=null)} | ${mk(st.enc!=null)} | ${st.supFrom!=null?mk(st.supDone!=null):'-'} | ${mk(st.r[1])} | ${mk(st.r[2])} |`;
@@ -3034,12 +3114,15 @@ function uploadLeadStats(){
 }
 function examQDefault(){ const v=S && S.plan ? S.plan.examQ : undefined; return (typeof v==='number' && v>=0) ? v : 3; }
 function examQMult(){ const v=S && S.plan ? S.plan.examQMult : undefined; return (typeof v==='number' && v>0) ? v : 3; }
-function lecExamQ(l){ return (l && typeof l.examQ==='number' && l.examQ>=0) ? l.examQ : examQDefault(); }
+function ownExamQ(l){ return (l && typeof l.examQ==='number' && l.examQ>=0) ? l.examQ : examQDefault(); }
+/* 합본이면 멤버 강의별 문항 수의 합 */
+function lecExamQ(l){ return lecGroup(l).reduce((s,o)=>s+ownExamQ(o),0); }
 /* 시험에 나오는 강의(과제·시험범위 제외 강의는 뺀다)와 그 문항 수 합계 — 전체 예상 기출문제의 총 문항 수 */
 function examLecs(){
   if(!S || !Array.isArray(LEC)) return [];
-  return LEC.filter(l=>l.type!=='과제' && !(S.lec[l.id] && S.lec[l.id].excluded)).slice().sort((a,b)=>lecSeq(a)-lecSeq(b));
+  return LEC.filter(l=>l.type!=='과제' && !isMergedChild(l) && !(S.lec[l.id] && S.lec[l.id].excluded)).slice().sort((a,b)=>lecSeq(a)-lecSeq(b));
 }
+function examLecCount(){ return examLecs().reduce((n,l)=>n+groupSize(l),0); }
 function examTotalQ(){ return examLecs().reduce((s,l)=>s+lecExamQ(l),0); }
 /* 시험 시간(분): 설정에 직접 넣은 값(시험 공지 기준)이 있으면 그것, 없으면 총 문항 수 × 39초를 분으로 올림 */
 function examMinSet(){ const v=S && S.plan ? S.plan.examMin : undefined; return (typeof v==='number' && v>0) ? Math.round(v) : 0; }
@@ -3110,7 +3193,7 @@ function buildPendingPool(excludeKeys){
     if(l.type==='과제'){ if(st.enc==null) push('assign', l.day, itemTotalCost(l)); return; }
     if(supPending(st)) push('sup', st.supFrom);
     else if(classDaySupAhead(l, st) && !(excludeKeys && excludeKeys.has(l.id+':sup')))
-      pool.push({type:'sup', lecId:l.id, cost:stageCost(l,'sup'), original:l.day, nominal:l.day, notBefore:l.day});
+      pool.push({type:'sup', lecId:l.id, cost:stageCost(l,'sup'), original:supDay(l), nominal:supDay(l), notBefore:supDay(l)});
     if(st.enc==null){
       push('new',l.day);
       if(!st.r[1]) push('r1',l.day+G1());
@@ -3188,7 +3271,7 @@ function fillDay(pool, cap, day, assumeUploaded){
   for(const it of pool){
     if(it.notBefore!=null && day!=null && day<it.notBefore){ rest.push(it); continue; } // 수업일 보완은 수업일 전에 당겨 오지 않는다(뒤 단계는 막지 않음)
     if(!full && used >= cap-1e-9) full=true;
-    const mustToday = it.type==='sup' && day!=null && byId(it.lecId) && byId(it.lecId).day===day; // 수업일 보완은 그날 몫이 꽉 차도 넣는다
+    const mustToday = it.type==='sup' && day!=null && byId(it.lecId) && supDay(byId(it.lecId))===day; // 수업일 보완은 그날 몫이 꽉 차도 넣는다
     if((full && !mustToday) || blocked.has(it.lecId) || (!assumeUploaded && !itemEligible(it, day))){ rest.push(it); blocked.add(it.lecId); continue; }
     placed.push(it); used+=it.cost;
   }
@@ -4392,7 +4475,7 @@ function dailyFlowCard(label, index){
 }
 function purgePulled(lecId){
   if(!S.pulledReviews) return;
-  ['new','r1','r2','assign'].forEach(t=>{ delete S.pulledReviews[lecId+':'+t]; });
+  ['new','sup','r1','r2','assign'].forEach(t=>{ delete S.pulledReviews[lecId+':'+t]; });
 }
 /* 블록 끝내기 — 축하 모달 + 색종이 */
 function celebrateBlock(block){
@@ -5187,7 +5270,18 @@ function stage0Chip(l){
   const title=enc?`신규 완료 (Day${S.lec[l.id].enc}) · 완료 취소`:'신규 학습 완료로 표시';
   return `<div class="chip"><button type="button" class="new-complete-btn ${enc?'done':'due'}" title="${title}" aria-label="${title}">신</button><span class="lbl">신</span></div>`;
 }
+/* 합본에 묶인 멤버 강의는 대표 강의가 진도를 대신한다 — 이름과 편집 버튼만 남긴다 */
+function buildMergedChildRow(l){
+  const p=LEC.find(o=>o.id===l.mergeInto);
+  const row=el(`<div class="row" style="opacity:.6">
+    <div class="rt"><div class="rn">${esc(l.code)}. ${esc(l.title)}</div><div class="rp">${esc(l.prof||'')} · <b>합본</b> → ${esc(lecNoteName(p))}</div></div>
+    <button class="undo mg-edit" type="button">합본 편집</button>
+  </div>`);
+  row.querySelector('.mg-edit').onclick=()=> openMergeModal(p);
+  return row;
+}
 function buildRow(l, st){
+  if(isMergedChild(l)) return buildMergedChildRow(l);
   const excluded = !!st.excluded;
   const enc = st.enc!=null;
   const ss = slots(l);
@@ -5196,11 +5290,12 @@ function buildRow(l, st){
   else { chipsHtml = `<div class="chips">${stage0Chip(l)}${ss.map(s=>slotChip(l,s)).join('')}</div>`; }
 
   const row = el(`<div class="row" style="${excluded?'opacity:.45':''}">
-    <div class="rt"><div class="rn">${excluded?'<s>':''}${l.type==='실습'?'<span class="badge lab" style="margin-right:4px">실습</span>':''}${esc(l.code)}. ${esc(l.title)}${excluded?'</s>':''}</div><div class="rp">${ttValidPeriod(l)?`${ttSpan(l)>1?`${l.period}~${ttCover(l.period,ttSpan(l)).slice(-1)[0]}교시`:periodLabel(l.period)} · `:'교시 미정 · '}${esc(l.prof)}${l.diff==='hard'?' · 어려움 ×1.5':l.diff==='easy'?' · 쉬움 ×0.75':''} · 시험 ${lecExamQ(l)}문항${excluded?' · 시험범위 제외됨':''}</div></div>
+    <div class="rt"><div class="rn">${excluded?'<s>':''}${l.type==='실습'?'<span class="badge lab" style="margin-right:4px">실습</span>':''}${esc(l.code)}. ${esc(l.title)}${excluded?'</s>':''}${groupSize(l)>1?`<span class="badge lab" style="margin-left:6px">합본 ${groupSize(l)}강</span>`:''}</div><div class="rp">${ttValidPeriod(l)?`${ttSpan(l)>1?`${l.period}~${ttCover(l.period,ttSpan(l)).slice(-1)[0]}교시`:periodLabel(l.period)} · `:'교시 미정 · '}${esc(l.prof)}${l.diff==='hard'?' · 어려움 ×1.5':l.diff==='easy'?' · 쉬움 ×0.75':''} · 시험 ${lecExamQ(l)}문항${excluded?' · 시험범위 제외됨':''}</div></div>
     ${chipsHtml}
     ${excluded?'':`<span class="encpill ${enc?'':'no'}">${enc?'enc D'+st.enc:'신규 학습 미완'}</span>`}
     ${(!excluded && enc)?'<button class="undo undo-enc">되돌리기</button>':''}
     ${excluded?'':`<button class="undo upl-toggle${st.upl!=null?' on':''}" title="${st.upl!=null?`Day${st.upl}에 강의록 올라옴 표시 · 누르면 취소`:(enc?'올해 강의록이 올라왔으면 — 정리본 보완 세션(0.5 크레딧)이 오늘 계획에 추가됩니다':'ETL에 강의록이 올라왔으면 — 이 강의 신규 학습이 최우선으로 배정됩니다')}">${st.upl!=null?'강의록 ✓':'강의록 올라옴'}</button>`}
+    ${groupSize(l)>1?'<button class="undo mg-edit" type="button">합본 편집</button>':''}
     <button class="undo edit-lec">수정</button>
     <button class="undo excl-toggle">${excluded?'포함시키기':'시험범위 제외'}</button>
     <button class="tabdel del-lec" title="강의 삭제">×</button>
@@ -5243,9 +5338,13 @@ function buildRow(l, st){
     showToast(msg, {undo:true});
   };
   row.querySelector('.edit-lec').onclick=()=> openEditLecModal(l);
+  const mgEditBtn=row.querySelector('.mg-edit');
+  if(mgEditBtn) mgEditBtn.onclick=()=> openMergeModal(l);
   row.querySelector('.del-lec').onclick=()=>{
     askConfirm(`"${l.title}"을 목록에서 완전히 삭제하시겠습니까?`, '강의와 인코딩·체크 기록이 함께 삭제됩니다. 삭제 직후 알림의 되돌리기로만 복구할 수 있습니다.', ()=>{
+      if(mergeKids(l).length) unmergeGroup(l); // 합본 대표를 지우면 묶음을 먼저 푼다
       const idx=LEC.findIndex(x=>x.id===l.id); if(idx>=0) LEC.splice(idx,1);
+      tidyMerges();
       delete S.lec[l.id];
       purgePulled(l.id); // 남아 있으면 오늘 목록 렌더에서 없는 강의를 그리려다 깨진다
       S.todayLock=null;
@@ -5255,9 +5354,10 @@ function buildRow(l, st){
   };
   const exclBtn = row.querySelector('.excl-toggle');
   exclBtn.onclick = ()=>{
-    if(excluded){ st.excluded=false; S.todayLock=null; saveApp(); render(); }
+    const setExcl=v=>{ lecGroup(l).forEach(o=>{ if(S.lec[o.id]) S.lec[o.id].excluded=v; }); }; // 합본이면 멤버까지 함께
+    if(excluded){ setExcl(false); S.todayLock=null; saveApp(); render(); }
     else askConfirm(`"${l.title}"을 시험범위에서 제외하시겠습니까?`, '해당 강의는 시험 범위에서 제외되며 관련된 복습 진도도 함께 초기화됩니다.', ()=>{
-      st.excluded=true; purgePulled(l.id); S.todayLock=null; saveApp(); render();
+      setExcl(true); purgePulled(l.id); S.todayLock=null; saveApp(); render();
       toastUndo('제외했습니다.');
     }, '제외');
   };
@@ -6192,6 +6292,69 @@ document.getElementById('nbSubmit').onclick = ()=>{
 };
 
 /* ===== 강의 수정 모달 ===== */
+/* ===== 강의 합치기 모달 ===== */
+const mgMask=document.getElementById('mgMask');
+let _mgEditing=null, _mgSel=new Set(), _mgTitleTouched=false;
+function mgCandidates(){
+  const members=new Set(_mgEditing ? lecGroup(_mgEditing).map(l=>l.id) : []);
+  return LEC.filter(l=>l.type!=='과제' && S.lec[l.id] && !S.lec[l.id].excluded
+      && (members.has(l.id) || (!isMergedChild(l) && !mergeKids(l).length)))
+    .sort((a,b)=>lecSeq(a)-lecSeq(b));
+}
+function mgRenderList(){
+  const prof=document.getElementById('mgProf').value;
+  const list=mgCandidates().filter(l=>!prof || l.prof===prof || _mgSel.has(l.id));
+  const box=document.getElementById('mgList');
+  box.innerHTML=list.length ? list.map(l=>{
+    const d=dInfo(l.day);
+    return `<label style="display:flex;gap:8px;align-items:flex-start;padding:5px 0;font-size:12.5px;cursor:pointer"><input type="checkbox" value="${l.id}" ${_mgSel.has(l.id)?'checked':''} style="margin-top:3px"><span>${esc(lecBaseCode(l))}. ${esc(lecBaseTitle(l))} <small style="color:var(--muted)">${esc(l.prof||'미정')} · Day${l.day}${d?' '+d.date:''}</small></span></label>`;
+  }).join('') : '<div style="padding:10px 0;color:var(--muted);font-size:12px">합칠 수 있는 강의가 없습니다.</div>';
+  box.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.onchange=()=>{ const id=Number(cb.value); if(cb.checked) _mgSel.add(id); else _mgSel.delete(id); mgUpdateInfo(); };
+  });
+  mgUpdateInfo();
+}
+function mgUpdateInfo(){
+  const lecs=[..._mgSel].map(id=>LEC.find(l=>l.id===id)).filter(Boolean).sort((a,b)=>lecSeq(a)-lecSeq(b));
+  const q=lecs.reduce((n,l)=>n+ownExamQ(l),0);
+  document.getElementById('mgInfo').textContent = lecs.length
+    ? `선택 ${lecs.length}개 · 시험 ${q}문항 · 예상 기출 ${q*examQMult()}문제 · 크레딧 ×${lecs.length}`
+    : '합칠 강의를 2개 이상 고르세요.';
+  if(!_mgTitleTouched && lecs.length>=2) document.getElementById('mgTitle').value=mergeAutoTitle(lecs);
+}
+function openMergeModal(p){
+  if(!S) return;
+  _mgEditing=p||null; _mgTitleTouched=!!p;
+  _mgSel=new Set(p ? lecGroup(p).map(l=>l.id) : []);
+  document.getElementById('mgHeading').textContent = p ? '합본 편집' : '강의 합치기';
+  document.getElementById('mgTitle').value = p ? p.title : '';
+  document.getElementById('mgUnmerge').style.display = p ? '' : 'none';
+  document.getElementById('mgSave').textContent = p ? '저장' : '합치기';
+  const profs=[...new Set(mgCandidates().map(l=>l.prof).filter(v=>v && v!=='미정'))];
+  document.getElementById('mgProf').innerHTML='<option value="">전체</option>'+profs.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  mgRenderList();
+  mgMask.classList.add('on');
+}
+function closeMergeModal(){ mgMask.classList.remove('on'); _mgEditing=null; }
+document.getElementById('mergeLecBtn').onclick=()=> openMergeModal(null);
+document.getElementById('mgCancel').onclick=closeMergeModal;
+document.getElementById('mgProf').onchange=mgRenderList;
+document.getElementById('mgTitle').oninput=()=>{ _mgTitleTouched=true; };
+document.getElementById('mgUnmerge').onclick=()=>{
+  if(!_mgEditing) return;
+  unmergeGroup(_mgEditing); saveApp(); closeMergeModal(); render();
+  toastUndo('합본을 풀었습니다.');
+};
+document.getElementById('mgSave').onclick=()=>{
+  const ids=[..._mgSel];
+  if(!_mgEditing && ids.length<2){ showToast('강의를 2개 이상 골라주세요.'); return; }
+  const title=document.getElementById('mgTitle').value;
+  if(_mgEditing) unmergeGroup(_mgEditing);
+  const p= ids.length>=2 ? mergeLectures(ids, title) : null;
+  saveApp(); closeMergeModal(); render();
+  toastUndo(p ? `${lecGroup(p).length}개 강의를 합본으로 묶었습니다.` : '합본을 풀었습니다.');
+};
+mgMask.addEventListener('click',e=>{ if(e.target===mgMask) closeMergeModal(); });
 const elMask=document.getElementById('elMask');
 let _editingLec=null;
 function openEditLecModal(l){
@@ -6211,6 +6374,7 @@ function openEditLecModal(l){
   document.getElementById('elTitleLabel').textContent = isAssign?'과제명':'강의명';
   document.getElementById('elDayLabel').textContent = isAssign?'기한':'Day';
   document.getElementById('elCode').value=l.code||'';
+  document.getElementById('elCode').disabled=!!l.mergeBase; // 합본 대표의 코드는 합본 편집에서 정한다
   document.getElementById('elTitle').value=l.title;
   document.getElementById('elProf').value=l.prof||'';
   document.getElementById('elType').value=l.type==='실습'?'실습':'강의';
@@ -6240,7 +6404,7 @@ document.getElementById('elSave').onclick=()=>{
     _editingLec.credit = (isNaN(credit)||credit<=0) ? 1 : credit;
     _editingLec.checklist = parseChecklist(document.getElementById('elChecklist').value);
   } else {
-    _editingLec.code = document.getElementById('elCode').value.trim() || _editingLec.code;
+    if(!_editingLec.mergeBase) _editingLec.code = document.getElementById('elCode').value.trim() || _editingLec.code;
     _editingLec.prof = document.getElementById('elProf').value.trim() || '미정';
     _editingLec.type = document.getElementById('elType').value;
     const dv=document.getElementById('elDiff').value;
