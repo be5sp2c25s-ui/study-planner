@@ -1667,12 +1667,12 @@ function builtinPromptEntry(p, app){
 /* 콘텐츠 버전 9: 공부 흐름을 사용설명서대로(Claude Code + 옵시디언) 바꾼다. 예전 기본 프롬프트(블록 시작·
    시험 회고·필기 비교 등)는 지우고, 기본 프롬프트는 새 문구·새 순서로, 지침·상세 체크리스트는 새 흐름
    기본값으로 되돌린다. 직접 추가한 프롬프트는 그대로 맨 뒤에 남긴다(이름 앞 Ⓐ~Ⓜ 기호만 뗀다). */
-const CONTENT_VERSION=20;
+const CONTENT_VERSION=21;
 const OLD_BUILTIN_IDS=['p1','p2','p3','p4','p5','pa','pd','pf','pm'];
 function migrateBuiltinPrompts(app){
   if((app.contentVersion||0) >= CONTENT_VERSION) return;
   /* 버전 10~11: 전체 예상 기출문제(CBT) 프롬프트를 학교 CBT 화면 양식(종합시험 CBT와 같은 UI)으로 */
-  if([9,10,11,12,13,14,15,16,17,18,19].includes(app.contentVersion||0)){
+  if([9,10,11,12,13,14,15,16,17,18,19,20].includes(app.contentVersion||0)){
     if((app.contentVersion||0) < 12){
       const pt=app.customPrompts.find(cp=>cp && cp.id==='pt'), p=PROMPTS().find(x=>x.id==='pt');
       if(pt && p){ pt.text=p.x; pt.when=p.w; }
@@ -1683,6 +1683,7 @@ function migrateBuiltinPrompts(app){
     if((app.contentVersion||0) < 18) migrateJokboCbtTable(app);
     if((app.contentVersion||0) < 19) migrateJokboImages(app);
     if((app.contentVersion||0) < 20) migrateJokboPdfImages(app);
+    if((app.contentVersion||0) < 21) migrateJokboNoTimer(app);
     if((app.contentVersion||0) < 19) migrateCardCap(app);
     /* 버전 15: 감염과 면역 1차 CLAUDE.md의 지침을 기본 지침으로 넣었다 — 저장해 둔 지침 대신 새 기본값을 쓴다 */
     app.customInstructionOverride=''; app.customInstructionDefault='';
@@ -1798,6 +1799,13 @@ function migrateJokboPdfImages(app){
     if(!cp || typeof cp.text!=='string' || cp.text.includes('PyMuPDF')) return;
     pairs.forEach(([o,n])=>{ if(cp.text.includes(o)) cp.text=cp.text.replace(o,n); });
   });
+}
+/* 버전 21: 족보 CBT는 시간 제한이 없다 — 저장해 둔 족보 CBT 만들기 프롬프트에서 시험시간 문구를 빼고 경과 시간 문구를 넣는다. */
+function migrateJokboNoTimer(app){
+  const pairs=[["표 (교시 | 시험명 '{과목명} 족보 · 강의 이름' | 총문항수 | 시험시간: 분 입력칸 + 아래 파란 작은 글씨 '시작~종료 시각').", "표 (교시 | 시험명 '{과목명} 족보 · 강의 이름' | 총문항수)."], [" 시험시간 기본값은 문항 수 × (블록 시험 {시험시간}분 ÷ {총문항수}문항)을 분 단위로 올림 →", " →"], ["- 주관식 문항은 선지 대신 답 입력칸 하나", "- 시간 제한 없음 (전체 예상 기출과 다른 점): 위 화면 설명 중 시간 관련 — 상단바 '남은 시간'·5분 이하 빨강, ① 시험시간 칸, ④ 시간이 다 되면 자동 제출 — 은 전부 빼. 상단바에는 '남은 시간' 대신 '경과 시간 [mm:ss]'(0부터 올라가는 흰 바탕 둥근 상자, 빨강 없음, 새로고침해도 이어짐)만 두고, 제출은 내가 직접 할 때만. 점수 카드 한 줄은 '소요 시간 n분 n초'(제한 표기 없음)\n- 주관식 문항은 선지 대신 답 입력칸 하나"]];
+  const cp=app.customPrompts.find(c=>c && c.id==='pw');
+  if(!cp || typeof cp.text!=='string' || cp.text.includes('시간 제한 없음')) return;
+  pairs.forEach(([o,n])=>{ if(cp.text.includes(o)) cp.text=cp.text.replace(o,n); });
 }
 function normalizeApp(app){
   if(!app || !Array.isArray(app.blocks)) return app;
@@ -3700,9 +3708,10 @@ const PW_TEXT = `[{블록폴더}/족보 노트 · 족보/족보 목록.md · CLA
 
 ## 2. 화면 (학교 CBT 모방 — '전체 예상 기출'과 UI·UX를 똑같이. 장식 없이 사무적이고 각진 모서리)
 ${CBT_UI_BASE}
-① 본인확인 · 강의 선택: 너비 640px 흰 카드. 맨 위 '{과목명} 족보 CBT' 제목(30px 굵게, 가운데) → 회색 띠 '본인확인' → 왼쪽 회색 사람 실루엣 사진 칸(130×160), 오른쪽 파란 굵은 글씨 '성명'·'학생번호' 밑줄 입력칸(한 번 쓰면 기억) → 회색 띠 '강의 선택' → 강의 표 (강의 | 교수 | 문항 수 | 최근 결과 'n/m · 날짜' | 다시 풀 문항 수). 문항이 없는 강의는 흐린 글씨 '아직 안 넣음'으로 고를 수 없게. 한 줄을 누르면 연한 파랑으로 선택 → 풀이 방식 두 개(라디오): '전체 문항'(1차 복습) / '다시 풀기 — 틀렸던 문항 + 노트에 오답·실수 태그가 붙은 문항'(2차 복습, 해당 문항이 없으면 비활성) + 체크 '올해 필기로 풀 수 없는 문항 포함'(기본 끔) → 표 (교시 | 시험명 '{과목명} 족보 · 강의 이름' | 총문항수 | 시험시간: 분 입력칸 + 아래 파란 작은 글씨 '시작~종료 시각'). 이 표는 흰 카드 안쪽(좌우 24px 여백)에 딱 맞게 — 표 공통 규칙의 width:100%에 밀려 카드 밖으로 튀어나오지 않도록 이 표 전용 규칙의 선택자를 더 구체적으로(예: table.t.exam-tbl) 쓰고 width:calc(100% - 48px). 시험시간 기본값은 문항 수 × (블록 시험 {시험시간}분 ÷ {총문항수}문항)을 분 단위로 올림 → 맨 아래 파란 '☑ 시험시작' 큰 버튼. 이미 시작한 풀이면 '▶ 이어서 풀기', 제출했으면 '결과 보기' (강의 · 풀이 방식마다 따로)
+① 본인확인 · 강의 선택: 너비 640px 흰 카드. 맨 위 '{과목명} 족보 CBT' 제목(30px 굵게, 가운데) → 회색 띠 '본인확인' → 왼쪽 회색 사람 실루엣 사진 칸(130×160), 오른쪽 파란 굵은 글씨 '성명'·'학생번호' 밑줄 입력칸(한 번 쓰면 기억) → 회색 띠 '강의 선택' → 강의 표 (강의 | 교수 | 문항 수 | 최근 결과 'n/m · 날짜' | 다시 풀 문항 수). 문항이 없는 강의는 흐린 글씨 '아직 안 넣음'으로 고를 수 없게. 한 줄을 누르면 연한 파랑으로 선택 → 풀이 방식 두 개(라디오): '전체 문항'(1차 복습) / '다시 풀기 — 틀렸던 문항 + 노트에 오답·실수 태그가 붙은 문항'(2차 복습, 해당 문항이 없으면 비활성) + 체크 '올해 필기로 풀 수 없는 문항 포함'(기본 끔) → 표 (교시 | 시험명 '{과목명} 족보 · 강의 이름' | 총문항수). 이 표는 흰 카드 안쪽(좌우 24px 여백)에 딱 맞게 — 표 공통 규칙의 width:100%에 밀려 카드 밖으로 튀어나오지 않도록 이 표 전용 규칙의 선택자를 더 구체적으로(예: table.t.exam-tbl) 쓰고 width:calc(100% - 48px). → 맨 아래 파란 '☑ 시험시작' 큰 버튼. 이미 시작한 풀이면 '▶ 이어서 풀기', 제출했으면 '결과 보기' (강의 · 풀이 방식마다 따로)
 ${CBT_UI_SOLVE}
 - 그림: images의 at 자리에 <img>로 보여줘 — 'stem'은 발문 바로 아래, 'box'는 <보기> 상자 안, 숫자는 그 선지 글 아래. 카드 너비 안에 맞게(max-width:100%) 하고, 누르면 큰 화면으로 확대(닫기 가능). 풀이 화면·채점 팝업 모두에서 같게. 파일을 못 읽으면 깨진 아이콘 대신 '[그림 없음: 파일명]'(onerror)
+- 시간 제한 없음 (전체 예상 기출과 다른 점): 위 화면 설명 중 시간 관련 — 상단바 '남은 시간'·5분 이하 빨강, ① 시험시간 칸, ④ 시간이 다 되면 자동 제출 — 은 전부 빼. 상단바에는 '남은 시간' 대신 '경과 시간 [mm:ss]'(0부터 올라가는 흰 바탕 둥근 상자, 빨강 없음, 새로고침해도 이어짐)만 두고, 제출은 내가 직접 할 때만. 점수 카드 한 줄은 '소요 시간 n분 n초'(제한 표기 없음)
 - 주관식 문항은 선지 대신 답 입력칸 하나(숫자키 단축 X). 채점 때 정답과 나란히 보여 주고 내가 '맞음/틀림'을 고르면 점수에 반영. answer가 null인 문항은 풀 수는 있지만 채점에서 빼고 '정답 미정' 표시
 ⑥ 채점 화면: 상단바(시험명·이름만) + 가운데 최대 1140px
    - 점수 카드: 파랑 큰 숫자 '맞힌 수 / 전체' + 소요 시간 한 줄, '처음부터 다시 풀기'·'강의 선택으로' 버튼
