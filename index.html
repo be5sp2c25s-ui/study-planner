@@ -1174,6 +1174,7 @@
       </details>
       <div class="listbox">
         <div class="lh"><h2>전체 강의</h2><span style="display:flex;gap:6px"><button class="reset" id="mergeLecBtn" type="button" title="같은 교수의 연속 강의처럼 한 노트로 묶어 공부할 강의를 합칩니다">강의 합치기</button><button class="reset" data-a="reset">이 블록 초기화</button></span></div>
+        <div class="hint" style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:2px 0 10px;font-size:11.5px;color:var(--muted)"><label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="autoRenumToggle"> 강의 순서가 바뀌면 강 번호를 시간표 순서로 자동 갱신</label><button class="reset" id="renumBtn" type="button" title="시간표(날짜 → 교시) 순서대로 강 번호를 지금 다시 매깁니다">지금 번호 정렬</button></div>
         <div id="fullList"></div>
         <div class="addlec">
           <input type="text" id="alCode" placeholder="코드(ex. 1강)">
@@ -2587,6 +2588,50 @@ function customInstructionsBody(){
    - 시험 문항·예상 기출은 멤버 수만큼 합산(lecExamQ), 크레딧도 멤버 수만큼(stageCost)
    - 대표의 code/title은 합본 표시로 바뀌고 원래 값은 mergeBase에 보관(풀면 되돌림)
    - 보완 세션은 묶음의 마지막 수업일에 들어간다(supDay) */
+/* ===== 강의 번호 = 시간표 순서 =====
+   '7강'처럼 숫자만 있는 강의의 번호를 시간표 순서(날짜 → 교시)대로 다시 매긴다. 블록이 가진 번호들
+   (예: 1~47, 49~66)은 그대로 두고 어느 강의가 어느 번호를 갖는지만 바꾼다. CBL·TBL·실습·과제는 건드리지 않는다.
+   합본의 대표 코드는 멤버 번호가 바뀌면 같이 다시 만든다. */
+function autoRenumberOn(){ return !(S && S.plan && S.plan.autoRenumber===false); }
+function lecNumInfo(l){
+  if(!l || l.type==='과제' || l.type==='실습') return null;
+  const m=String(lecBaseCode(l)||'').trim().match(/^(\d+)\s*(강?)$/);
+  return m ? {n:parseInt(m[1],10), len:m[1].length, pad:m[1].length>1 && m[1].startsWith('0'), suf:m[2]} : null;
+}
+function renumberLectures(){
+  const lecs=LEC.map(l=>({l, info:lecNumInfo(l)})).filter(x=>x.info);
+  if(lecs.length<2) return [];
+  const order=lecs.slice().sort((a,b)=>
+    a.l.day-b.l.day
+    || (ttValidPeriod(a.l)?a.l.period:99)-(ttValidPeriod(b.l)?b.l.period:99)
+    || a.info.n-b.info.n || a.l.id-b.l.id);
+  const nums=lecs.map(x=>x.info.n).sort((a,b)=>a-b);
+  const changes=[];
+  order.forEach((x,i)=>{
+    const n=nums[i];
+    if(n===x.info.n) return;
+    const code=(x.info.pad ? String(n).padStart(x.info.len,'0') : String(n))+x.info.suf;
+    changes.push({from:lecBaseCode(x.l), to:code, title:lecBaseTitle(x.l)});
+    if(x.l.mergeBase) x.l.mergeBase.code=code; else x.l.code=code;
+  });
+  if(changes.length){
+    LEC.forEach(l=>{ if(l.mergeBase){ const k=mergeKids(l); if(k.length) l.code=mergedCode([l.mergeBase.code, ...k.map(o=>o.code)]); } });
+    S.todayLock=null;
+  }
+  return changes;
+}
+function renumberToast(ch){
+  const sample=ch.slice(0,3).map(c=>`${c.from}→${c.to}`).join(', ');
+  return `강의 번호 ${ch.length}개를 시간표 순서로 바꿨습니다 (${sample}${ch.length>3?' …':''})`;
+}
+/* render() 맨 앞에서 부르면 날짜·교시를 옮기거나 강의를 더하고 지울 때마다 번호가 알아서 따라온다 */
+function autoRenumber(){
+  if(!S || !autoRenumberOn()) return;
+  const ch=renumberLectures();
+  if(!ch.length) return;
+  saveApp();
+  showToast(renumberToast(ch), {long:true});
+}
 function isMergedChild(l){ return !!l && l.mergeInto!=null && LEC.some(o=>o.id===l.mergeInto); }
 function mergeKids(l){ return l ? LEC.filter(o=>o.mergeInto===l.id).sort((a,b)=>lecSeq(a)-lecSeq(b)) : []; }
 function lecGroup(l){ return [l, ...mergeKids(l)]; }
@@ -5896,6 +5941,7 @@ document.getElementById('twClose').onclick=closeTimetableWindow;
 twMask.onclick=e=>{ if(e.target===twMask) closeTimetableWindow(); };
 function renderList(){
   const wrap=document.getElementById('fullList'); wrap.innerHTML='';
+  document.getElementById('autoRenumToggle').checked=autoRenumberOn();
   SCHOOL_DAYS.forEach(d=>{
     /* 그날 강의 순서 = 시간표 교시 순서 (교시 미정·과제는 뒤로) */
     const items=LEC.filter(l=>l.day===d.day).sort((a,b)=>
@@ -6259,6 +6305,7 @@ function render(){
   if(!has) return;
   tSettle();
   studySync();
+  autoRenumber();
   SCHEDULE = computeSchedule();
   renderHeader(); renderBanner(); renderLoadPanel(); renderToday(); renderPlan(); renderTimetableViews(); renderList(); renderPrompts();
   scheduleClaudeMdSync(); // 강의 목록·학습 전략이 바뀌었으면 CLAUDE.md도 다시 저장
@@ -6479,6 +6526,19 @@ function openMergeModal(p){
 }
 function closeMergeModal(){ mgMask.classList.remove('on'); _mgEditing=null; }
 document.getElementById('mergeLecBtn').onclick=()=> openMergeModal(null);
+document.getElementById('renumBtn').onclick=()=>{
+  if(!S) return;
+  const ch=renumberLectures();
+  if(!ch.length){ showToast('이미 시간표 순서대로입니다.'); return; }
+  saveApp(); render();
+  showToast(renumberToast(ch), {long:true});
+};
+document.getElementById('autoRenumToggle').onchange=e=>{
+  if(!S) return;
+  if(!S.plan) S.plan={};
+  S.plan.autoRenumber=e.target.checked;
+  saveApp(); render();
+};
 document.getElementById('mgCancel').onclick=closeMergeModal;
 document.getElementById('mgProf').onchange=mgRenderList;
 document.getElementById('mgTitle').oninput=()=>{ _mgTitleTouched=true; };
