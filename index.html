@@ -384,9 +384,19 @@
   .pbarseg{height:100%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.16)}
   .pbar{box-shadow:inset 0 0 0 1px rgba(0,0,0,.16)}
   .battery-fill{box-shadow:none}
-  .plantags{display:flex;flex-direction:column;gap:3px;margin-top:6px}
-  .plantaggrp{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-  .plantaggrp .glbl{font-size:9px;font-weight:700;color:var(--faint);min-width:24px}
+  .plantags{display:flex;flex-direction:column;gap:5px;margin-top:6px}
+  .plantaggrp{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:2px 0 2px 7px;border-left:3px solid var(--line)}
+  .plantaggrp .glbl{font-size:10.5px;font-weight:800;color:var(--ink);min-width:30px;text-align:center;padding:1px 6px;border-radius:5px;background:var(--track)}
+  .plantaggrp.g-new{border-left-color:var(--st-new)}
+  .plantaggrp.g-sup{border-left-color:var(--st-sup)}
+  .plantaggrp.g-r1{border-left-color:var(--st-r1)}
+  .plantaggrp.g-r2{border-left-color:var(--st-r2)}
+  .plantaggrp.g-new .planstrip{background:color-mix(in srgb,var(--st-new) 22%,var(--surface))}
+  .plantaggrp.g-sup .planstrip{background:color-mix(in srgb,var(--st-sup) 22%,var(--surface))}
+  .plantaggrp.g-r1 .planstrip{background:color-mix(in srgb,var(--st-r1) 28%,var(--surface))}
+  .plantaggrp.g-r2 .planstrip{background:color-mix(in srgb,var(--st-r2) 32%,var(--surface))}
+  .plantaggrp.g-new .plancell,.plantaggrp.g-sup .plancell,.plantaggrp.g-r1 .plancell,.plantaggrp.g-r2 .plancell{color:var(--ink)}
+  .plantaggrp.g-assign{border-left-color:var(--warn)}
   /* 강의 목록은 배지 낱개 나열 대신 칸막이로 나눈 한 줄 띠 —
      개수가 늘어도 테두리·여백이 같이 늘어나지 않아 시각적 소음이 안 쌓인다. */
   .planstrip{display:inline-flex;flex-wrap:wrap;max-width:100%;border-radius:7px;overflow:hidden}
@@ -483,6 +493,12 @@
   .flowitem:hover{transform:translateY(-2px);box-shadow:var(--sh-2)}
   .flowhead{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer}
   .flowbadge{font-size:10px;font-weight:800;padding:3px 9px;border-radius:8px;flex-shrink:0}
+  /* 카드 왼쪽 색 띠 — 블록 포인트 색을 신규(진함)→보완→1차→2차(옅음) 순으로 */
+  .flowitem.t-new{box-shadow:var(--sh-1),inset 5px 0 0 var(--st-new)}
+  .flowitem.t-sup{box-shadow:var(--sh-1),inset 5px 0 0 var(--st-sup)}
+  .flowitem.t-r1{box-shadow:var(--sh-1),inset 5px 0 0 var(--st-r1)}
+  .flowitem.t-r2{box-shadow:var(--sh-1),inset 5px 0 0 var(--st-r2)}
+  .flowitem.t-assign{box-shadow:var(--sh-1),inset 5px 0 0 var(--warn)}
   .flowbadge.new{background:var(--progress-soft);color:var(--accent-ink)}
   .flowbadge.r1{background:var(--done-soft);color:var(--ink)}
   .flowbadge.r2{background:var(--inactive-soft);color:var(--inactive)}
@@ -1579,6 +1595,7 @@ function hexToRgb(hex){
 }
 function rgbToHex(c){ return '#'+c.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('').toUpperCase(); }
 function mixWhite(c, amount){ return c.map(v=> v+(255-v)*amount); }
+function mixBlack(c, amount){ return c.map(v=> v*(1-amount)); }
 function relLum(c){
   const f=v=>{ v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); };
   return 0.2126*f(c[0])+0.7152*f(c[1])+0.0722*f(c[2]);
@@ -1620,6 +1637,13 @@ function applyTheme(block){
   r.setProperty('--point',t.point);
   r.setProperty('--point-soft',t.soft);
   r.setProperty('--point-rgb',t.rgb);
+  /* 단계 색 — 이 블록의 포인트 컬러 한 가지를 신규(진함) → 보완 → 1차 → 2차(옅음) 순으로 단계별로 밝혀 쓴다.
+     오늘 탭 카드 띠와 학습 계획 탭의 단계 줄이 같은 색을 쓴다. */
+  const prgb=hexToRgb(t.point);
+  r.setProperty('--st-new', rgbToHex(mixBlack(prgb,0.62)));
+  r.setProperty('--st-sup', rgbToHex(mixBlack(prgb,0.32)));
+  r.setProperty('--st-r1', t.point);
+  r.setProperty('--st-r2', rgbToHex(mixWhite(prgb,0.55)));
   r.setProperty('--done-soft',t.soft);
   r.setProperty('--donesoft-rgb',t.softRgb);
   /* 진한 포인트 색 위에서는 캘린더 날짜 숫자를 흰색으로 */
@@ -2706,9 +2730,10 @@ function supPending(st){ return !!st && st.supFrom!=null && st.supDone==null; }
    수업일에 보완 세션이 무조건 그날 계획에 들어간다(신규가 아직이면 신규 바로 뒤에).
    수업일이 아직이면 미리보기에서 수업일에 보완 몫을 잡아 둔다. */
 function supEligible(l, st){ return !!l && l.type!=='과제' && !!st && !st.excluded && st.supFrom==null && st.supDone==null; }
-function classDaySupAhead(l, st){ return supEligible(l, st) && supDay(l) > S.cur && supDay(l) <= usableDays(); }
+function supLastDay(){ return S.examDay-1; } // 비워 둔 날에도 수업이 있으면 그날 보완은 배정한다
+function classDaySupAhead(l, st){ return supEligible(l, st) && supDay(l) > S.cur && supDay(l) <= supLastDay(); }
 function autoClassDaySup(){
-  if(S.cur<1 || S.cur>usableDays()) return [];
+  if(S.cur<1 || S.cur>supLastDay()) return [];
   const added=[];
   activeLectures().forEach(l=>{
     const st=S.lec[l.id];
@@ -2766,7 +2791,7 @@ function remainingCredits(){
     const st=S.lec[l.id];
     if(l.type==='과제'){ if(st.enc==null) sum+=itemTotalCost(l); return; }
     if(st.enc==null) sum+=stageCost(l,'new');
-    if(supPending(st) || classDaySupAhead(l, st)) sum+=stageCost(l,'sup');
+    if(supPending(st) || (classDaySupAhead(l, st) && supDay(l)<=usableDays())) sum+=stageCost(l,'sup');
     if(!st.r[1]) sum+=stageCost(l,'r1');
     if(!st.r[2]) sum+=stageCost(l,'r2');
   });
@@ -3289,6 +3314,7 @@ function defaultCapacityFor(d, remainingCred, fromDay){
 /* 그래도 시험 전까지 다 못 넣으면 computeSchedule이 조정 안 한 날들의 몫을 이 배율만큼 늘려
    남는 항목 없이 전부 끼워 넣는다 (기본 1) */
 let CAP_SCALE=1;
+let OVR_EXTRA=0; // 직접 조정한 미래의 날에 얹는 초과분 (남는 항목이 없게)
 /* 오늘 크레딧은 "코인"이다 — 하루가 시작될 때 한 번 정해지면 그날 안에서는 바뀌지
    않는다. 체크(완료)를 해서 코인을 쓰는 것과, 새로 코인이 배정되는 것(=오늘 할 일
    목록이 다시 계산되는 것)은 완전히 별개다. S.todayLock에 "오늘 하기로 확정된 목록"을
@@ -3315,7 +3341,7 @@ function futureRemainingCredits(){ return Math.max(0, remainingCredits()-lockedT
 function dayCapacity(d){
   const uEnd = usableDays();
   if(d<1 || d>uEnd) return 0; // 시험 전날·당일: 분배 대상 아님
-  if(S.capOverride && S.capOverride[d]!=null) return S.capOverride[d];
+  if(S.capOverride && S.capOverride[d]!=null) return S.capOverride[d] + (d>S.cur ? OVR_EXTRA : 0);
   if(d===S.cur) return (S.todayLock && S.todayLock.day===S.cur) ? lockedTodayTotalCost() : defaultCapacityFor(d, remainingCredits(), S.cur);
   return defaultCapacityFor(d, futureRemainingCredits(), S.cur+1);
 }
@@ -3432,7 +3458,11 @@ function ensureTodayLock(forceCap){
     return;
   }
   const uEnd = usableDays();
-  if(S.cur<1 || S.cur>uEnd){ S.todayLock = {day:S.cur, items:[]}; return; } // 시험 전날·당일 등 분배 대상 밖
+  if(S.cur<1 || S.cur>uEnd){ // 비워 둔 날·시험 당일: 크레딧 분배는 없고, 수업이 있는 날의 보완만 얹는다
+    S.todayLock = {day:S.cur, items: S.cur<S.examDay ? activeLectures().filter(l=>{ const st=S.lec[l.id]; return st && (supPending(st) || st.supDone===S.cur); })
+      .map(l=>({type:'sup', lecId:l.id, original:S.lec[l.id].supFrom, pulled:false})) : []};
+    return;
+  }
   const pinned=[];
   const pinnedKeys=new Set();
   const deferredToday=deferredKeysToday();
@@ -3531,7 +3561,7 @@ function computeSchedule(){
   ensureTodayLock();
   recordDayHistory();
   const uEnd = usableDays(), startDay = S.cur;
-  const byDay={}; for(let d=startDay; d<=uEnd; d++) byDay[d]=[];
+  const byDay={}; for(let d=startDay; d<=Math.max(uEnd, S.examDay-1); d++) byDay[d]=[];
   if(!byDay[startDay]) byDay[startDay]=[]; // 오늘이 분배 구간 밖이어도(시험 전날 등) 항상 키는 존재하게
 
   const lockedKeys = new Set();
@@ -3546,22 +3576,34 @@ function computeSchedule(){
      남은 양만큼 늘려서 다시 채운다 — 순서(신규 → 1차 → 2차)만 지키고 전부 끼워 넣는다. */
   const fillFuture = ()=>{
     let pool = buildPendingPool(lockedKeys);
+    /* 비워 둔 날에 수업이 있는 강의의 보완은 분배 구간 밖이라 그날에 그대로 잡는다 */
+    const late=pool.filter(it=>it.type==='sup' && it.notBefore!=null && it.notBefore>uEnd && it.notBefore<S.examDay);
+    pool=pool.filter(it=>!late.includes(it));
     const days={};
     for(let d=startDay+1; d<=uEnd; d++){
       const {placed, rest} = fillDay(pool, dayCapacity(d), d, true);
       days[d]=placed;
       pool = rest;
     }
+    late.forEach(it=>{ const d=Math.max(it.notBefore, startDay+1); (days[d]=days[d]||[]).push(it); });
     return {days, pool};
   };
-  CAP_SCALE=1;
+  OVR_EXTRA=0; CAP_SCALE=1;
   let res = fillFuture();
   for(let tries=0; tries<20 && res.pool.length; tries++){
     let base=0;
     for(let d=startDay+1; d<=uEnd; d++) if(!capOverridden(d)) base+=dayCapacity(d);
-    if(base<=1e-9) break; // 조정 안 한 날이 하나도 없으면 늘릴 곳이 없다
     const left=res.pool.reduce((a,it)=>a+it.cost,0);
+    if(base<=1e-9) break; // 조정 안 한 날이 하나도 없으면 아래에서 직접 조정한 날을 늘린다
     CAP_SCALE*=1+left/base;
+    res = fillFuture();
+  }
+  /* 모든 날을 직접 조정했거나(초반 크레딧을 줄여 놓은 경우 등) 그래도 남으면, 직접 조정한 날에도
+     같은 양씩 얹어서 항목이 빠지지 않게 한다 — 조정값은 그대로 두고 초과분만 더한다 */
+  for(let tries=0; tries<40 && res.pool.length; tries++){
+    let n=0; for(let d=startDay+1; d<=uEnd; d++) if(capOverridden(d)) n++;
+    if(!n) break;
+    OVR_EXTRA += res.pool.reduce((a,it)=>a+it.cost,0)/n + 0.05;
     res = fillFuture();
   }
   Object.entries(res.days).forEach(([d,placed])=> placed.forEach(it=>{ it.day=+d; byDay[d].push(it); }));
@@ -4475,7 +4517,7 @@ function flowCard(type, l, isPulled){
   const flowKey=`${App.active}:${type}:${l.id}`;
   const doneCount = steps.filter((_,i)=>sc[i]).length;
   const titleText = isAssign ? esc(l.title) : `${esc(l.code)}. ${esc(l.title)}`;
-  const item = el(`<div class="flowitem">
+  const item = el(`<div class="flowitem t-${type}">
     <div class="flowhead">
       <span class="flowbadge ${type}">${label}</span>
       <span class="flowtitle">${titleText}${isAssign?'':'<button class="flowcopy" type="button" title="강의 이름 복사" aria-label="강의 이름 복사"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button>'}<span class="flowmeta">${steps.length? `${doneCount}/${steps.length} 체크됨` : (isAssign?`크레딧 ${l.credit||1}`:'')}${isPulled?' · <span class="pulledtag">미리 당겨옴</span>':''}${uplTag}${deferTag}</span></span>
@@ -5097,9 +5139,10 @@ function renderToday(){
   const eeveBox=document.getElementById('eeveBox');
   const flowBox=document.getElementById('dayFlow');
   if(isExamEve){
-    flowBox.style.display='none';
+    const hasSup=!!(S.todayLock && S.todayLock.day===S.cur && S.todayLock.items.length);
     eeveBox.style.display='';
     renderExamEve(eeveBox);
+    if(hasSup){ flowBox.style.display=''; renderDayFlow(flowBox, false); } else flowBox.style.display='none';
   } else {
     eeveBox.style.display='none'; eeveBox.innerHTML='';
     flowBox.style.display='';
@@ -5167,7 +5210,7 @@ function tagGroupsHtml(items, isDoneFn, markMissed){
       const cls = done? 'done' : (markMissed? 'missed' : (waiting? 'waiting' : ''));
       return `<span class="plancell ${cls}" title="${tip}">${esc(l.code || l.title)}</span>`;
     }).join('');
-    html += `<div class="plantaggrp"><span class="glbl">${labels[type]}</span><span class="planstrip ${type}">${cells}</span></div>`;
+    html += `<div class="plantaggrp g-${type}"><span class="glbl">${labels[type]}</span><span class="planstrip ${type}">${cells}</span></div>`;
   });
   return html? `<div class="plantags">${html}</div>` : '';
 }
