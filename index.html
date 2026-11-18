@@ -584,6 +584,8 @@
   .add-plan-btn:hover{border-color:var(--accent-ink);background:var(--accent-soft);color:var(--accent-ink)}
   .flowbody{display:none;max-height:0;overflow:hidden;padding:2px 14px 12px 14px;border-top:1px solid var(--line)}
   .flowbody.open{max-height:600px}
+  /* 강의 수만큼 늘어나는 긴 목록(압축본 1회독 등)은 높이 제한 없이 전부 보인다 */
+  .flowbody.longlist,.flowbody.longlist.open,.flowbody.longlist.opening,.flowbody.longlist.closing{max-height:none;animation:none}
   .flowbody.opening{animation:flowDetailIn 280ms var(--ease) both}
   .flowbody.opening .substep{animation:flowStepIn 300ms var(--ease) both}
   .flowbody.closing{animation:flowDetailOut 280ms var(--ease) both}
@@ -4941,7 +4943,7 @@ function examEveCard(label, index){
       <span class="flowtitle">${esc(label)}${lecs.length?`<span class="flowmeta">${readCnt}/${lecs.length} 읽음</span>`:''}</span>
       <button class="flowdone ${done?'done':''}" style="${done?'background:var(--inactive-soft);color:var(--inactive)':''}">${done?'완료됨':'완료'}</button>
     </div>
-    ${lecs.length?`<div class="flowbody${expandedFlowCards.has(flowKey)?' open':''}" style="display:${expandedFlowCards.has(flowKey)?'block':'none'}"></div>`:''}
+    ${lecs.length?`<div class="flowbody longlist${expandedFlowCards.has(flowKey)?' open':''}" style="display:${expandedFlowCards.has(flowKey)?'block':'none'}"></div>`:''}
   </div>`);
   if(lecs.length){
     item.dataset.fkey=flowKey;
