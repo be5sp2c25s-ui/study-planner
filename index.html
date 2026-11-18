@@ -594,8 +594,9 @@
   .substep .slabel{flex:1}
   .substep .slabel.done{color:var(--faint)}
 
-  .eeve{background:var(--surface);border:1px solid transparent;border-radius:16px;padding:16px;box-shadow:var(--sh-2)}
-  .eeve h2{font-family:var(--disp);font-weight:800;font-size:14px;margin:0 0 8px}
+  .eeve{background:none;border:none;border-radius:0;padding:0;box-shadow:none} /* 흰 박스 없이 평소 날처럼 카드만 나열 */
+  .eeve h2{font-family:var(--disp);font-weight:800;font-size:14px;margin:0 0 4px}
+  .eeve .dayflow{margin:10px 0 0}
   .compareCard{border-left:4px solid var(--warn);background:var(--warn-soft);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:11.5px}
   .compareCard-head{display:flex;align-items:flex-start;gap:8px}
   .compareCard-head b{flex:1}
@@ -4914,16 +4915,57 @@ function setupExpandAll(box){
   };
 }
 /* 시험 전날 체크리스트 한 항목 = 카드 하나 (강의 카드와 같은 모양·같은 완료 버튼) */
+/* '압축본 … 1회독' 항목은 펼치면 강의마다 읽었는지 체크할 수 있다 — 며칠에 걸쳐 해도 체크가 그대로 이어진다(날짜별로 새로 시작하지 않음) */
+function isCompressedReadItem(label){ return /압축본/.test(label) && /회독/.test(label); }
+function compressedReadLecs(){
+  return activeLectures().filter(l=>l.type!=='과제' && l.type!=='실습' && S.lec[l.id] && !S.lec[l.id].excluded)
+    .sort((a,b)=>lecSeq(a)-lecSeq(b));
+}
+function eveReadMap(){
+  if(!S.eveReadAll || typeof S.eveReadAll!=='object'){
+    S.eveReadAll={};
+    Object.values(S.eveRead||{}).forEach(m=>{ Object.keys(m||{}).forEach(k=>{ if(m[k]) S.eveReadAll[k]=true; }); }); // 예전 날짜별 기록을 이어받는다
+  }
+  return S.eveReadAll;
+}
 function examEveCard(label, index){
   const map = eveCheckMap(S.cur);
   const done = !!map[index];
+  const lecs = isCompressedReadItem(label) ? compressedReadLecs() : [];
+  const rmap = lecs.length ? eveReadMap() : null;
+  const readCnt = lecs.filter(l=>rmap[l.id]).length;
+  const flowKey = `${App.active}:everead:${S.cur}:${index}`;
   const item = el(`<div class="flowitem">
     <div class="flowhead">
       <span class="flowbadge" style="background:var(--warn-soft);color:var(--warn)">전날</span>
-      <span class="flowtitle">${esc(label)}</span>
+      <span class="flowtitle">${esc(label)}${lecs.length?`<span class="flowmeta">${readCnt}/${lecs.length} 읽음</span>`:''}</span>
       <button class="flowdone ${done?'done':''}" style="${done?'background:var(--inactive-soft);color:var(--inactive)':''}">${done?'완료됨':'완료'}</button>
     </div>
+    ${lecs.length?`<div class="flowbody${expandedFlowCards.has(flowKey)?' open':''}" style="display:${expandedFlowCards.has(flowKey)?'block':'none'}"></div>`:''}
   </div>`);
+  if(lecs.length){
+    item.dataset.fkey=flowKey;
+    const body=item.querySelector('.flowbody');
+    lecs.forEach(l=>{
+      const on=!!rmap[l.id];
+      const row=el(`<div class="substep"><span class="schk ${on?'done':''}">${on?'✓':''}</span><span class="slabel ${on?'done':''}">${esc(l.code)}. ${esc(l.title)}</span></div>`);
+      row.querySelector('.schk').onclick=e=>{
+        e.stopPropagation();
+        rmap[l.id]=!rmap[l.id];
+        if(rmap[l.id] && lecs.every(x=>rmap[x.id]) && !map[index]){ // 전 강의를 읽으면 항목도 완료로
+          map[index]=true;
+          if(S.cur===S.examDay-1) S.examEve={...map};
+        }
+        saveApp(); render();
+      };
+      body.appendChild(row);
+    });
+    item.querySelector('.flowhead').onclick=e=>{
+      if(e.target.closest('.flowdone')) return;
+      toggleFlowBody(body, ()=>expandedFlowCards.add(flowKey), ()=>expandedFlowCards.delete(flowKey));
+      if(item._syncAll) item._syncAll();
+    };
+  }
   item.querySelector('.flowdone').onclick=()=>{
     map[index]=!map[index];
     if(S.cur===S.examDay-1) S.examEve={...map}; // 예전 기록 자리도 같이 맞춰 둔다
