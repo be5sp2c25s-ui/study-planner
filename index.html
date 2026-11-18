@@ -4920,7 +4920,7 @@ function setupExpandAll(box){
 /* '압축본 … 1회독' 항목은 펼치면 강의마다 읽었는지 체크할 수 있다 — 며칠에 걸쳐 해도 체크가 그대로 이어진다(날짜별로 새로 시작하지 않음) */
 function isCompressedReadItem(label){ return /압축본/.test(label) && /회독/.test(label); }
 function compressedReadLecs(){
-  return activeLectures().filter(l=>l.type!=='과제' && l.type!=='실습' && S.lec[l.id] && !S.lec[l.id].excluded)
+  return activeLectures().filter(l=>l.type!=='과제' && (l.type!=='실습' || mergeKids(l).length) && S.lec[l.id] && !S.lec[l.id].excluded) // 실습이 대표인 합본은 강의가 들어 있으니 포함
     .sort((a,b)=>lecSeq(a)-lecSeq(b));
 }
 function eveReadMap(){
