@@ -1890,6 +1890,11 @@ function normalizeApp(app){
   const fixMdName=t=> typeof t==='string' ? t.replace(/CLAUDE \([^)\n]*\) 지침\.md/g,'CLAUDE.md') : t;
   app.customPrompts.forEach(cp=>{ if(cp){ cp.text=fixMdName(cp.text); cp.when=fixMdName(cp.when); } });
   ['customInstructionOverride','customInstructionDefault'].forEach(k=>{ app[k]=fixMdName(app[k]); });
+  /* 정리본 형식: '아니다'를 뜻하는 X는 ❌로 — 직접 고쳐 둔 지침에도 27번 줄만 덧붙인다(여러 번 돌려도 결과 같음) */
+  const fixX=t=> (typeof t==='string' && t.includes("27. 기호:") && !t.includes('알파벳 X 말고'))
+    ? t.replace(/(27\. 기호:[^\n]*)/, "$1 '아니다·틀림·해당 없음·금지'를 뜻하는 X는 알파벳 X 말고 항상 ❌ 이모티콘으로 쓴다 (맞다는 ✅).")
+        .replace("('Ch1.' X).","('Ch1.' ❌).").replace('화려한 서식 X.','화려한 서식 ❌.') : t;
+  ['customInstructionOverride','customInstructionDefault'].forEach(k=>{ app[k]=fixX(app[k]); });
   [app.promptOverrides, app.promptDefaults].forEach(o=>{ Object.keys(o||{}).forEach(k=>{ o[k]=fixMdName(o[k]); }); });
   ['onboardSteps','examEveSteps','examEveD2Steps','examEveD3Steps','dailySteps'].forEach(k=>{ if(Array.isArray(app[k])) app[k]=app[k].map(fixMdName); });
   /* 매일 반복 항목이 여러 개가 될 수 있게 ankiCheck(단일 체크) → dailyCheck(항목별 체크)로 옮긴다 */
@@ -2478,11 +2483,11 @@ const CUSTOM_INSTRUCTIONS_TEMPLATE = `### 과목 설정 (블록마다 이 부분
 22. 강의록·필기·교수 후기에서 짤족·탈족 언급을 발견하면 반드시 알려줘. 짤족 → 예상 기출에서 족보 문항 비중↑ + 정리본에 없는 족보 포인트 목록 제시. 탈족 → 족보 의존도↓, 개념 이해·응용 문제 강화. 교수별 학습 전략이 있으면 그 교수 강의에 우선 적용.
 
 ### 옵시디언 정리본 노트 형식 (고정)
-23. 파일: '{과목 폴더}/정리본/nn강. 강의제목.md' — 이름은 맨 위 강의 목록의 노트 이름 그대로(nn은 두 자리). 첫 줄 '# nn강. 강의제목 (교수)'. 챕터 '## 1. 제목', 섹션 '### 1-1. 제목' ('Ch1.' X).
+23. 파일: '{과목 폴더}/정리본/nn강. 강의제목.md' — 이름은 맨 위 강의 목록의 노트 이름 그대로(nn은 두 자리). 첫 줄 '# nn강. 강의제목 (교수)'. 챕터 '## 1. 제목', 섹션 '### 1-1. 제목' ('Ch1.' ❌).
 24. frontmatter: 강의(번호), 교수, 수업일, 족보(이 강의 족보 노트 링크 목록), tags: [정리본].
 25. 교수 정보: 제목 바로 아래 '> [!info] 교수 정보' 콜아웃에 딱 세 줄 — 짤족 여부 / 짤족 포인트(짤족일 때만) / 시험 문제 포인트(교수가 알려줬을 때만). 해당 없으면 '없음'. 강의 개요·학습 목표 등은 넣지 마.
 26. 표기 줄: 교수 정보 다음 한 줄 — '표기: 보통 글씨 = 교수 언급·강조 / *기울임* = 슬라이드에만 있고 언급 확인 안 됨 / **굵게** = 핵심 용어 / ==하이라이트== = 족보 출제 / ★ = 교수 강조·스탬프'.
-27. 기호: 말머리는 '-' 하나만(들여쓰기로 계층), 번호는 '1.'(원문자 ①② 금지). 강조는 26번 역할 그대로 — 섞어 쓰지 마.
+27. 기호: 말머리는 '-' 하나만(들여쓰기로 계층), 번호는 '1.'(원문자 ①② 금지). 강조는 26번 역할 그대로 — 섞어 쓰지 마. '아니다·틀림·해당 없음·금지'를 뜻하는 X는 알파벳 X 말고 항상 ❌ 이모티콘으로 쓴다 (맞다는 ✅).
 28. 족보 라벨: 족보에 나온 개념은 ==하이라이트== 하고 바로 옆에 그 문항 노트 링크 — 예) ==A→P 이동 억제== [[2023 Q54]]. 여러 문항이면 공백으로 나란히. 별칭 번호로 링크해도 같은 노트로 간다.
 29. 챕터 시작: '> [!tldr] 오늘의 한 문장' 콜아웃 한 줄 — 이 챕터를 꿰는 인과 사슬.
 30. 표: 분류·감별·약물 비교는 표. 셀 안 줄바꿈은 '<br>', 셀 안 목록은 '- '. 약물이 여러 개인 강의는 약물 통합표 열을 '약물 | 앵커 (기전 → 핵심 결과) | 갈래: 쓰는 이유·특징 | 부작용·주의·금기 | 기억 고리'로.
@@ -2495,7 +2500,7 @@ const CUSTOM_INSTRUCTIONS_TEMPLATE = `### 과목 설정 (블록마다 이 부분
    - 질환·병원체 각론 강의: 1. 단서 → 답 반사표(표: 단서(★=결정적) | 바로 떠올릴 질환·병원체 | 헷갈리는 짝과 가르는 기준) → 2. 질환·병원체별 앵커와 인과 사슬(중요한 것부터) → 3. 족보·올해 슬라이드 밖
    - 기전·임상 중심 강의 (예: 34강 항염증 약리): 1. 핵심 암기 요약표(우선순위순, 족보 반복 표시) → 2·3. 보충(요약표에 없는 내용, 주제 | 내용 표)
    - 마지막 챕터 '족보 · 올해 슬라이드 밖': 표 (족보 | 지문 단서 | 정답 | 올해 슬라이드 근거). 올해 근거가 없으면 '근거 없음'.
-36. 최소 분량(48번), 화려한 서식 X. 예상 기출문제는 노트에 넣지 마.
+36. 최소 분량(48번), 화려한 서식 ❌. 예상 기출문제는 노트에 넣지 마.
 
 ### 족보 노트 규격 (고정)
 37. 파일: '{과목 폴더}/족보/2026 Q01.md' — 이름은 '연도 Q두자리번호'. 주관식 번호(R3 등)는 '2020 R3'.
@@ -5070,7 +5075,8 @@ function compressedReadLecs(day){
   let cum=0; const out=[];
   lecs.forEach(l=>{
     const idx=Math.min(R-1, Math.floor(cum/per)); cum+=groupSize(l);
-    if(idx===r || (idx<r && !rmap[l.id])) out.push(l);
+    /* 앞날에서 넘어온 강의는 읽으면 사라지지 않고 오늘 목록에 체크된 채로 남는다 (다음 날부터 빠짐) */
+    if(idx===r || (idx<r && (!rmap[l.id] || (S.eveReadDay && S.eveReadDay[l.id]===day)))) out.push(l);
   });
   return out;
 }
@@ -5105,6 +5111,8 @@ function examEveCard(label, index){
       row.querySelector('.schk').onclick=e=>{
         e.stopPropagation();
         rmap[l.id]=!rmap[l.id];
+        if(!S.eveReadDay) S.eveReadDay={};
+        if(rmap[l.id]) S.eveReadDay[l.id]=S.cur; else delete S.eveReadDay[l.id];
         if(rmap[l.id] && lecs.every(x=>rmap[x.id]) && !map[index]){ // 전 강의를 읽으면 항목도 완료로
           map[index]=true;
           if(S.cur===S.examDay-1) S.examEve={...map};
