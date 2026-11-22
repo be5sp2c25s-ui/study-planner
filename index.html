@@ -1916,6 +1916,11 @@ function normalizeApp(app){
     if(pn0 && pnNew && typeof pn0.text==='string' && pn0.text.includes('정리본/증례 감별.html')){ pn0.text=pnNew.x; pn0.when=pnNew.w; }
     const puLabel='마인드맵 HTML에 반영 프롬프트 → 변경 계획 확인 → 반영 (마인드맵 HTML이 있을 때)';
     if(app.subSteps && Array.isArray(app.subSteps.sup) && !app.subSteps.sup.includes(puLabel)) app.subSteps.sup=app.subSteps.sup.concat([puLabel]);
+    if(!app.customPrompts.some(c=>c && c.id==='py')){ // 신규 인코딩 (작년 필기만) — 올해 강의록 인코딩 바로 뒤
+      const entry=builtinPromptEntry(PROMPTS().find(x=>x.id==='py'), null);
+      const at=app.customPrompts.findIndex(c=>c && c.id==='pg');
+      if(at>=0) app.customPrompts.splice(at+1,0,entry); else app.customPrompts.push(entry);
+    }
     const pw=PROMPTS().find(x=>x.id==='pw');
     app.customPrompts.forEach(cp=>{ if(cp && cp.id==='pw' && pw && typeof cp.text==='string' && !cp.text.includes('문제 출처')){ cp.text=pw.x; cp.when=pw.w; } });
     const oldStep='예상 기출문제 풀이 → 채점 · 정리본에 넣을 것 반영';
@@ -3872,6 +3877,14 @@ const PU_TEXT = `[{블록폴더}/정리본/{강의}.md · {블록폴더}/정리�
 1. 먼저 변경 계획을 표로 보여줘: 대상(카드·가지·사진) | 추가·수정·삭제 | 바꿀 내용 한 줄 | 근거(정리본·압축본 위치 또는 족보 문항). 내가 확인하면 반영해
 2. 반영한 뒤 검증하고 결과를 보고해: ① node 스크립트로 가지의 p가 전부 P에 있는지 · 'to'가 가리키는 덩어리가 있는지 · 모든 갈림길에 k가 있는지 · 카드 j의 족보 파일이 있는지 · NOTES·PIC 경로의 파일이 있는지 · im 키가 PIC에 있는지 ② <script> 문법 검사(node --check) ③ ①·③ 부분이 백업과 글자 그대로 같은지 diff
 3. 끝나면 바뀐 카드·가지·사진 수와 바뀐 파일 목록`;
+const PY_TEXT = `[읽을 파일: {블록폴더}/자료/ 의 작년 필기 — 파일 이름을 여기에 (올해 강의록은 아직 없음)]
+{강의} ({교수}) 올해 강의록이 아직 안 올라와서 작년 필기만으로 먼저 인코딩할게. 작년 필기가 유일한 근거야 — 올해 슬라이드를 아는 것처럼 쓰지 마.
+1. 먼저 대단원 목차·우선순위 표를 보여줘. 작년 필기에서 확인되는 강조·스탬프·교수 코멘트·짤족/탈족 언급과, 올해 담당 교수가 작년과 다를 수 있는지(작년 교수 이름이 올해 강의 목록과 다르면 그 필기는 약한 근거)도 함께. 내가 확인하면 진행
+2. 정리본 노트를 한 번에: {블록폴더}/정리본/{강의}.md — 지침의 '옵시디언 정리본 노트 형식' 그대로. 챕터마다 인출 문제는 내지 마 (예상 기출문제로 따로 할게)
+3. 모든 내용의 출처는 작년 필기이니 구분이 필요한 곳에만 [작년 필기]로 표시해 (줄마다 달지 마 — 작년 필기에서 교수가 강조했다는 표시가 있는 것만). 강의록에 없고 일반 지식으로 보충한 건 (보충) 표시
+4. 강의록 뒤 족보 문항: 이 작년 필기 기준으로 족보 노트({블록폴더}/족보) 해설을 채우고, 정리본의 해당 개념에 ==하이라이트== + 문항 라벨. 근거 없는 선지는 ~~취소선~~ (근거 없음), 작년 필기만으로 정답을 못 정하면 정답 불확실로 알려줘
+5. 노트 맨 끝에 '올해 강의록·필기에서 확인할 것' 목록 — 올해 강의록이 올라오면 강의록 보완 때 이것부터 대조할 거야 (올해 슬라이드에서 빠지거나 바뀌었을 수 있는 내용, 작년 교수 개인 강조, 약한 근거로 쓴 부분)
+6. 끝나면 바뀐 파일 목록 · '족보 해설 채운 문항' 목록 · 근거가 약한 부분`;
 const PH_TEXT = `[읽을 파일: {블록폴더}/자료/ 의 올해 필기 — 파일 이름을 여기에 · 정리본은 {블록폴더}/정리본/{강의}.md]
 {강의}는 올해 강의록(필기 전)이나 작년 필기로 미리 인코딩해 둔 강의야. 나는 정리본을 먼저 읽고 올해 필기를 보며 보완할 거야. 순서대로:
 1. 달라진 점·새 강조: 표 (슬라이드 p. | 정리본 | 올해 필기 | 출제 의미)
@@ -4104,6 +4117,7 @@ function PROMPTS(){ return [
   {id:'pw', t:'족보 CBT 만들기', w:'블록 시작, 족보 노트를 만든 뒤 — 족보 + 예상 기출을 한 화면에서 푸는 CBT, 강의 선택 화면만 (족보는 1차 복습, 예상 기출은 신규 때 강의마다 넣기)', x:PW_TEXT},
   {id:'pn', t:'마인드맵 HTML 만들기', w:'블록 시작, 족보 노트를 만든 뒤 — 족보·선배 정리본으로 증례 감별 같은 마인드맵 + 암기 탭 HTML (UI는 기존 파일 그대로)', x:PN_TEXT},
   {id:'pg', t:'신규 인코딩 (올해 강의록 + 작년 필기)', w:'올해 강의록이 올라온 날, 수업 전 — 보통 이걸 씀', x:PG_TEXT},
+  {id:'py', t:'신규 인코딩 (작년 필기만)', w:'올해 강의록이 아직 안 올라왔을 때 — 작년 필기만으로 먼저 인코딩 (올해 강의록이 올라오면 강의록 보완 카드로 대조)', x:PY_TEXT},
   {id:'pb', t:'신규 인코딩 (올해 필기)', w:'올해 필기까지 올라온 뒤 처음 인코딩할 때', x:PB_TEXT},
   {id:'pz', t:'압축본 만들기', w:'수업이 끝난 날 저녁 — 전체본에 필기·#암기를 옮긴 뒤 (밀린 강의는 강의 이름만 바꿔 반복)', x:PZ_TEXT},
   {id:'pl', t:'예상 기출문제', w:'압축본을 읽고 전체본을 훑은 뒤 — 시험 문항 수 × 배수만큼 족보 CBT 데이터에 넣고 CBT 화면에서 풀기', x:PL_TEXT},
@@ -4119,7 +4133,7 @@ function PROMPTS(){ return [
 /* 프롬프트는 단계(신규/1차/2차)에 묶인다. 오늘 할 일 카드의 프롬포트 버튼은
    그 단계에 묶인 기본 프롬프트 + 내가 추가한 프롬프트를 한 목록으로 펼쳐 보여준다. */
 const PROMPT_CATS=[{key:'new',label:'신규'},{key:'sup',label:'보완'},{key:'r1',label:'1차'},{key:'r2',label:'2차'},{key:'none',label:'관련없음'}];
-const BUILTIN_PROMPT_CAT={pv:'none', pi:'none', pj:'none', pw:'none', pn:'none', px:'r1', pg:'new', pb:'new', pz:'new', pl:'new', ph:'sup', pu:'sup', pc:'none', po:'r1', pk:'r1', pe:'none', pt:'none'};
+const BUILTIN_PROMPT_CAT={pv:'none', pi:'none', pj:'none', pw:'none', pn:'none', px:'r1', pg:'new', py:'new', pb:'new', pz:'new', pl:'new', ph:'sup', pu:'sup', pc:'none', po:'r1', pk:'r1', pe:'none', pt:'none'};
 function catLabel(key){ const c=PROMPT_CATS.find(x=>x.key===key); return c? c.label : '관련없음'; }
 function customPrompts(){ if(!Array.isArray(App.customPrompts)) App.customPrompts=[]; return App.customPrompts; }
 function shortPromptName(t){ return String(t).replace(/^PROMPT\s*\d+\s*[·.]\s*/,''); }
