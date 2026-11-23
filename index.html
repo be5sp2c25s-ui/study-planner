@@ -1908,6 +1908,7 @@ function normalizeApp(app){
     const pl=PROMPTS().find(x=>x.id==='pl');
     app.customPrompts.forEach(cp=>{ if(cp && cp.id==='pl' && pl && typeof cp.text==='string' && (cp.text.includes('내가 다 답하기 전엔 정답 공개 X') || cp.text.includes('예상 기출 CBT 데이터.js'))){ cp.text=pl.x; cp.when=pl.w; } });
     /* 실전 모의고사: 저장해 둔 예상 기출·족보 CBT 프롬프트에는 새 블록만 덧붙이고(직접 고친 내용은 그대로), 출제율 Top 선정 프롬프트를 예상 기출문제 바로 뒤에 추가 */
+    app.customPrompts=app.customPrompts.filter(cp=>!(cp && (cp.id==='pq' || cp.name==='예상 기출 출제율 Top 선정'))); // 예상 기출문제 프롬프트에 합쳐서 따로 둔 Top 선정 프롬프트는 제거
     app.customPrompts.forEach(cp=>{
       if(!cp || typeof cp.text!=='string') return;
       if(cp.id==='pl' && !cp.text.includes('출제율 순위 (실전 모의고사용)')) cp.text=cp.text+'\n'+PL_TOP_BLOCK;
